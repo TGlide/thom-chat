@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { active } from '$lib/actions/active.svelte';
+	import { authClient } from '$lib/backend/auth/client.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { LightSwitch } from '$lib/components/ui/light-switch';
 	import { ArrowLeftIcon } from '@lucide/svelte';
@@ -25,6 +27,12 @@
 			href: '/account/api-keys'
 		}
 	];
+
+	async function signOut() {
+		await authClient.signOut();
+
+		await goto('/login');
+	}
 </script>
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
@@ -35,7 +43,7 @@
 		</a>
 		<div class="flex place-items-center gap-2">
 			<LightSwitch variant="ghost" />
-			<Button variant="ghost">Sign out</Button>
+			<Button variant="ghost" onClickPromise={signOut}>Sign out</Button>
 		</div>
 	</header>
 	<div class="px-4 md:grid md:grid-cols-[280px_1fr]">

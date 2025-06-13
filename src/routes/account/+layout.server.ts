@@ -1,9 +1,9 @@
-import { redirect } from '@sveltejs/kit';
+import { redirectToLogin } from '$lib/backend/auth/redirect.js';
 
-export async function load({ locals }) {
+export async function load({ locals, url }) {
 	const session = await locals.auth();
 
-	if (!session) redirect(303, '/login');
+	if (!session) redirectToLogin(url);
 
 	return {
 		session
