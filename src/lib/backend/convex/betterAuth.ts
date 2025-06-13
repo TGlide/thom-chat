@@ -6,7 +6,7 @@ const { betterAuth, query, insert, update, delete_, count, getSession } = Convex
 	action,
 	internalQuery,
 	internalMutation,
-	internal
+	internal,
 }) as ConvexReturnType;
 
 export { betterAuth, query, insert, update, delete_, count, getSession };
