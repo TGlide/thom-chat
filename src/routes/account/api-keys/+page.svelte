@@ -8,6 +8,7 @@
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
+	import ProviderCard from './provider-card.svelte';
 
 	const allProviders = Object.values(Provider);
 
@@ -58,22 +59,6 @@
 
 	const client = useConvexClient();
 
-	function createSubmit(provider: Provider) {
-		return (e: SubmitEvent) => {
-			e.preventDefault();
-			const form = e.target as HTMLFormElement;
-			const formData = new FormData(form);
-			const key = formData.get('key');
-			if (!key || !session.current?.user.id) return;
-
-			client.mutation(api.user_keys.set, {
-				provider,
-				user_id: session.current?.user.id ?? '',
-				key: `${key}`,
-			});
-		};
-	}
-
 	const keys = useQuery(api.user_keys.get, { user_id: session.current?.user.id ?? '' });
 </script>
 
@@ -86,40 +71,6 @@
 <div class="mt-8 flex flex-col gap-8">
 	{#each allProviders as provider (provider)}
 		{@const meta = providersMeta[provider]}
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>
-					<KeyIcon class="inline size-4" />
-					{meta.title}
-				</Card.Title>
-				<Card.Description>{meta.description}</Card.Description>
-			</Card.Header>
-			<Card.Content tag="form" onsubmit={createSubmit(provider)}>
-				<div class="flex flex-col gap-1">
-					{#if !keys.isLoading}
-						<Input
-							type="password"
-							placeholder={meta.placeholder ?? ''}
-							autocomplete="off"
-							name="key"
-							value={keys.data?.[provider]}
-						/>
-					{:else}
-						<div class="flex place-items-center gap-2">
-							<span>Add a skeleton here bruh</span>
-						</div>
-					{/if}
-					<span class="text-muted-foreground text-xs">
-						Get your API key from
-						<Link href={meta.link} target="_blank" class="text-blue-500">
-							{meta.title}
-						</Link>
-					</span>
-				</div>
-				<div class="flex justify-end">
-					<Button type="submit">Save</Button>
-				</div>
-			</Card.Content>
-		</Card.Root>
+		<ProviderCard {provider} {meta} key={(async () => await keys.data?.[provider])()} />
 	{/each}
 </div>

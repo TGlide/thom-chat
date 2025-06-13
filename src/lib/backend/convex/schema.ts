@@ -7,7 +7,7 @@ export const providerValidator = v.union(...Object.values(Provider).map((p) => v
 export default defineSchema({
 	user_keys: defineTable({
 		provider: providerValidator,
-		user_id: v.string(),
+		user_id: v.id('users'),
 		key: v.string(),
 	})
 		.index('by_user', ['user_id'])

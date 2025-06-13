@@ -5,7 +5,7 @@ import { providerValidator } from './schema';
 
 export const get = query({
 	args: {
-		user_id: v.string(),
+		user_id: v.id('users'),
 	},
 	handler: async (ctx, args) => {
 		const allKeys = await ctx.db
@@ -26,7 +26,7 @@ export const get = query({
 export const set = mutation({
 	args: {
 		provider: providerValidator,
-		user_id: v.string(),
+		user_id: v.id('users'),
 		key: v.string(),
 	},
 	handler: async (ctx, args) => {
