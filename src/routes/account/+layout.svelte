@@ -10,20 +10,20 @@
 	const navigation: { title: string; href: string }[] = [
 		{
 			title: 'Account',
-			href: '/account'
+			href: '/account',
 		},
 		{
 			title: 'Customization',
-			href: '/account/customization'
+			href: '/account/customization',
 		},
 		{
 			title: 'Models',
-			href: '/account/models'
+			href: '/account/models',
 		},
 		{
 			title: 'API Keys',
-			href: '/account/api-keys'
-		}
+			href: '/account/api-keys',
+		},
 	];
 </script>
 
@@ -48,24 +48,26 @@
 					{/snippet}
 				</Avatar>
 				<div class="flex flex-col gap-1">
-					<h1 class="text-center text-2xl font-bold">John Doe</h1>
+					<p class="text-center text-2xl font-bold">John Doe</p>
 					<span class="text-muted-foreground text-center text-sm">m@example.com</span>
 				</div>
 			</div>
 		</div>
-		<div class="space-y-8 pl-12 md:col-start-2">
-			<div
-				class="bg-card text-muted-foreground gap-2 flex w-fit place-items-center rounded-lg p-1 text-sm"
-			>
-				{#each navigation as tab (tab)}
-					<a
-						href={tab.href}
-						use:active={{ activeForSubdirectories: false }}
-						class="data-[active=true]:bg-background data-[active=true]:text-foreground rounded-md px-2 py-1"
-					>
-						{tab.title}
-					</a>
-				{/each}
+		<div class=" pl-12 md:col-start-2">
+			<div class="pb-8">
+				<div
+					class="bg-card text-muted-foreground flex w-fit place-items-center gap-2 rounded-lg p-1 text-sm"
+				>
+					{#each navigation as tab (tab)}
+						<a
+							href={tab.href}
+							use:active={{ activeForSubdirectories: false }}
+							class="data-[active=true]:bg-background data-[active=true]:text-foreground rounded-md px-2 py-1"
+						>
+							{tab.title}
+						</a>
+					{/each}
+				</div>
 			</div>
 			{@render children?.()}
 		</div>

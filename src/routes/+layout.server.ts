@@ -1,7 +1,10 @@
-export async function load({locals}) {
-    const session = await locals.auth();
+import type { LayoutServerLoad } from './$types';
 
-    return {
-        session
-    }
-}
+export const load: LayoutServerLoad = async ({ locals }) => {
+	const session = await locals.auth();
+
+	return {
+		session,
+	};
+};
+
