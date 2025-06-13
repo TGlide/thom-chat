@@ -3,10 +3,15 @@
 	import { authClient } from '$lib/backend/auth/client';
 
 	async function signInGithub() {
-		await authClient.signIn.social({
-			provider: 'github',
-			callbackURL: '/chat'
-		});
+		try {
+			console.log('signInGithub');
+			const data = await authClient.signIn.social({
+				provider: 'github'
+			});
+			console.log('signInGithub data', data);
+		} catch (e) {
+			console.log('signInGithub error', e);
+		}
 	}
 </script>
 

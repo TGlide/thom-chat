@@ -60,6 +60,9 @@ importers:
       convex-svelte:
         specifier: ^0.0.11
         version: 0.0.11(convex@1.24.8)(svelte@5.34.1)
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.5.0
       eslint:
         specifier: ^9.18.0
         version: 9.28.0(jiti@2.4.2)
@@ -1246,6 +1249,10 @@ packages:
 
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
+
+  dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
+    engines: {node: '>=12'}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -3336,6 +3343,8 @@ snapshots:
   dom-accessibility-api@0.5.16: {}
 
   dom-accessibility-api@0.6.3: {}
+
+  dotenv@16.5.0: {}
 
   emoji-regex@8.0.0: {}
 
