@@ -20,11 +20,8 @@
 			{@render children?.()}
 		</dialog>
 	{/if}
-{:else}
-	<div
-		{...rest}
-		class={cn('bg-sidebar col-start-1 h-screen w-[--sidebar-width]', className)}
-	>
+{:else if sidebar.root.showSidebar}
+	<div {...rest} class={cn('bg-sidebar col-start-1 h-screen w-[--sidebar-width]', className)}>
 		{@render children?.()}
 	</div>
 {/if}

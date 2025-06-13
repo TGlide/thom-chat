@@ -10,7 +10,7 @@
 
 <div
 	{...rest}
-	class={cn('md:grid md:grid-cols-[var(--sidebar-width)_1fr] [--sidebar-width:0px]', {
+	class={cn('[--sidebar-width:0px] md:grid md:grid-cols-[var(--sidebar-width)_1fr]', {
 		'[--sidebar-width:250px]': sidebar.showSidebar
 	})}
 >
