@@ -45,7 +45,7 @@
 				key: `${key}`,
 			});
 
-			console.log(res);
+			// TODO: Setup toast notifications
 		} catch {
 		} finally {
 			loading = false;
