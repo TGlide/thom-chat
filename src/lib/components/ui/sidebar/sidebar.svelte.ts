@@ -1,6 +1,5 @@
 import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 import { Context } from 'runed';
-import type { ReadableBoxedValues } from 'svelte-toolbelt';
 
 export class SidebarRootState {
 	open = $state(true);
@@ -32,26 +31,8 @@ export class SidebarTriggerState {
 	}
 }
 
-type SidebarSidebarProps = ReadableBoxedValues<{ 
-	dialogRef: HTMLDialogElement | null;
-}>
-
 export class SidebarSidebarState {
-	constructor(readonly root: SidebarRootState, readonly props: SidebarSidebarProps) {
-
-		$effect(()  => {
-			if (!this.root.isMobile.current) {
-				this.props.dialogRef.current?.close();
-				return;
-			}
-
-			if (this.root.openMobile) {
-				this.props.dialogRef.current?.showModal();
-			} else {
-				this.props.dialogRef.current?.close();
-			}
-		})
-	}
+	constructor(readonly root: SidebarRootState) {}
 }
 
 export const ctx = new Context<SidebarRootState>('sidebar-root-context');
@@ -64,6 +45,6 @@ export function useSidebarTrigger() {
 	return new SidebarTriggerState(ctx.get());
 }
 
-export function useSidebarSidebar(props: SidebarSidebarProps) {
-	return new SidebarSidebarState(ctx.get(), props);
+export function useSidebarSidebar() {
+	return new SidebarSidebarState(ctx.get());
 }

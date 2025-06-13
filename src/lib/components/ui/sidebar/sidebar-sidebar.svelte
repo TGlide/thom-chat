@@ -6,21 +6,10 @@
 
 	let { class: className, children, ...rest }: HTMLAttributes<HTMLDivElement> = $props();
 
-	let dialogRef = $state<HTMLDialogElement | null>(null);
-
-	const sidebar = useSidebarSidebar({ dialogRef: box.with(() => dialogRef) });
+	const sidebar = useSidebarSidebar();
 </script>
 
-{#if sidebar.root.isMobile.current}
-	{#if sidebar.root.showSidebar}
-		<dialog
-			bind:this={dialogRef}
-			class={cn('bg-sidebar top-0 left-0 h-svh w-[--sidebar-width]', className)}
-		>
-			{@render children?.()}
-		</dialog>
-	{/if}
-{:else if sidebar.root.showSidebar}
+{#if sidebar.root.showSidebar}
 	<div {...rest} class={cn('bg-sidebar col-start-1 h-screen w-[--sidebar-width]', className)}>
 		{@render children?.()}
 	</div>
