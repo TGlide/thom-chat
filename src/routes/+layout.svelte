@@ -2,7 +2,9 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 
-	let { children } = $props();
+	let { data, children } = $props();
+
+	$inspect(data.session);
 </script>
 
 <ModeWatcher />
