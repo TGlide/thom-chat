@@ -30,15 +30,15 @@ export const set = mutation({
 		key: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const exisingItem = await ctx.db
+		const existing = await ctx.db
 			.query('user_keys')
 			.withIndex('by_provider_user', (q) =>
 				q.eq('provider', args.provider).eq('user_id', args.user_id)
 			)
 			.first();
 
-		if (exisingItem) {
-			await ctx.db.replace(exisingItem._id, args);
+		if (existing) {
+			await ctx.db.replace(existing._id, args);
 		} else {
 			await ctx.db.insert('user_keys', args);
 		}

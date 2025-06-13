@@ -49,10 +49,15 @@
 	<div class="px-4 md:grid md:grid-cols-[280px_1fr]">
 		<div class="hidden md:col-start-1 md:block">
 			<div class="flex flex-col place-items-center gap-2">
-				<Avatar src={data.session.user.image}>
+				<Avatar src={data.session.user.image ?? undefined}>
 					{#snippet children(avatar)}
 						<img {...avatar.image} alt="Your avatar" class="size-40 rounded-full" />
-						<span {...avatar.fallback}>{data.session.user.name}</span>
+						<span {...avatar.fallback}>
+							{data.session.user.name
+								.split(' ')
+								.map((i) => i[0].toUpperCase())
+								.join('')}
+						</span>
 					{/snippet}
 				</Avatar>
 				<div class="flex flex-col gap-1">
