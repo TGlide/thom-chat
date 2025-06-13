@@ -18,6 +18,33 @@ Clone of [T3 Chat](https://t3.chat/)
 - **Linting**: ESLint
 - **Formatting**: Prettier
 
+### Discussion
+
+- Vercel SDK?
+
 ## 📦 Self-hosting
 
 IDK, calm down
+
+## TODO
+
+- [-] Login & Auth
+- [ ] Convex schemas for chats
+- [ ] Providers (BYOK)
+  - [ ] Openrouter
+  - [ ] HuggingFace
+  - [ ] OpenAI
+- [ ] File upload
+- [ ] Test link with free credits
+- [ ] Ensure responsiveness
+- [ ] File support
+- [ ] Streams on the server
+- [ ] Syntax highlighting with Shiki/markdown renderer
+
+### Extra
+
+- [ ] Web Search
+- [ ] MCPs
+- [ ] Chat branching
+- [ ] Image generation
+- [ ] Chat sharing
