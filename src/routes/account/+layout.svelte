@@ -1,11 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { active } from '$lib/actions/active.svelte';
+	import { authClient } from '$lib/backend/auth/client.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { LightSwitch } from '$lib/components/ui/light-switch';
 	import { ArrowLeftIcon } from '@lucide/svelte';
 	import { Avatar } from 'melt/components';
 
-	let { children } = $props();
+	let { data, children } = $props();
 
 	const navigation: { title: string; href: string }[] = [
 		{
@@ -25,6 +27,12 @@
 			href: '/account/api-keys'
 		}
 	];
+
+	async function signOut() {
+		await authClient.signOut();
+
+		await goto('/login');
+	}
 </script>
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
@@ -35,27 +43,27 @@
 		</a>
 		<div class="flex place-items-center gap-2">
 			<LightSwitch variant="ghost" />
-			<Button variant="ghost">Sign out</Button>
+			<Button variant="ghost" onClickPromise={signOut}>Sign out</Button>
 		</div>
 	</header>
 	<div class="px-4 md:grid md:grid-cols-[280px_1fr]">
 		<div class="hidden md:col-start-1 md:block">
 			<div class="flex flex-col place-items-center gap-2">
-				<Avatar src="https://github.com/shadcn.png">
+				<Avatar src={data.session.user.image}>
 					{#snippet children(avatar)}
-						<img {...avatar.image} alt="Avatar" class="size-40 rounded-full" />
-						<span {...avatar.fallback}>JD</span>
+						<img {...avatar.image} alt="Your avatar" class="size-40 rounded-full" />
+						<span {...avatar.fallback}>{data.session.user.name}</span>
 					{/snippet}
 				</Avatar>
 				<div class="flex flex-col gap-1">
-					<h1 class="text-center text-2xl font-bold">John Doe</h1>
-					<span class="text-muted-foreground text-center text-sm">m@example.com</span>
+					<h1 class="text-center text-2xl font-bold">{data.session.user.name}</h1>
+					<span class="text-muted-foreground text-center text-sm">{data.session.user.email}</span>
 				</div>
 			</div>
 		</div>
 		<div class="space-y-8 pl-12 md:col-start-2">
 			<div
-				class="bg-card text-muted-foreground gap-2 flex w-fit place-items-center rounded-lg p-1 text-sm"
+				class="bg-card text-muted-foreground flex w-fit place-items-center gap-2 rounded-lg p-1 text-sm"
 			>
 				{#each navigation as tab (tab)}
 					<a
