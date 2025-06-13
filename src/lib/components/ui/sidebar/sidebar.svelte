@@ -10,8 +10,8 @@
 
 <div
 	{...rest}
-	class={cn('grid grid-cols-[var(--sidebar-width)_1fr] transition-all [--sidebar-width:0px]', {
-		'[--sidebar-width:250px]': sidebar.open,
+	class={cn('md:grid md:grid-cols-[var(--sidebar-width)_1fr] [--sidebar-width:0px]', {
+		'[--sidebar-width:250px]': sidebar.showSidebar
 	})}
 >
 	{@render children?.()}
