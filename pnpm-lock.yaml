@@ -7,19 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      concurrently:
-        specifier: ^9.1.2
-        version: 9.1.2
-      convex:
-        specifier: ^1.24.8
-        version: 1.24.8
-      convex-svelte:
-        specifier: ^0.0.11
-        version: 0.0.11(convex@1.24.8)(svelte@5.34.1)
-      melt:
-        specifier: ^0.35.0
-        version: 0.35.0(@floating-ui/dom@1.7.1)(svelte@5.34.1)
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -48,6 +35,15 @@ importers:
       '@testing-library/svelte':
         specifier: ^5.2.4
         version: 5.2.8(svelte@5.34.1)(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1))(vitest@3.2.3(@types/node@24.0.1)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1))
+      concurrently:
+        specifier: ^9.1.2
+        version: 9.1.2
+      convex:
+        specifier: ^1.24.8
+        version: 1.24.8
+      convex-svelte:
+        specifier: ^0.0.11
+        version: 0.0.11(convex@1.24.8)(svelte@5.34.1)
       eslint:
         specifier: ^9.18.0
         version: 9.28.0(jiti@2.4.2)
@@ -63,6 +59,9 @@ importers:
       jsdom:
         specifier: ^26.0.0
         version: 26.1.0
+      melt:
+        specifier: ^0.35.0
+        version: 0.35.0(@floating-ui/dom@1.7.1)(svelte@5.34.1)
       mode-watcher:
         specifier: ^1.0.8
         version: 1.0.8(svelte@5.34.1)
