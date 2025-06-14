@@ -28,7 +28,6 @@
 
 	let loading = $state(false);
 	const toasts = new LocalToasts({ id });
-	$inspect(toasts.toasts);
 
 	async function submit(e: SubmitEvent) {
 		loading = true;

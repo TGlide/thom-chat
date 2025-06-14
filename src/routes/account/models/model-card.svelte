@@ -5,6 +5,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
+	import { ResultAsync } from 'neverthrow';
 
 	type Model = {
 		id: string;
@@ -35,15 +36,21 @@
 
 	let showMore = $state(false);
 
-	async function toggleEnabled(enabled: boolean) {
+	async function toggleEnabled(v: boolean) {
+		enabled = v; // Optimistic!
 		if (!session.current?.user.id) return;
 
-		await client.mutation(api.user_enabled_models.set, {
-			provider,
-			user_id: session.current.user.id,
-			model_id: model.id,
-			enabled,
-		});
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.user_enabled_models.set, {
+				provider,
+				user_id: session.current.user.id,
+				model_id: model.id,
+				enabled: v,
+			}),
+			(e) => e
+		);
+
+		if (res.isErr()) enabled = !v; // Should have been a realist :(
 	}
 </script>
 
@@ -52,7 +59,7 @@
 		<div class="flex items-center justify-between">
 			<Card.Title>{model.name}</Card.Title>
 			<!-- TODO: make this actually work -->
-			<Switch value={enabled} onValueChange={toggleEnabled} />
+			<Switch bind:value={() => enabled, toggleEnabled} />
 		</div>
 		<Card.Description
 			>{showMore ? fullDescription : (shortDescription ?? fullDescription)}</Card.Description
@@ -67,5 +74,4 @@
 			</button>
 		{/if}
 	</Card.Header>
-	<Card.Content></Card.Content>
 </Card.Root>

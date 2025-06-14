@@ -1,10 +1,19 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/utils';
 	import { Toggle, type ToggleProps } from 'melt/builders';
+	import { type ComponentProps } from 'melt';
 
-	let { class: className, ...rest }: ToggleProps & { class?: string } = $props();
+	let {
+		class: className,
+		value = $bindable(false),
+		...rest
+	}: ComponentProps<ToggleProps> & { class?: string } = $props();
 
-	const toggle = new Toggle(rest);
+	const toggle = new Toggle({
+		value: () => value ?? false,
+		onValueChange: (v) => (value = v),
+		...rest,
+	});
 </script>
 
 <button

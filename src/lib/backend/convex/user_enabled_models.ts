@@ -2,6 +2,7 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { providerValidator } from './schema';
 import * as array from '../../utils/array';
+import * as object from '../../utils/object';
 
 export const get_enabled = query({
 	args: {
@@ -14,6 +15,24 @@ export const get_enabled = query({
 			.collect();
 
 		return array.toMap(models, (m) => [`${m.provider}:${m.model_id}`, m]);
+	},
+});
+
+export const is_enabled = query({
+	args: {
+		user_id: v.string(),
+		provider: providerValidator,
+		model_id: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const model = await ctx.db
+			.query('user_enabled_models')
+			.withIndex('by_model_provider_user', (q) =>
+				q.eq('model_id', args.model_id).eq('provider', args.provider).eq('user_id', args.user_id)
+			)
+			.first();
+
+		return !!model;
 	},
 });
 
@@ -38,7 +57,7 @@ export const set = mutation({
 			await ctx.db.delete(existing._id);
 		} else {
 			await ctx.db.insert('user_enabled_models', {
-				...{ ...args, enabled: undefined },
+				...object.pick(args, ['provider', 'model_id', 'user_id']),
 				pinned: null,
 			});
 		}

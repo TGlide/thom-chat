@@ -17,9 +17,10 @@ export default defineSchema({
 		provider: providerValidator,
 		/** Different providers may use different ids for the same model */
 		model_id: v.string(),
-		pinned: v.union(v.number(), v.null())
+		pinned: v.union(v.number(), v.null()),
 	})
 		.index('by_user', ['user_id'])
 		.index('by_model_provider', ['model_id', 'provider'])
-		.index('by_provider_user', ['provider', 'user_id']),
+		.index('by_provider_user', ['provider', 'user_id'])
+		.index('by_model_provider_user', ['model_id', 'provider', 'user_id']),
 });

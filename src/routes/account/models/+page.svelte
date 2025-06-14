@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Provider } from '$lib/types.js';
 	import { useQuery } from 'convex-svelte';
-	import Model from './model.svelte';
+	import ModelCard from './model-card.svelte';
 	import { session } from '$lib/state/session.svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 
@@ -10,6 +10,11 @@
 	const enabledModels = useQuery(api.user_enabled_models.get_enabled, {
 		user_id: session.current?.user.id ?? '',
 	});
+
+	$inspect(
+		enabledModels.data,
+		!!enabledModels.data?.[`${Provider.OpenRouter}:${data.openRouterModels[0].id}`]
+	);
 </script>
 
 <svelte:head>
@@ -24,6 +29,6 @@
 <div class="mt-8 flex flex-col gap-4">
 	{#each data.openRouterModels as model (model.id)}
 		{@const enabled = enabledModels.data?.[`${Provider.OpenRouter}:${model.id}`] !== undefined}
-		<Model provider={Provider.OpenRouter} {model} {enabled} />
+		<ModelCard provider={Provider.OpenRouter} {model} {enabled} />
 	{/each}
 </div>
