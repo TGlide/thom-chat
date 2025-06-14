@@ -40,7 +40,7 @@ export function getOpenRouterModels() {
 		(async () => {
 			const res = await fetch('https://openrouter.ai/api/v1/models');
 
-            const { data } = await res.json()
+			const { data } = await res.json();
 
 			return data as OpenRouterModel[];
 		})(),

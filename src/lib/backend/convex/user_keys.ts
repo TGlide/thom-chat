@@ -3,7 +3,7 @@ import { Provider } from '../../types';
 import { mutation, query } from './_generated/server';
 import { providerValidator } from './schema';
 
-export const get = query({
+export const all = query({
 	args: {
 		user_id: v.string(),
 	},
@@ -20,6 +20,23 @@ export const get = query({
 			},
 			{} as Record<Provider, string | undefined>
 		);
+	},
+});
+
+export const get = query({
+	args: {
+		user_id: v.string(),
+		provider: providerValidator,
+	},
+	handler: async (ctx, args) => {
+		const key = await ctx.db
+			.query('user_keys')
+			.withIndex('by_provider_user', (q) =>
+				q.eq('provider', args.provider).eq('user_id', args.user_id)
+			)
+			.first();
+
+		return key?.key;
 	},
 });
 

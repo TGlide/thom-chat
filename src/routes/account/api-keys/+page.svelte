@@ -1,19 +1,11 @@
 <script lang="ts">
-	import { Provider } from '$lib/types';
+	import { Provider, type ProviderMeta } from '$lib/types';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
 	import ProviderCard from './provider-card.svelte';
 
 	const allProviders = Object.values(Provider);
-
-	type ProviderMeta = {
-		title: string;
-		link: string;
-		description: string;
-		models?: string[];
-		placeholder?: string;
-	};
 
 	const providersMeta: Record<Provider, ProviderMeta> = {
 		[Provider.OpenRouter]: {
@@ -51,8 +43,6 @@
 			placeholder: 'sk-ant-...',
 		},
 	};
-
-	const keys = useQuery(api.user_keys.get, { user_id: session.current?.user.id ?? '' });
 </script>
 
 <svelte:head>
@@ -67,9 +57,9 @@
 	</h2>
 </div>
 
-<div class="mt-8 flex flex-col gap-8">
+<div class="mt-8 flex flex-col gap-4">
 	{#each allProviders as provider (provider)}
 		{@const meta = providersMeta[provider]}
-		<ProviderCard {provider} {meta} key={(async () => await keys.data?.[provider])()} />
+		<ProviderCard {provider} {meta} />
 	{/each}
 </div>
