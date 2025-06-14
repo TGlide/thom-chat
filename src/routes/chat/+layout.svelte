@@ -23,10 +23,15 @@
 		<div class="py-2">
 			{#if data.session !== null}
 				<Button href="/account/api-keys" variant="ghost" class="h-auto w-full justify-start">
-					<Avatar src={data.session.user.image}>
+					<Avatar src={data.session.user.image ?? undefined}>
 						{#snippet children(avatar)}
 							<img {...avatar.image} alt="Your avatar" class="size-10 rounded-full" />
-							<span {...avatar.fallback}>{data.session?.user.name}</span>
+							<span {...avatar.fallback}
+								>{data.session?.user.name
+									.split(' ')
+									.map((name) => name[0].toUpperCase())
+									.join('')}</span
+							>
 						{/snippet}
 					</Avatar>
 					<div class="flex flex-col">
