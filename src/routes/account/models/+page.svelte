@@ -8,6 +8,10 @@
 	const client = useConvexClient();
 </script>
 
+<svelte:head>
+	<title>Models | Thom.chat</title>
+</svelte:head>
+
 <div>
 	<h1 class="text-2xl font-bold">Available Models</h1>
 	<h2 class="text-muted-foreground mt-2 text-sm">

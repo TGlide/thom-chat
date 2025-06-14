@@ -55,6 +55,10 @@
 	const keys = useQuery(api.user_keys.get, { user_id: session.current?.user.id ?? '' });
 </script>
 
+<svelte:head>
+	<title>API Keys | Thom.chat</title>
+</svelte:head>
+
 <div>
 	<h1 class="text-2xl font-bold">API Keys</h1>
 	<h2 class="text-muted-foreground mt-2 text-sm">

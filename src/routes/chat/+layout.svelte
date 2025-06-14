@@ -7,6 +7,10 @@
 	let { data, children } = $props();
 </script>
 
+<svelte:head>
+	<title>Chat | Thom.chat</title>
+</svelte:head>
+
 <Sidebar.Root>
 	<Sidebar.Sidebar class="flex flex-col p-2">
 		<div class="flex place-items-center justify-center py-2">
