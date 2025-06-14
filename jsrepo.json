@@ -8,6 +8,7 @@
 	"paths": {
 		"*": "$lib/blocks",
 		"utils": "$lib/utils",
+		"ts": "$lib/utils",
 		"ui": "$lib/components/ui",
 		"actions": "$lib/actions",
 		"hooks": "$lib/hooks"

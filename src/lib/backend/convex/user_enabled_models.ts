@@ -1,16 +1,19 @@
-import { mutation } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { providerValidator } from './schema';
+import * as array from '../../utils/array';
 
-export const get = mutation({
+export const get_enabled = query({
 	args: {
-		user_id: v.id('users'),
+		user_id: v.string(),
 	},
 	handler: async (ctx, args) => {
-		return await ctx.db
+		const models = await ctx.db
 			.query('user_enabled_models')
 			.withIndex('by_user', (q) => q.eq('user_id', args.user_id))
 			.collect();
+
+		return array.toMap(models, (m) => [`${m.provider}:${m.model_id}`, m]);
 	},
 });
 
@@ -18,7 +21,8 @@ export const set = mutation({
 	args: {
 		provider: providerValidator,
 		model_id: v.string(),
-		user_id: v.id('users'),
+		user_id: v.string(),
+		enabled: v.boolean(),
 	},
 	handler: async (ctx, args) => {
 		const existing = await ctx.db
@@ -28,8 +32,15 @@ export const set = mutation({
 			)
 			.first();
 
-		if (existing) return;
+		if (args.enabled && existing) return; // nothing to do here
 
-		await ctx.db.insert('user_enabled_models', { ...args, pinned: null });
+		if (existing) {
+			await ctx.db.delete(existing._id);
+		} else {
+			await ctx.db.insert('user_enabled_models', {
+				...{ ...args, enabled: undefined },
+				pinned: null,
+			});
+		}
 	},
 });

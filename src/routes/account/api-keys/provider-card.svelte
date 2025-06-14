@@ -39,7 +39,7 @@
 			const key = formData.get('key');
 			if (key === null || !session.current?.user.id) return;
 
-			const res = await client.mutation(api.user_keys.set, {
+			await client.mutation(api.user_keys.set, {
 				provider,
 				user_id: session.current?.user.id ?? '',
 				key: `${key}`,

@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { Provider } from '$lib/types.js';
-	import { useConvexClient } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
 	import Model from './model.svelte';
+	import { session } from '$lib/state/session.svelte';
+	import { api } from '$lib/backend/convex/_generated/api';
 
 	let { data } = $props();
 
-	const client = useConvexClient();
+	const enabledModels = useQuery(api.user_enabled_models.get_enabled, {
+		user_id: session.current?.user.id ?? '',
+	});
 </script>
 
 <svelte:head>
@@ -20,5 +24,6 @@
 </div>
 
 {#each data.openRouterModels as model}
-	<Model provider={Provider.OpenRouter} model={model} />
+	{@const enabled = enabledModels.data?.[`${Provider.OpenRouter}:${model.id}`] !== undefined}
+	<Model provider={Provider.OpenRouter} {model} {enabled} />
 {/each}
