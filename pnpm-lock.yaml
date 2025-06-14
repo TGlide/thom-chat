@@ -105,9 +105,6 @@ importers:
       svelte-check:
         specifier: ^4.0.0
         version: 4.2.1(picomatch@4.0.2)(svelte@5.34.1)(typescript@5.8.3)
-      svelte-toolbelt:
-        specifier: ^0.9.1
-        version: 0.9.1(svelte@5.34.1)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
