@@ -41,6 +41,7 @@
 		"jsdom": "^26.0.0",
 		"melt": "^0.35.0",
 		"mode-watcher": "^1.0.8",
+		"neverthrow": "^8.2.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",

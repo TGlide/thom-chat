@@ -1,11 +1,6 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { KeyIcon } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Link } from '$lib/components/ui/link';
 	import { Provider } from '$lib/types';
-	import { useConvexClient, useQuery } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
 	import ProviderCard from './provider-card.svelte';
@@ -57,16 +52,16 @@
 		},
 	};
 
-	const client = useConvexClient();
-
 	const keys = useQuery(api.user_keys.get, { user_id: session.current?.user.id ?? '' });
 </script>
 
-<h1 class="text-2xl font-bold">API Keys</h1>
-<h2 class="text-muted-foreground mt-2 text-sm">
-	Bring your own API keys for select models. Messages sent using your API keys will not count
-	towards your monthly limits.
-</h2>
+<div>
+	<h1 class="text-2xl font-bold">API Keys</h1>
+	<h2 class="text-muted-foreground mt-2 text-sm">
+		Bring your own API keys for select models. Messages sent using your API keys will not count
+		towards your monthly limits.
+	</h2>
+</div>
 
 <div class="mt-8 flex flex-col gap-8">
 	{#each allProviders as provider (provider)}
