@@ -6,6 +6,6 @@ export async function load({ locals, url }) {
 	if (!session) redirectToLogin(url);
 
 	return {
-		session
+		session,
 	};
 }

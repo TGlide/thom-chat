@@ -6,12 +6,12 @@
 
 <div class="flex size-full place-items-center justify-center">
 	<div class="flex w-full max-w-lg flex-col place-items-center gap-1">
-		<form class="relative w-full h-18">
+		<form class="relative h-18 w-full">
 			<textarea
-				class="border-input bg-background h-full ring-ring ring-offset-background w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
+				class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
 				placeholder="Ask me anything..."
 			></textarea>
-			<Button type="submit" size="icon" class="absolute bottom-1 right-1 size-8">
+			<Button type="submit" size="icon" class="absolute right-1 bottom-1 size-8">
 				<SendIcon />
 			</Button>
 		</form>

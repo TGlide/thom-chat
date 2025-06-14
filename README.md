@@ -28,8 +28,9 @@ IDK, calm down
 
 ## TODO
 
-- [-] Login & Auth
+- [x] Login & Auth
 - [ ] Convex schemas for chats
+- [ ] Actual fucking UI for chat
 - [ ] Providers (BYOK)
   - [ ] Openrouter
   - [ ] HuggingFace

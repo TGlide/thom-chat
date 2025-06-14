@@ -63,7 +63,7 @@ export function active(node: HTMLAnchorElement, opts: Omit<Options, 'url'> = {})
  */
 export function attachActive(opts: Omit<Options, 'url'> = {}) {
 	return {
-		[createAttachmentKey()]: (node: HTMLAnchorElement) => active(node, opts)
+		[createAttachmentKey()]: (node: HTMLAnchorElement) => active(node, opts),
 	};
 }
 
