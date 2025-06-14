@@ -63,6 +63,7 @@
 		]
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.7.1",
 		"better-auth": "^1.2.9"
 	}
 }

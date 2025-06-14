@@ -8,6 +8,8 @@
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
 	import type { Provider, ProviderMeta } from '$lib/types';
+	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
+	import { ResultAsync } from 'neverthrow';
 
 	type Props = {
 		provider: Provider;
@@ -15,6 +17,7 @@
 	};
 
 	let { provider, meta }: Props = $props();
+	const id = $props.id();
 
 	const keyQuery = useQuery(api.user_keys.get, {
 		user_id: session.current?.user.id ?? '',
@@ -24,27 +27,35 @@
 	const client = useConvexClient();
 
 	let loading = $state(false);
+	const toasts = new LocalToasts({ id });
+	$inspect(toasts.toasts);
 
 	async function submit(e: SubmitEvent) {
 		loading = true;
 
 		e.preventDefault();
-		try {
-			const form = e.target as HTMLFormElement;
-			const formData = new FormData(form);
-			const key = formData.get('key');
-			if (key === null || !session.current?.user.id) return;
+		const form = e.target as HTMLFormElement;
+		const formData = new FormData(form);
+		const key = formData.get('key');
+		if (key === null || !session.current?.user.id) return;
 
-			await client.mutation(api.user_keys.set, {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.user_keys.set, {
 				provider,
 				user_id: session.current?.user.id ?? '',
 				key: `${key}`,
-			});
-		} catch {
-			// TODO: Setup toast notifications
-		} finally {
-			loading = false;
-		}
+			}),
+			(e) => e
+		);
+
+		toasts.addToast({
+			data: {
+				content: res.isOk() ? 'Saved' : 'Failed to save',
+				variant: res.isOk() ? 'info' : 'danger',
+			},
+		});
+
+		loading = false;
 	}
 </script>
 
@@ -77,7 +88,13 @@
 			</span>
 		</div>
 		<div class="flex justify-end">
-			<Button {loading} type="submit">Save</Button>
+			<Button {loading} type="submit" {...toasts.trigger}>Save</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
+
+{#each toasts.toasts as toast (toast)}
+	<div {...toast.attrs} class={toast.class}>
+		{toast.data.content}
+	</div>
+{/each}
