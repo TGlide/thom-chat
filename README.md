@@ -21,6 +21,7 @@ Clone of [T3 Chat](https://t3.chat/)
 ### Discussion
 
 - Vercel SDK?
+  - Nah, too limited
 
 ## 📦 Self-hosting
 
