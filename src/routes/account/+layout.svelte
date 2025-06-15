@@ -4,7 +4,7 @@
 	import { authClient } from '$lib/backend/auth/client.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { LightSwitch } from '$lib/components/ui/light-switch';
-	import { ArrowLeftIcon } from '@lucide/svelte';
+	import ArrowLeftIcon from '~icons/lucide/arrow-left';
 	import { Avatar } from 'melt/components';
 
 	let { data, children } = $props();

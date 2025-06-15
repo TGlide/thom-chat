@@ -8,7 +8,7 @@
 	import { Link } from '$lib/components/ui/link';
 	import { session } from '$lib/state/session.svelte.js';
 	import type { Provider, ProviderMeta } from '$lib/types';
-	import { KeyIcon } from '@lucide/svelte';
+	import KeyIcon from '~icons/lucide/key';
 	import { useConvexClient } from 'convex-svelte';
 	import { ResultAsync } from 'neverthrow';
 

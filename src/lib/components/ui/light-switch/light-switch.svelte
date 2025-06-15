@@ -3,7 +3,8 @@
 -->
 
 <script lang="ts">
-	import { SunIcon, MoonIcon } from '@lucide/svelte';
+	import SunIcon from '~icons/lucide/sun';
+	import MoonIcon from '~icons/lucide/moon';
 	import { toggleMode } from 'mode-watcher';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import type { LightSwitchProps } from './types';

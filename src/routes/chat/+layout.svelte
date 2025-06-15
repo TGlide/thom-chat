@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { PanelLeftIcon } from '@lucide/svelte';
+	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import { Avatar } from 'melt/components';
 	import * as Icons from '$lib/components/icons';
-	import { SendIcon } from '@lucide/svelte';
+	import SendIcon from '~icons/lucide/send';
 
 	let { data, children } = $props();
 </script>
