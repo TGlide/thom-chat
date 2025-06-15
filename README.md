@@ -29,10 +29,11 @@ IDK, calm down
 ## TODO
 
 - [x] Login & Auth
+- [x] useCachedQuery
 - [ ] Convex schemas for chats
 - [ ] Actual fucking UI for chat
 - [ ] Providers (BYOK)
-  - [ ] Openrouter
+  - [x] Openrouter
   - [ ] HuggingFace
   - [ ] OpenAI
 - [ ] File upload

@@ -1,8 +1,5 @@
 <script lang="ts">
 	import { Provider, type ProviderMeta } from '$lib/types';
-	import { useQuery } from 'convex-svelte';
-	import { api } from '$lib/backend/convex/_generated/api';
-	import { session } from '$lib/state/session.svelte.js';
 	import ProviderCard from './provider-card.svelte';
 
 	const allProviders = Object.values(Provider);

@@ -1,14 +1,15 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { KeyIcon } from '@lucide/svelte';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Link } from '$lib/components/ui/link';
-	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
+	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Link } from '$lib/components/ui/link';
 	import { session } from '$lib/state/session.svelte.js';
 	import type { Provider, ProviderMeta } from '$lib/types';
-	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
+	import { KeyIcon } from '@lucide/svelte';
+	import { useConvexClient } from 'convex-svelte';
 	import { ResultAsync } from 'neverthrow';
 
 	type Props = {
@@ -19,7 +20,7 @@
 	let { provider, meta }: Props = $props();
 	const id = $props.id();
 
-	const keyQuery = useQuery(api.user_keys.get, {
+	const keyQuery = useCachedQuery(api.user_keys.get, {
 		user_id: session.current?.user.id ?? '',
 		provider,
 	});

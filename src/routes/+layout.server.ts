@@ -7,3 +7,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		session,
 	};
 };
+
+// Makes caching easier, and tbf, we don't need SSR anyways here
+export const ssr = false;

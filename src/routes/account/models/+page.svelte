@@ -1,20 +1,15 @@
 <script lang="ts">
-	import { Provider } from '$lib/types.js';
-	import { useQuery } from 'convex-svelte';
-	import ModelCard from './model-card.svelte';
-	import { session } from '$lib/state/session.svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
+	import { session } from '$lib/state/session.svelte';
+	import { Provider } from '$lib/types.js';
+	import ModelCard from './model-card.svelte';
 
 	let { data } = $props();
 
-	const enabledModels = useQuery(api.user_enabled_models.get_enabled, {
+	const enabledModels = useCachedQuery(api.user_enabled_models.get_enabled, {
 		user_id: session.current?.user.id ?? '',
 	});
-
-	$inspect(
-		enabledModels.data,
-		!!enabledModels.data?.[`${Provider.OpenRouter}:${data.openRouterModels[0].id}`]
-	);
 </script>
 
 <svelte:head>
