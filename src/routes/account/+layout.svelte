@@ -66,7 +66,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="space-y-8 pl-12 md:col-start-2">
+		<div class="pl-12 md:col-start-2">
 			<div
 				class="bg-card text-muted-foreground flex w-fit place-items-center gap-2 rounded-lg p-1 text-sm"
 			>
@@ -80,7 +80,9 @@
 					</a>
 				{/each}
 			</div>
-			{@render children?.()}
+			<div class="pt-8">
+				{@render children?.()}
+			</div>
 		</div>
 	</div>
 </div>

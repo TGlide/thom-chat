@@ -6,3 +6,11 @@ export const Provider = {
 } as const;
 
 export type Provider = (typeof Provider)[keyof typeof Provider];
+
+export type ProviderMeta = {
+	title: string;
+	link: string;
+	description: string;
+	models?: string[];
+	placeholder?: string;
+};

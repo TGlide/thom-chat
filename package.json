@@ -41,13 +41,13 @@
 		"jsdom": "^26.0.0",
 		"melt": "^0.35.0",
 		"mode-watcher": "^1.0.8",
+		"neverthrow": "^8.2.0",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"runed": "^0.28.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
-		"svelte-toolbelt": "^0.9.1",
 		"tailwind-merge": "^3.3.1",
 		"tailwind-variants": "^1.0.0",
 		"tailwindcss": "^4.0.0",
@@ -63,6 +63,7 @@
 		]
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.7.1",
 		"better-auth": "^1.2.9"
 	}
 }

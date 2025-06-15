@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/utils';
-	import { box } from 'svelte-toolbelt';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { useSidebarSidebar } from './sidebar.svelte.js';
 

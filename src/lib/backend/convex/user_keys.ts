@@ -3,9 +3,9 @@ import { Provider } from '../../types';
 import { mutation, query } from './_generated/server';
 import { providerValidator } from './schema';
 
-export const get = query({
+export const all = query({
 	args: {
-		user_id: v.id('users'),
+		user_id: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const allKeys = await ctx.db
@@ -23,10 +23,27 @@ export const get = query({
 	},
 });
 
+export const get = query({
+	args: {
+		user_id: v.string(),
+		provider: providerValidator,
+	},
+	handler: async (ctx, args) => {
+		const key = await ctx.db
+			.query('user_keys')
+			.withIndex('by_provider_user', (q) =>
+				q.eq('provider', args.provider).eq('user_id', args.user_id)
+			)
+			.first();
+
+		return key?.key;
+	},
+});
+
 export const set = mutation({
 	args: {
 		provider: providerValidator,
-		user_id: v.id('users'),
+		user_id: v.string(),
 		key: v.string(),
 	},
 	handler: async (ctx, args) => {

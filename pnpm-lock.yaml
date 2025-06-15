@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@floating-ui/dom':
+        specifier: ^1.7.1
+        version: 1.7.1
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
@@ -84,6 +87,9 @@ importers:
       mode-watcher:
         specifier: ^1.0.8
         version: 1.0.8(svelte@5.34.1)
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
       prettier:
         specifier: ^3.4.2
         version: 3.5.3
@@ -102,9 +108,6 @@ importers:
       svelte-check:
         specifier: ^4.0.0
         version: 4.2.1(picomatch@4.0.2)(svelte@5.34.1)(typescript@5.8.3)
-      svelte-toolbelt:
-        specifier: ^0.9.1
-        version: 0.9.1(svelte@5.34.1)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
@@ -1744,6 +1747,10 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  neverthrow@8.2.0:
+    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
+    engines: {node: '>=18'}
 
   nwsapi@2.2.20:
     resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
@@ -3851,6 +3858,10 @@ snapshots:
   nanostores@0.11.4: {}
 
   natural-compare@1.4.0: {}
+
+  neverthrow@8.2.0:
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.43.0
 
   nwsapi@2.2.20: {}
 

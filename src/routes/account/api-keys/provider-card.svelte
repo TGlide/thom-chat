@@ -4,52 +4,57 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Link } from '$lib/components/ui/link';
-	import { useConvexClient } from 'convex-svelte';
+	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
-	import type { Provider } from '$lib/types';
-
-	type ProviderMeta = {
-		title: string;
-		link: string;
-		description: string;
-		models?: string[];
-		placeholder?: string;
-	};
+	import type { Provider, ProviderMeta } from '$lib/types';
+	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
+	import { ResultAsync } from 'neverthrow';
 
 	type Props = {
 		provider: Provider;
 		meta: ProviderMeta;
-		key: Promise<string>;
 	};
 
-	let { provider, meta, key: keyPromise }: Props = $props();
+	let { provider, meta }: Props = $props();
+	const id = $props.id();
+
+	const keyQuery = useQuery(api.user_keys.get, {
+		user_id: session.current?.user.id ?? '',
+		provider,
+	});
 
 	const client = useConvexClient();
 
 	let loading = $state(false);
+	const toasts = new LocalToasts({ id });
 
 	async function submit(e: SubmitEvent) {
 		loading = true;
 
 		e.preventDefault();
-		try {
-			const form = e.target as HTMLFormElement;
-			const formData = new FormData(form);
-			const key = formData.get('key');
-			if (key === null || !session.current?.user.id) return;
+		const form = e.target as HTMLFormElement;
+		const formData = new FormData(form);
+		const key = formData.get('key');
+		if (key === null || !session.current?.user.id) return;
 
-			const res = await client.mutation(api.user_keys.set, {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.user_keys.set, {
 				provider,
 				user_id: session.current?.user.id ?? '',
 				key: `${key}`,
-			});
+			}),
+			(e) => e
+		);
 
-			// TODO: Setup toast notifications
-		} catch {
-		} finally {
-			loading = false;
-		}
+		toasts.addToast({
+			data: {
+				content: res.isOk() ? 'Saved' : 'Failed to save',
+				variant: res.isOk() ? 'info' : 'danger',
+			},
+		});
+
+		loading = false;
 	}
 </script>
 
@@ -63,17 +68,17 @@
 	</Card.Header>
 	<Card.Content tag="form" onsubmit={submit}>
 		<div class="flex flex-col gap-1">
-			{#await keyPromise}
+			{#if keyQuery.isLoading}
 				<div class="bg-input h-9 animate-pulse rounded-md"></div>
-			{:then key}
+			{:else}
 				<Input
 					type="password"
 					placeholder={meta.placeholder ?? ''}
 					autocomplete="off"
 					name="key"
-					value={key}
+					value={keyQuery.data!}
 				/>
-			{/await}
+			{/if}
 			<span class="text-muted-foreground text-xs">
 				Get your API key from
 				<Link href={meta.link} target="_blank" class="text-blue-500">
@@ -82,7 +87,13 @@
 			</span>
 		</div>
 		<div class="flex justify-end">
-			<Button {loading} type="submit">Save</Button>
+			<Button {loading} type="submit" {...toasts.trigger}>Save</Button>
 		</div>
 	</Card.Content>
 </Card.Root>
+
+{#each toasts.toasts as toast (toast)}
+	<div {...toast.attrs} class={toast.class}>
+		{toast.data.content}
+	</div>
+{/each}
