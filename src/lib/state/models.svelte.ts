@@ -13,7 +13,7 @@ export class Models {
 
 	init = createInit(() => {
 		const query = useCachedQuery(api.user_enabled_models.get_enabled, {
-			user_id: session.current?.user.id ?? '',
+			sessionToken: session.current?.session.token ?? '',
 		});
 		watch(
 			() => $state.snapshot(query.data),

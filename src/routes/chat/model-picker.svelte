@@ -11,7 +11,7 @@
 	let { class: className }: Props = $props();
 
 	const enabledModelsQuery = useCachedQuery(api.user_enabled_models.get_enabled, {
-		user_id: session.current?.user.id ?? '',
+		sessionToken: session.current?.session.token ?? '',
 	});
 
 	const enabledArr = $derived(Object.values(enabledModelsQuery.data ?? {}));
