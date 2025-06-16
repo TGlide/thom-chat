@@ -246,25 +246,24 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	let conversationId = args.conversation_id;
 	if (!conversationId) {
-		const conversationResult = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.create, {
-				session_token: args.session_token,
+		const convMessageResult = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.createAndAddMessage, {
+				content: args.message,
+				role: 'user',
+				session_token: session.token,
 			}),
 			(e) => `Failed to create conversation: ${e}`
 		);
 
-		if (conversationResult.isErr()) {
-			log(`Conversation creation failed: ${conversationResult.error}`, startTime);
+		if (convMessageResult.isErr()) {
+			log(`Conversation creation failed: ${convMessageResult.error}`, startTime);
 			return error(500, 'Failed to create conversation');
 		}
 
-		conversationId = conversationResult.value;
-		log('New conversation created', startTime);
+		conversationId = convMessageResult.value.conversationId;
+		log('New conversation and message created', startTime);
 	} else {
 		log('Using existing conversation', startTime);
-	}
-
-	if (args.message) {
 		const userMessageResult = await ResultAsync.fromPromise(
 			client.mutation(api.messages.create, {
 				conversation_id: conversationId as Id<'conversations'>,

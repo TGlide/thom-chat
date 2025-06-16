@@ -23,6 +23,9 @@ importers:
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
+      convex-helpers:
+        specifier: ^0.1.94
+        version: 0.1.94(convex@1.24.8)(typescript@5.8.3)(zod@3.25.64)
       openai:
         specifier: ^5.3.0
         version: 5.3.0(ws@8.18.2)(zod@3.25.64)
@@ -1201,6 +1204,28 @@ packages:
 
   confbox@0.2.2:
     resolution: {integrity: sha512-1NB+BKqhtNipMsov4xI/NnhCKp9XG9NamYp5PVm9klAT0fsrNPjaFICsCFhNhwZJKNh7zB/3q8qXz0E9oaMNtQ==}
+
+  convex-helpers@0.1.94:
+    resolution: {integrity: sha512-35o9TzEUdze3wGHxksk9Ynutw8ekxp/kbjs1dlfK6iZwPJeKbv9sqRXIyvPytTGvMmoi40fGm09f/z22gg6L+A==}
+    hasBin: true
+    peerDependencies:
+      '@standard-schema/spec': ^1.0.0
+      convex: ^1.13.0
+      hono: ^4.0.5
+      react: ^17.0.2 || ^18.0.0 || ^19.0.0
+      typescript: ^5.5
+      zod: ^3.22.4
+    peerDependenciesMeta:
+      '@standard-schema/spec':
+        optional: true
+      hono:
+        optional: true
+      react:
+        optional: true
+      typescript:
+        optional: true
+      zod:
+        optional: true
 
   convex-svelte@0.0.11:
     resolution: {integrity: sha512-N/29gg5Zqy72vKL4xHSLk3jGwXVKIWXPs6xzq6KxGL84y/D6hG85pG2CPOzn08EzMmByts5FTkJ5p3var6yDng==}
@@ -3419,6 +3444,13 @@ snapshots:
   confbox@0.1.8: {}
 
   confbox@0.2.2: {}
+
+  convex-helpers@0.1.94(convex@1.24.8)(typescript@5.8.3)(zod@3.25.64):
+    dependencies:
+      convex: 1.24.8
+    optionalDependencies:
+      typescript: 5.8.3
+      zod: 3.25.64
 
   convex-svelte@0.0.11(convex@1.24.8)(svelte@5.34.1):
     dependencies:
