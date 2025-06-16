@@ -29,6 +29,18 @@ export default ts.config(
 					argsIgnorePattern: '^_',
 				},
 			],
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: ['*/_generated/server'],
+							importNames: ['mutation', 'internalMutation'],
+							message: 'Use functions.ts for mutation',
+						},
+					],
+				},
+			],
 		},
 	},
 	{
