@@ -38,6 +38,7 @@
 
 	async function toggleEnabled(v: boolean) {
 		enabled = v; // Optimistic!
+		console.log('hi');
 		if (!session.current?.user.id) return;
 
 		const res = await ResultAsync.fromPromise(

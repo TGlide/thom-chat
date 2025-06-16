@@ -55,7 +55,7 @@
 						<span {...avatar.fallback}>
 							{data.session.user.name
 								.split(' ')
-								.map((i) => i[0].toUpperCase())
+								.map((i) => i[0]?.toUpperCase())
 								.join('')}
 						</span>
 					{/snippet}

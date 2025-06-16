@@ -23,6 +23,12 @@ importers:
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
+      openai:
+        specifier: ^5.3.0
+        version: 5.3.0(ws@8.18.2)(zod@3.25.64)
+      zod:
+        specifier: ^3.25.64
+        version: 3.25.64
     devDependencies:
       '@better-auth-kit/convex':
         specifier: ^1.2.2
@@ -1808,6 +1814,18 @@ packages:
 
   nwsapi@2.2.20:
     resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
+
+  openai@5.3.0:
+    resolution: {integrity: sha512-VIKmoF7y4oJCDOwP/oHXGzM69+x0dpGFmN9QmYO+uPbLFOmmnwO+x1GbsgUtI+6oraxomGZ566Y421oYVu191w==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -4021,6 +4039,11 @@ snapshots:
       '@rollup/rollup-linux-x64-gnu': 4.43.0
 
   nwsapi@2.2.20: {}
+
+  openai@5.3.0(ws@8.18.2)(zod@3.25.64):
+    optionalDependencies:
+      ws: 8.18.2
+      zod: 3.25.64
 
   optionator@0.9.4:
     dependencies:

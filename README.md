@@ -44,6 +44,7 @@ IDK, calm down
 - [ ] Streams on the server
 - [ ] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
+- [ ] Cascade deletes and shit in Convex
 
 ### Extra
 
@@ -52,4 +53,4 @@ IDK, calm down
 - [ ] Chat branching
 - [ ] Image generation
 - [ ] Chat sharing
-- [ ] 404 page
+- [ ] 404 page/redirect

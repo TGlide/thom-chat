@@ -4,6 +4,11 @@ import { providerValidator } from './schema';
 import * as array from '../../utils/array';
 import * as object from '../../utils/object';
 import { internal } from './_generated/api';
+import { Provider } from '../../types';
+
+export const getModelKey = (args: { provider: Provider; model_id: string }) => {
+	return `${args.provider}:${args.model_id}`;
+};
 
 export const get_enabled = query({
 	args: {
@@ -15,7 +20,7 @@ export const get_enabled = query({
 			.withIndex('by_user', (q) => q.eq('user_id', args.user_id))
 			.collect();
 
-		return array.toMap(models, (m) => [`${m.provider}:${m.model_id}`, m]);
+		return array.toMap(models, (m) => [getModelKey(m), m]);
 	},
 });
 
@@ -34,6 +39,24 @@ export const is_enabled = query({
 			.first();
 
 		return !!model;
+	},
+});
+
+export const get = query({
+	args: {
+		provider: providerValidator,
+		model_id: v.string(),
+		user_id: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const model = await ctx.db
+			.query('user_enabled_models')
+			.withIndex('by_model_provider_user', (q) =>
+				q.eq('model_id', args.model_id).eq('provider', args.provider).eq('user_id', args.user_id)
+			)
+			.first();
+
+		return model;
 	},
 });
 
