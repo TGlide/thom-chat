@@ -16,7 +16,7 @@
 <Sidebar.Root>
 	<Sidebar.Sidebar class="flex flex-col p-2">
 		<div class="flex place-items-center justify-center py-2">
-			<span class="text-center text-lg font-semibold">Thom.chat</span>
+			<span class="text-center font-serif text-lg">Thom.chat</span>
 		</div>
 		<Button href="/chat" class="w-full">New Chat</Button>
 		<div class="flex flex-1 flex-col overflow-y-auto">
