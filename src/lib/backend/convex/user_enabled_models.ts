@@ -5,7 +5,7 @@ import * as array from '../../utils/array';
 import * as object from '../../utils/object';
 import { internal } from './_generated/api';
 import { Provider } from '../../types';
-import { Doc } from './_generated/dataModel';
+import type { Doc } from './_generated/dataModel';
 
 export const getModelKey = (args: { provider: Provider; model_id: string }) => {
 	return `${args.provider}:${args.model_id}`;
@@ -13,11 +13,11 @@ export const getModelKey = (args: { provider: Provider; model_id: string }) => {
 
 export const get_enabled = query({
 	args: {
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args): Promise<Record<string, Doc<'user_enabled_models'>>> => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');
@@ -59,11 +59,11 @@ export const get = query({
 	args: {
 		provider: providerValidator,
 		model_id: v.string(),
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args): Promise<Doc<'user_enabled_models'> | null> => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');
@@ -71,9 +71,7 @@ export const get = query({
 		const model = await ctx.db
 			.query('user_enabled_models')
 			.withIndex('by_model_provider_user', (q) =>
-				q.eq('model_id', args.model_id)
-					.eq('provider', args.provider)
-					.eq('user_id', session.userId)
+				q.eq('model_id', args.model_id).eq('provider', args.provider).eq('user_id', session.userId)
 			)
 			.first();
 
@@ -86,11 +84,11 @@ export const set = mutation({
 		provider: providerValidator,
 		model_id: v.string(),
 		enabled: v.boolean(),
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');

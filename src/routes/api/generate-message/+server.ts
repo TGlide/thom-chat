@@ -52,7 +52,7 @@ async function generateAIResponse(
 		client.query(api.user_enabled_models.get, {
 			provider: Provider.OpenRouter,
 			model_id: modelId,
-			sessionToken: session.token,
+			session_token: session.token,
 		}),
 		(e) => `Failed to get model: ${e}`
 	);

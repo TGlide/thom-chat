@@ -23,7 +23,7 @@
 	let creatingRule = $state(false);
 
 	const userRulesQuery: QueryResult<Doc<'user_rules'>[]> = useCachedQuery(api.user_rules.all, {
-		sessionToken: session.current?.session.token ?? '',
+		session_token: session.current?.session.token ?? '',
 	});
 
 	async function submitNewRule(e: SubmitEvent) {
@@ -44,7 +44,7 @@
 			name,
 			attach,
 			rule,
-			sessionToken: session.current?.session.token ?? '',
+			session_token: session.current?.session.token ?? '',
 		});
 
 		creatingRule = false;

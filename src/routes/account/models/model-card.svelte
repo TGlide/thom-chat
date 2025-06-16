@@ -47,7 +47,7 @@
 				provider,
 				model_id: model.id,
 				enabled: v,
-				sessionToken: session.current?.session.token,
+				session_token: session.current?.session.token,
 			}),
 			(e) => e
 		);

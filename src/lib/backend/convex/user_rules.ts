@@ -2,18 +2,18 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { ruleAttachValidator } from './schema';
-import { Doc } from './_generated/dataModel';
+import type { Doc } from './_generated/dataModel';
 
 export const create = mutation({
 	args: {
 		name: v.string(),
 		attach: ruleAttachValidator,
 		rule: v.string(),
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');
@@ -39,11 +39,11 @@ export const update = mutation({
 		ruleId: v.id('user_rules'),
 		attach: ruleAttachValidator,
 		rule: v.string(),
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');
@@ -63,11 +63,11 @@ export const update = mutation({
 export const remove = mutation({
 	args: {
 		ruleId: v.id('user_rules'),
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');
@@ -83,11 +83,11 @@ export const remove = mutation({
 
 export const all = query({
 	args: {
-		sessionToken: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args): Promise<Doc<'user_rules'>[]> => {
 		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.sessionToken,
+			sessionToken: args.session_token,
 		});
 
 		if (!session) throw new Error('Invalid session token');

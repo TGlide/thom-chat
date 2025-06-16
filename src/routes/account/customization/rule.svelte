@@ -41,7 +41,7 @@
 				ruleId: rule._id,
 				attach,
 				rule: ruleText,
-				sessionToken: session.current?.session.token ?? '',
+				session_token: session.current?.session.token ?? '',
 			}),
 			(e) => e
 		);
@@ -61,7 +61,7 @@
 
 		await client.mutation(api.user_rules.remove, {
 			ruleId: rule._id,
-			sessionToken: session.current?.session.token ?? '',
+			session_token: session.current?.session.token ?? '',
 		});
 
 		deleting = false;
