@@ -80,7 +80,7 @@ export function invalidateQuery(query: FunctionReference<'query'>, queryArgs?: u
 	globalCache.delete(key);
 }
 
-export function invalidateQueriesMatching(pattern: string | RegExp): void {
+export function invalidateQueriesMatching(_pattern: string | RegExp): void {
 	// Note: This is a simplified implementation
 	// In a real implementation, you'd need to track all cache keys
 	console.warn(
