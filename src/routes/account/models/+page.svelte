@@ -28,6 +28,12 @@
 
 	let search = $state('');
 
+	const openRouterToggle = new Toggle({
+		value: true,
+		// TODO: enable this if and when when we use multiple providers
+		disabled: true,
+	});
+
 	const openRouterModels = $derived(
 		data.openRouterModels.filter((model) => {
 			if (search !== '' && !hasOpenRouterKey) return false;
@@ -36,12 +42,6 @@
 			return model.name.toLowerCase().includes(search.toLowerCase());
 		})
 	);
-
-	const openRouterToggle = new Toggle({
-		value: true,
-		// TODO: enable this if and when when we use multiple providers
-		disabled: true,
-	});
 </script>
 
 <svelte:head>

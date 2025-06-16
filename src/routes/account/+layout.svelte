@@ -7,7 +7,7 @@
 	import ArrowLeftIcon from '~icons/lucide/arrow-left';
 	import { Avatar } from 'melt/components';
 	import { Kbd } from '$lib/components/ui/kbd/index.js';
-	import { IsMac } from '$lib/hooks/is-mac.svelte.js';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
 
 	let { data, children } = $props();
 
@@ -35,8 +35,6 @@
 
 		await goto('/login');
 	}
-
-	const isMac = new IsMac();
 </script>
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
@@ -75,7 +73,7 @@
 							<span class="text-muted-foreground text-sm">Toggle Sidebar </span>
 
 							<div>
-								<Kbd>{isMac.current ? '⌘' : 'Ctrl'}</Kbd>
+								<Kbd>{cmdOrCtrl}</Kbd>
 								<Kbd>B</Kbd>
 							</div>
 						</div>
