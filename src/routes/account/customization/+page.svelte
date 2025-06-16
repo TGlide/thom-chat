@@ -47,6 +47,8 @@
 			session_token: session.current?.session.token ?? '',
 		});
 
+        newRuleCollapsible.open = false;
+
 		creatingRule = false;
 	}
 </script>
