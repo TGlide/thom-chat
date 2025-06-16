@@ -45,6 +45,7 @@ IDK, calm down
 - [ ] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
 - [ ] Cascade deletes and shit in Convex
+- [ ] Error notification central, specially for BYOK models like o3
 
 ### Extra
 
