@@ -52,3 +52,4 @@ IDK, calm down
 - [ ] Chat branching
 - [ ] Image generation
 - [ ] Chat sharing
+- [ ] 404 page

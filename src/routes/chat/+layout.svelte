@@ -52,6 +52,7 @@
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
 		<div class="mx-auto flex size-full max-w-3xl flex-col">
+			{@render children()}
 			<div class="mt-auto flex w-full flex-col gap-1">
 				<form class="relative h-18 w-full">
 					<textarea
