@@ -54,6 +54,7 @@ IDK, calm down
 - [ ] delete conversations option
 - [ ] conversation title generation
 - [ ] kbd powered popover model picker
+- [ ] autosize
 
 ### Extra
 
