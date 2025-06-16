@@ -96,7 +96,7 @@
 		<Sidebar.Trigger class="fixed top-3 left-2">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
-		<div class="mx-auto flex size-full max-w-3xl flex-col">
+		<div class="mx-auto flex size-full min-h-svh max-w-3xl flex-col">
 			{@render children()}
 			<div class="mt-auto flex w-full flex-col gap-1">
 				<ModelPicker class=" w-min " />
@@ -129,7 +129,7 @@
 						<SendIcon />
 					</Button>
 				</form>
-				<div class="flex w-full place-items-center justify-between gap-2">
+				<div class="flex w-full place-items-center justify-between gap-2 pb-1">
 					<span class="text-muted-foreground text-xs">
 						Crafted by <Icons.Svelte class="inline size-3" /> wizards.
 					</span>
