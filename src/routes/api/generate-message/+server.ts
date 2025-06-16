@@ -7,6 +7,7 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
 import { ResultAsync } from 'neverthrow';
 import OpenAI from 'openai';
+import { waitUntil } from '@vercel/functions';
 
 import { z } from 'zod/v4';
 
@@ -48,14 +49,30 @@ async function generateAIResponse(
 ) {
 	log('Starting AI response generation in background', startTime);
 
-	const modelResult = await ResultAsync.fromPromise(
-		client.query(api.user_enabled_models.get, {
-			provider: Provider.OpenRouter,
-			model_id: modelId,
-			session_token: session.token,
-		}),
-		(e) => `Failed to get model: ${e}`
-	);
+	const [modelResult, keyResult, messagesQueryResult] = await Promise.all([
+		ResultAsync.fromPromise(
+			client.query(api.user_enabled_models.get, {
+				provider: Provider.OpenRouter,
+				model_id: modelId,
+				session_token: session.token,
+			}),
+			(e) => `Failed to get model: ${e}`
+		),
+		ResultAsync.fromPromise(
+			client.query(api.user_keys.get, {
+				provider: Provider.OpenRouter,
+				session_token: session.token,
+			}),
+			(e) => `Failed to get API key: ${e}`
+		),
+		ResultAsync.fromPromise(
+			client.query(api.messages.getAllFromConversation, {
+				conversation_id: conversationId as Id<'conversations'>,
+				session_token: session.token,
+			}),
+			(e) => `Failed to get messages: ${e}`
+		),
+	]);
 
 	if (modelResult.isErr()) {
 		log(`Background model query failed: ${modelResult.error}`, startTime);
@@ -70,13 +87,7 @@ async function generateAIResponse(
 
 	log('Background: Model found and enabled', startTime);
 
-	const messagesQuery = await ResultAsync.fromPromise(
-		client.query(api.messages.getAllFromConversation, {
-			conversation_id: conversationId as Id<'conversations'>,
-			session_token: session.token,
-		}),
-		(e) => `Failed to get messages: ${e}`
-	);
+	const messagesQuery = await messagesQueryResult;
 
 	if (messagesQuery.isErr()) {
 		log(`Background messages query failed: ${messagesQuery.error}`, startTime);
@@ -85,14 +96,6 @@ async function generateAIResponse(
 
 	const messages = messagesQuery.value;
 	log(`Background: Retrieved ${messages.length} messages from conversation`, startTime);
-
-	const keyResult = await ResultAsync.fromPromise(
-		client.query(api.user_keys.get, {
-			provider: Provider.OpenRouter,
-			session_token: session.token,
-		}),
-		(e) => `Failed to get API key: ${e}`
-	);
 
 	if (keyResult.isErr()) {
 		log(`Background API key query failed: ${keyResult.error}`, startTime);
@@ -271,9 +274,11 @@ export const POST: RequestHandler = async ({ request }) => {
 	}
 
 	// Start AI response generation in background - don't await
-	generateAIResponse(conversationId, session, args.model_id, startTime).catch((error) => {
-		log(`Background AI response generation error: ${error}`, startTime);
-	});
+	waitUntil(
+		generateAIResponse(conversationId, session, args.model_id, startTime).catch((error) => {
+			log(`Background AI response generation error: ${error}`, startTime);
+		})
+	);
 
 	log('Response sent, AI generation started in background', startTime);
 	return response({ ok: true, conversation_id: conversationId });
