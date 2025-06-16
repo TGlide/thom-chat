@@ -9,6 +9,7 @@
 	import { session } from '$lib/state/session.svelte';
 	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
 	import { ResultAsync } from 'neverthrow';
+	import TrashIcon from '~icons/lucide/trash';
 
 	type Props = {
 		rule: Doc<'user_rules'>;
@@ -21,6 +22,7 @@
 	const client = useConvexClient();
 
 	let updating = $state(false);
+	let deleting = $state(false);
 
 	const toasts = new LocalToasts({ id });
 
@@ -53,15 +55,31 @@
 
 		updating = false;
 	}
+
+	async function deleteRule() {
+		deleting = true;
+
+		await client.mutation(api.user_rules.remove, {
+			ruleId: rule._id,
+			sessionToken: session.current?.session.token ?? '',
+		});
+
+		deleting = false;
+	}
 </script>
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{rule.name}</Card.Title>
+		<div class="flex items-center justify-between">
+			<Card.Title>{rule.name}</Card.Title>
+			<Button variant="destructive" size="icon" onclick={deleteRule} disabled={deleting}>
+				<TrashIcon class="size-4" />
+			</Button>
+		</div>
 	</Card.Header>
 	<Card.Content tag="form" onsubmit={updateRule}>
 		<div class="flex flex-col gap-2">
-			<Label for="attach">Attach</Label>
+			<Label for="attach">Rule Type</Label>
 			<select
 				id="attach"
 				name="attach"

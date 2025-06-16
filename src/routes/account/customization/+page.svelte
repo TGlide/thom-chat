@@ -92,7 +92,7 @@
 					<Input id="name" name="name" placeholder="My Rule" required />
 				</div>
 				<div class="flex flex-col gap-2">
-					<Label for="attach">Attach</Label>
+					<Label for="attach">Rule Type</Label>
 					<select
 						id="attach"
 						name="attach"
