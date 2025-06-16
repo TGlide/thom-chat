@@ -48,9 +48,6 @@ importers:
       '@testing-library/svelte':
         specifier: ^5.2.4
         version: 5.2.8(svelte@5.34.1)(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1))(vitest@3.2.3(@types/node@24.0.1)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1))
-      bits-ui:
-        specifier: ^2.6.2
-        version: 2.6.2(@internationalized/date@3.8.2)(svelte@5.34.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -596,9 +593,6 @@ packages:
   '@iconify/utils@2.3.0':
     resolution: {integrity: sha512-GmQ78prtwYW6EtzXRU1rY+KwOKfz32PD7iJh6Iyqw68GiKuoZ2A6pRtzWONz5VQJbp50mEjXh/7NkumtrAgRKA==}
 
-  '@internationalized/date@3.8.2':
-    resolution: {integrity: sha512-/wENk7CbvLbkUvX1tu0mwq49CVkkWpkXubGel6birjRPyo6uQ4nQpnq5xZu823zRCwwn82zgHrvgF1vZyvmVgA==}
-
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
@@ -813,9 +807,6 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
       vite: ^6.0.0
-
-  '@swc/helpers@0.5.17':
-    resolution: {integrity: sha512-5IKx/Y13RsYd+sauPb2x+U/xZikHjolzfuDgTAl/Tdf3Q8rslRvC19NKDLgAJQ6wsqADk10ntlv08nPFw/gO/A==}
 
   '@tailwindcss/node@4.1.10':
     resolution: {integrity: sha512-2ACf1znY5fpRBwRhMgj9ZXvb2XZW8qs+oTfotJ2C5xR0/WNL7UHZ7zXl6s+rUqedL1mNi+0O+WQr5awGowS3PQ==}
@@ -1103,13 +1094,6 @@ packages:
 
   better-call@1.0.9:
     resolution: {integrity: sha512-Qfm0gjk0XQz0oI7qvTK1hbqTsBY4xV2hsHAxF8LZfUYl3RaECCIifXuVqtPpZJWvlCCMlQSvkvhhyuApGUba6g==}
-
-  bits-ui@2.6.2:
-    resolution: {integrity: sha512-OlPSUAT+ENhtRarPjABljca1cCljyoAqOZKfgjCB8PxQii2fL0AKnzObhnEdhZKwYdpXczEtNOYqUUNYwliaWA==}
-    engines: {node: '>=20', pnpm: '>=8.7.0'}
-    peerDependencies:
-      '@internationalized/date': ^3.8.1
-      svelte: ^5.33.0
 
   brace-expansion@1.1.12:
     resolution: {integrity: sha512-9T9UjW3r0UW5c1Q7GTwllptXwhvYmEzFhzMfZ9H7FQWt+uZePjZPjBP/W1ZEyZ1twGWom5/56TF4lPcqjnDHcg==}
@@ -2144,21 +2128,12 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
 
-  svelte-toolbelt@0.9.1:
-    resolution: {integrity: sha512-wBX6MtYw/kpht80j5zLpxJyR9soLizXPIAIWEVd9llAi17SR44ZdG291bldjB7r/K5duC0opDFcuhk2cA1hb8g==}
-    engines: {node: '>=18', pnpm: '>=8.7.0'}
-    peerDependencies:
-      svelte: ^5.30.2
-
   svelte@5.34.1:
     resolution: {integrity: sha512-jWNnN2hZFNtnzKPptCcJHBWrD9CtbHPDwIRIODufOYaWkR0kLmAIlM384lMt4ucwuIRX4hCJwD2D8ZtEcGJQ0Q==}
     engines: {node: '>=18'}
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
-
-  tabbable@6.2.0:
-    resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
 
   tailwind-merge@3.0.2:
     resolution: {integrity: sha512-l7z+OYZ7mu3DTqrL88RiKrKIqO3NcpEO8V/Od04bNpvk0kiIFndGEoqfuzvj4yuhRkHKjRkII2z+KS2HfPcSxw==}
@@ -2789,10 +2764,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@internationalized/date@3.8.2':
-    dependencies:
-      '@swc/helpers': 0.5.17
-
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
@@ -2997,10 +2968,6 @@ snapshots:
       vitefu: 1.0.6(vite@6.3.5(@types/node@24.0.1)(jiti@2.4.2)(lightningcss@1.30.1))
     transitivePeerDependencies:
       - supports-color
-
-  '@swc/helpers@0.5.17':
-    dependencies:
-      tslib: 2.8.1
 
   '@tailwindcss/node@4.1.10':
     dependencies:
@@ -3323,18 +3290,6 @@ snapshots:
       rou3: 0.5.1
       set-cookie-parser: 2.7.1
       uncrypto: 0.1.3
-
-  bits-ui@2.6.2(@internationalized/date@3.8.2)(svelte@5.34.1):
-    dependencies:
-      '@floating-ui/core': 1.7.1
-      '@floating-ui/dom': 1.7.1
-      '@internationalized/date': 3.8.2
-      css.escape: 1.5.1
-      esm-env: 1.2.2
-      runed: 0.28.0(svelte@5.34.1)
-      svelte: 5.34.1
-      svelte-toolbelt: 0.9.1(svelte@5.34.1)
-      tabbable: 6.2.0
 
   brace-expansion@1.1.12:
     dependencies:
@@ -4294,13 +4249,6 @@ snapshots:
       style-to-object: 1.0.9
       svelte: 5.34.1
 
-  svelte-toolbelt@0.9.1(svelte@5.34.1):
-    dependencies:
-      clsx: 2.1.1
-      runed: 0.28.0(svelte@5.34.1)
-      style-to-object: 1.0.9
-      svelte: 5.34.1
-
   svelte@5.34.1:
     dependencies:
       '@ampproject/remapping': 2.3.0
@@ -4319,8 +4267,6 @@ snapshots:
       zimmerframe: 1.1.2
 
   symbol-tree@3.2.4: {}
-
-  tabbable@6.2.0: {}
 
   tailwind-merge@3.0.2: {}
 

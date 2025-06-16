@@ -3,7 +3,6 @@
 -->
 
 <script lang="ts" module>
-	import type { WithChildren, WithoutChildren } from 'bits-ui';
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
 	import { type VariantProps, tv } from 'tailwind-variants';
 
@@ -36,7 +35,7 @@
 	export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
 	export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
 
-	export type ButtonPropsWithoutHTML = WithChildren<{
+	export type ButtonPropsWithoutHTML = {
 		ref?: HTMLElement | null;
 		variant?: ButtonVariant;
 		size?: ButtonSize;
@@ -46,17 +45,18 @@
 				currentTarget: EventTarget & HTMLButtonElement;
 			}
 		) => Promise<void>;
-	}>;
+		children?: Snippet<[]>;
+	};
 
 	export type AnchorElementProps = ButtonPropsWithoutHTML &
-		WithoutChildren<Omit<HTMLAnchorAttributes, 'href' | 'type'>> & {
+		Omit<HTMLAnchorAttributes, 'href' | 'type' | 'children'> & {
 			href: HTMLAnchorAttributes['href'];
 			type?: never;
 			disabled?: HTMLButtonAttributes['disabled'];
 		};
 
 	export type ButtonElementProps = ButtonPropsWithoutHTML &
-		WithoutChildren<Omit<HTMLButtonAttributes, 'type' | 'href'>> & {
+		Omit<HTMLButtonAttributes, 'type' | 'href' | 'children'> & {
 			type?: HTMLButtonAttributes['type'];
 			href?: never;
 			disabled?: HTMLButtonAttributes['disabled'];
@@ -68,6 +68,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/utils.js';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
+	import type { Snippet } from 'svelte';
 
 	let {
 		ref = $bindable(null),

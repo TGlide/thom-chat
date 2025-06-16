@@ -6,6 +6,8 @@
 	import { LightSwitch } from '$lib/components/ui/light-switch';
 	import ArrowLeftIcon from '~icons/lucide/arrow-left';
 	import { Avatar } from 'melt/components';
+	import { Kbd } from '$lib/components/ui/kbd/index.js';
+	import { IsMac } from '$lib/hooks/is-mac.svelte.js';
 
 	let { data, children } = $props();
 
@@ -33,6 +35,8 @@
 
 		await goto('/login');
 	}
+
+	const isMac = new IsMac();
 </script>
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
@@ -46,7 +50,7 @@
 			<Button variant="ghost" onClickPromise={signOut}>Sign out</Button>
 		</div>
 	</header>
-	<div class="px-4 md:grid md:grid-cols-[280px_1fr]">
+	<div class="px-4 md:grid md:grid-cols-[255px_1fr]">
 		<div class="hidden md:col-start-1 md:block">
 			<div class="flex flex-col place-items-center gap-2">
 				<Avatar src={data.session.user.image ?? undefined}>
@@ -63,6 +67,19 @@
 				<div class="flex flex-col gap-1">
 					<p class="text-center text-2xl font-bold">{data.session.user.name}</p>
 					<span class="text-muted-foreground text-center text-sm">{data.session.user.email}</span>
+				</div>
+				<div class="mt-4 flex w-full flex-col gap-2">
+					<span class="text-sm font-medium">Keyboard Shortcuts</span>
+					<div class="flex flex-col gap-1">
+						<div class="flex place-items-center justify-between">
+							<span>Toggle Sidebar </span>
+
+							<div>
+								<Kbd>{isMac.current ? '⌘' : 'Ctrl'}</Kbd>
+								<Kbd>B</Kbd>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
