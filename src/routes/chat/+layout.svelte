@@ -14,6 +14,7 @@
 	import { goto } from '$app/navigation';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import { api } from '$lib/backend/convex/_generated/api.js';
+	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 
 	let { data, children } = $props();
 
@@ -45,6 +46,8 @@
 	const conversationsQuery = useCachedQuery(api.conversations.get, {
 		session_token: session.current?.session.token ?? '',
 	});
+
+	const _autosize = new TextareaAutosize();
 </script>
 
 <svelte:head>
@@ -108,6 +111,8 @@
 					}}
 					bind:this={form}
 				>
+					<!-- TODO: Figure out better autofocus solution -->
+					<!-- svelte-ignore a11y_autofocus -->
 					<textarea
 						bind:this={textarea}
 						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"

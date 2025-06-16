@@ -10,6 +10,7 @@
 	import { LocalToasts } from '$lib/builders/local-toasts.svelte';
 	import { ResultAsync } from 'neverthrow';
 	import TrashIcon from '~icons/lucide/trash';
+	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 
 	type Props = {
 		rule: Doc<'user_rules'>;
@@ -57,6 +58,15 @@
 	}
 
 	async function deleteRule() {
+		const action = await callModal({
+			title: 'Delete Rule',
+			description: 'Are you sure you want to delete this rule?',
+			actions: {
+				delete: 'destructive',
+			},
+		});
+		if (action !== 'delete') return;
+
 		deleting = true;
 
 		await client.mutation(api.user_rules.remove, {

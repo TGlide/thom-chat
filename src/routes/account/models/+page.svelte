@@ -11,6 +11,7 @@
 	import XIcon from '~icons/lucide/x';
 	import PlusIcon from '~icons/lucide/plus';
 	import { models } from '$lib/state/models.svelte';
+	import fuzzysearch from '$lib/utils/fuzzy-search';
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
 		provider: Provider.OpenRouter,
@@ -30,12 +31,7 @@
 	});
 
 	const openRouterModels = $derived(
-		models.from(Provider.OpenRouter).filter((model) => {
-			if (search !== '' && !hasOpenRouterKey) return false;
-			if (!openRouterToggle.value) return false;
-
-			return model.name.toLowerCase().includes(search.toLowerCase());
-		})
+		fuzzysearch({ haystack: models.from(Provider.OpenRouter), needle: search, property: 'name' })
 	);
 </script>
 

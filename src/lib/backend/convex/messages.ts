@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { api } from './_generated/api';
 import { messageRoleValidator, providerValidator } from './schema';
-import type { Id } from './_generated/dataModel';
+import { type Id } from './_generated/dataModel';
 
 export const getAllFromConversation = query({
 	args: {
