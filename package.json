@@ -28,6 +28,7 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
+		"@vercel/functions": "^2.2.0",
 		"clsx": "^2.1.1",
 		"concurrently": "^9.1.2",
 		"convex": "^1.24.8",
