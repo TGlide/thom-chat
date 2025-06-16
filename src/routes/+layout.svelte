@@ -4,6 +4,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 	import { models } from '$lib/state/models.svelte';
+	import GlobalModal from '$lib/components/ui/modal/global-modal.svelte';
 
 	let { children } = $props();
 
@@ -13,3 +14,5 @@
 
 <ModeWatcher />
 {@render children()}
+
+<GlobalModal />

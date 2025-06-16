@@ -315,16 +315,15 @@
 	}
 
 	.modal-box {
-		@apply col-start-1 row-start-1 max-h-screen w-11/12 max-w-[32rem] bg-neutral-100 p-6;
+		@apply bg-background border-border col-start-1 row-start-1 max-h-screen w-11/12 max-w-[32rem] p-6;
 		transition:
 			translate 0.3s ease-out,
 			scale 0.3s ease-out,
 			opacity 0.2s ease-out 0.05s,
 			box-shadow 0.3s ease-out;
-		border-top-left-radius: var(--modal-tl, var(--radius-box));
-		border-top-right-radius: var(--modal-tr, var(--radius-box));
-		border-bottom-left-radius: var(--modal-bl, var(--radius-box));
-		border-bottom-right-radius: var(--modal-br, var(--radius-box));
+
+		border-radius: var(--radius);
+
 		scale: 95%;
 		opacity: 0;
 		box-shadow: oklch(0% 0 0/ 0.25) 0px 25px 50px -12px;
