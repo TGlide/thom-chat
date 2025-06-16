@@ -14,14 +14,12 @@ export const auth = betterAuth({
 			clientSecret: process.env.GITHUB_CLIENT_SECRET!,
 		},
 	},
-	// databaseHooks: {
-	// 	user: {
-	// 		create: {
-	// 			after: async ({ user }) => {
-	// 				// TODO: automatically enable default models for the user
-	// 			},
-	// 		},
-	// 	},
-	// },
+	databaseHooks: {
+		user: {
+			create: {
+				after: async (_user) => {},
+			},
+		},
+	},
 	plugins: [],
 });

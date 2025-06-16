@@ -62,7 +62,7 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>
+		<Card.Title id={provider}>
 			<KeyIcon class="inline size-4" />
 			{meta.title}
 		</Card.Title>

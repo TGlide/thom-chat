@@ -17,9 +17,10 @@
 		provider: Provider;
 		model: Model;
 		enabled?: boolean;
+		disabled?: boolean;
 	};
 
-	let { provider, model, enabled = false }: Props = $props();
+	let { provider, model, enabled = false, disabled = false }: Props = $props();
 
 	const client = useConvexClient();
 
@@ -38,13 +39,11 @@
 
 	async function toggleEnabled(v: boolean) {
 		enabled = v; // Optimistic!
-		console.log('hi');
 		if (!session.current?.user.id) return;
 
 		const res = await ResultAsync.fromPromise(
 			client.mutation(api.user_enabled_models.set, {
 				provider,
-				user_id: session.current.user.id,
 				model_id: model.id,
 				enabled: v,
 				session_token: session.current?.session.token,
@@ -60,8 +59,7 @@
 	<Card.Header>
 		<div class="flex items-center justify-between">
 			<Card.Title>{model.name}</Card.Title>
-			<!-- TODO: make this actually work -->
-			<Switch bind:value={() => enabled, toggleEnabled} />
+			<Switch bind:value={() => enabled, toggleEnabled} {disabled} />
 		</div>
 		<Card.Description
 			>{showMore ? fullDescription : (shortDescription ?? fullDescription)}</Card.Description
@@ -71,6 +69,7 @@
 				type="button"
 				class="text-muted-foreground w-fit text-start text-xs"
 				onclick={() => (showMore = !showMore)}
+				{disabled}
 			>
 				{showMore ? 'Show less' : 'Show more'}
 			</button>

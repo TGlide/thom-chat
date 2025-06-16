@@ -3,14 +3,14 @@ import { SessionStorageCache } from './session-cache.js';
 import { getFunctionName, type FunctionArgs, type FunctionReference } from 'convex/server';
 import { extract, watch } from 'runed';
 
-interface CachedQueryOptions {
+export interface CachedQueryOptions {
 	cacheKey?: string;
 	ttl?: number;
 	staleWhileRevalidate?: boolean;
 	enabled?: boolean;
 }
 
-interface QueryResult<T> {
+export interface QueryResult<T> {
 	data: T | undefined;
 	error: Error | undefined;
 	isLoading: boolean;

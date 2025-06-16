@@ -3,7 +3,7 @@
 @import '@fontsource-variable/geist-mono';
 @import '@fontsource-variable/fraunces';
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark *));
 
 :root {
 	--background: oklch(0.9754 0.0084 325.6414);
@@ -72,7 +72,7 @@
 	--muted-foreground: oklch(0.794 0.0372 307.1032);
 	--accent: oklch(0.3649 0.0508 308.4911);
 	--accent-foreground: oklch(0.9647 0.0091 341.8035);
-	--destructive: oklch(0.2258 0.0524 12.6119);
+	--destructive: oklch(0.5248 0.1368 20.8317);
 	--destructive-foreground: oklch(1 0 0);
 	--border: oklch(0.3286 0.0154 343.4461);
 	--input: oklch(0.3387 0.0195 332.8347);
@@ -228,4 +228,14 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+}
+
+/* For components that need horizontal scrolling */
+.scrollbar-hide {
+	-ms-overflow-style: none; /* Internet Explorer and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, and Opera */
 }
