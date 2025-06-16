@@ -34,6 +34,53 @@ export const create = mutation({
 	},
 });
 
+export const update = mutation({
+	args: {
+		ruleId: v.id('user_rules'),
+		attach: ruleAttachValidator,
+		rule: v.string(),
+		sessionToken: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.sessionToken,
+		});
+
+		if (!session) throw new Error('Invalid session token');
+
+		const existing = await ctx.db.get(args.ruleId);
+
+		if (!existing) throw new Error('Rule not found');
+		if (existing.user_id !== session.userId) throw new Error('You are not the owner of this rule');
+
+		await ctx.db.patch(args.ruleId, {
+			attach: args.attach,
+			rule: args.rule,
+		});
+	},
+});
+
+export const remove = mutation({
+	args: {
+		ruleId: v.id('user_rules'),
+		sessionToken: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.sessionToken,
+		});
+
+		if (!session) throw new Error('Invalid session token');
+
+		const existing = await ctx.db.get(args.ruleId);
+
+		if (!existing) throw new Error('Rule not found');
+		if (existing.user_id !== session.userId) throw new Error('You are not the owner of this rule');
+
+		await ctx.db.delete(args.ruleId);
+	},
+});
+
 export const all = query({
 	args: {
 		sessionToken: v.string(),

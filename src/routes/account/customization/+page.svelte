@@ -12,6 +12,7 @@
 	import type { Doc } from '$lib/backend/convex/_generated/dataModel';
 	import { Input } from '$lib/components/ui/input';
 	import { api } from '$lib/backend/convex/_generated/api';
+	import Rule from './rule.svelte';
 
 	const client = useConvexClient();
 
@@ -28,9 +29,9 @@
 	async function submitNewRule(e: SubmitEvent) {
 		e.preventDefault();
 		const formData = new FormData(e.target as HTMLFormElement);
-		const name = formData.get('name');
-		const attach = formData.get('attach');
-		const rule = formData.get('rule');
+		const name = formData.get('name') as string;
+		const attach = formData.get('attach') as 'always' | 'manual';
+		const rule = formData.get('rule') as string;
 
 		if (rule === '' || !rule) return;
 
@@ -59,7 +60,7 @@
 
 <div class="mt-8 flex flex-col gap-4">
 	<div class="flex place-items-center justify-between">
-		<h3 class="text-lg font-bold">Rules</h3>
+		<h3 class="text-xl font-bold">Rules</h3>
 		<Button
 			{...newRuleCollapsible.trigger}
 			variant={newRuleCollapsible.open ? 'outline' : 'default'}
@@ -76,6 +77,7 @@
 		<div
 			{...newRuleCollapsible.content}
 			in:slide={{ duration: 150, axis: 'y' }}
+			out:slide={{ duration: 150, axis: 'y' }}
 			class="bg-card flex flex-col gap-4 rounded-lg border p-4"
 		>
 			<div class="flex flex-col gap-1">
@@ -111,10 +113,7 @@
 			</form>
 		</div>
 	{/if}
-	{#each userRulesQuery.data ?? [] as rule}
-		<div class="flex flex-col gap-2">
-			<h3 class="text-lg font-bold">{rule.name}</h3>
-			<p class="text-muted-foreground text-sm">{rule.rule}</p>
-		</div>
+	{#each userRulesQuery.data ?? [] as rule (rule._id)}
+		<Rule {rule} />
 	{/each}
 </div>
