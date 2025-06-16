@@ -16,7 +16,7 @@
 <Sidebar.Root>
 	<Sidebar.Sidebar class="flex flex-col p-2">
 		<div class="flex place-items-center justify-center py-2">
-			<span class="text-center text-lg font-bold">Thom Chat</span>
+			<span class="text-center text-lg font-semibold">Thom.chat</span>
 		</div>
 		<Button href="/chat" class="w-full">New Chat</Button>
 		<div class="flex flex-1 flex-col overflow-y-auto">
@@ -51,8 +51,8 @@
 		<Sidebar.Trigger class="fixed top-3 left-2">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
-		<div class="flex size-full place-items-center justify-center">
-			<div class="flex w-full max-w-lg flex-col place-items-center gap-1">
+		<div class="mx-auto flex size-full max-w-3xl flex-col">
+			<div class="mt-auto flex w-full flex-col gap-1">
 				<form class="relative h-18 w-full">
 					<textarea
 						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
