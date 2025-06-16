@@ -11,9 +11,24 @@ importers:
       '@floating-ui/dom':
         specifier: ^1.7.1
         version: 1.7.1
+      '@fontsource-variable/fraunces':
+        specifier: ^5.2.7
+        version: 5.2.7
+      '@fontsource-variable/geist-mono':
+        specifier: ^5.2.6
+        version: 5.2.6
+      '@fontsource-variable/inter':
+        specifier: ^5.2.6
+        version: 5.2.6
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
+      openai:
+        specifier: ^5.3.0
+        version: 5.3.0(ws@8.18.2)(zod@3.25.64)
+      zod:
+        specifier: ^3.25.64
+        version: 3.25.64
     devDependencies:
       '@better-auth-kit/convex':
         specifier: ^1.2.2
@@ -560,6 +575,15 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@fontsource-variable/fraunces@5.2.7':
+    resolution: {integrity: sha512-PYIcwL3+0SA2IEAcA9ma07Rz8DCbJdLy7Hb1syq/FIcCyf1zSlHRRcC0a33PnBCZ9Q7B+01kFH0cS29yqWEk3w==}
+
+  '@fontsource-variable/geist-mono@5.2.6':
+    resolution: {integrity: sha512-vw6T9JGTrYJ980bn7W8iTPhe2jVK5ifunVs7xh9dfTVArjDSkJs03JjeZrH5LKEpGABLXSlSlNU57HRm4tmFMg==}
+
+  '@fontsource-variable/inter@5.2.6':
+    resolution: {integrity: sha512-jks/bficUPQ9nn7GvXvHtlQIPudW7Wx8CrlZoY8bhxgeobNxlQan8DclUJuYF2loYRrGpfrhCIZZspXYysiVGg==}
 
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
@@ -1775,6 +1799,18 @@ packages:
   nwsapi@2.2.20:
     resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
 
+  openai@5.3.0:
+    resolution: {integrity: sha512-VIKmoF7y4oJCDOwP/oHXGzM69+x0dpGFmN9QmYO+uPbLFOmmnwO+x1GbsgUtI+6oraxomGZ566Y421oYVu191w==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -2728,6 +2764,12 @@ snapshots:
       '@floating-ui/utils': 0.2.9
 
   '@floating-ui/utils@0.2.9': {}
+
+  '@fontsource-variable/fraunces@5.2.7': {}
+
+  '@fontsource-variable/geist-mono@5.2.6': {}
+
+  '@fontsource-variable/inter@5.2.6': {}
 
   '@hexagon/base64@1.1.28': {}
 
@@ -3952,6 +3994,11 @@ snapshots:
       '@rollup/rollup-linux-x64-gnu': 4.43.0
 
   nwsapi@2.2.20: {}
+
+  openai@5.3.0(ws@8.18.2)(zod@3.25.64):
+    optionalDependencies:
+      ws: 8.18.2
+      zod: 3.25.64
 
   optionator@0.9.4:
     dependencies:

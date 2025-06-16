@@ -18,8 +18,8 @@
 	});
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
-		user_id: session.current?.user.id ?? '',
 		provider: Provider.OpenRouter,
+		session_token: session.current?.session.token ?? '',
 	});
 
 	const hasOpenRouterKey = $derived(

@@ -1,28 +1,17 @@
 import { v } from 'convex/values';
 import { Provider } from '../../types';
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import { providerValidator } from './schema';
-import { type SessionObj } from './betterAuth';
 
 export const all = query({
 	args: {
-		session_token: v.string(),
+		user_id: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
-			session_token: args.session_token,
-		});
-
-		if (!session) {
-			throw new Error('Unauthorized');
-		}
-
-		const s = session as SessionObj;
-
 		const allKeys = await ctx.db
 			.query('user_keys')
-			.withIndex('by_user', (q) => q.eq('user_id', s.userId))
+			.withIndex('by_user', (q) => q.eq('user_id', args.user_id))
 			.collect();
 
 		return Object.values(Provider).reduce(
@@ -37,23 +26,24 @@ export const all = query({
 
 export const get = query({
 	args: {
+		user_id: v.string(),
 		provider: providerValidator,
 		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
-			session_token: args.session_token,
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
 		});
 
 		if (!session) {
 			throw new Error('Unauthorized');
 		}
 
-		const s = session as SessionObj;
-
 		const key = await ctx.db
 			.query('user_keys')
-			.withIndex('by_provider_user', (q) => q.eq('provider', args.provider).eq('user_id', s.userId))
+			.withIndex('by_provider_user', (q) =>
+				q.eq('provider', args.provider).eq('user_id', args.user_id)
+			)
 			.first();
 
 		return key?.key;

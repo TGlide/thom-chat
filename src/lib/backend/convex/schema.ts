@@ -1,8 +1,15 @@
 import { defineSchema, defineTable } from 'convex/server';
-import { v } from 'convex/values';
+import { type Infer, v } from 'convex/values';
 import { Provider } from '../../../lib/types';
 
 export const providerValidator = v.union(...Object.values(Provider).map((p) => v.literal(p)));
+export const messageRoleValidator = v.union(
+	v.literal('user'),
+	v.literal('assistant'),
+	v.literal('system')
+);
+
+export type MessageRole = Infer<typeof messageRoleValidator>;
 
 export default defineSchema({
 	user_keys: defineTable({
@@ -23,4 +30,17 @@ export default defineSchema({
 		.index('by_model_provider', ['model_id', 'provider'])
 		.index('by_provider_user', ['provider', 'user_id'])
 		.index('by_model_provider_user', ['model_id', 'provider', 'user_id']),
+	conversations: defineTable({
+		user_id: v.string(),
+		title: v.string(),
+	}).index('by_user', ['user_id']),
+	messages: defineTable({
+		conversation_id: v.string(),
+		role: v.union(v.literal('user'), v.literal('assistant'), v.literal('system')),
+		content: v.string(),
+		// Optional, coming from SK API route
+		model_id: v.optional(v.string()),
+		provider: v.optional(providerValidator),
+		token_count: v.optional(v.number()),
+	}).index('by_conversation', ['conversation_id']),
 });
