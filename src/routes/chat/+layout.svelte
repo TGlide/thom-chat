@@ -59,8 +59,10 @@
 		<Button href="/chat" class="w-full">New Chat</Button>
 		<div class="flex flex-1 flex-col overflow-y-auto py-2">
 			{#each conversationsQuery.data ?? [] as conversation (conversation._id)}
-				<a href={`/chat/${conversation._id}`} class="text-left hover:underline">
-					{conversation.title}
+				<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">
+					<p class="group-hover:bg-muted rounded-md py-1.5 pl-3">
+						{conversation.title}
+					</p>
 				</a>
 			{/each}
 		</div>
@@ -70,12 +72,12 @@
 					<Avatar src={data.session?.user.image ?? undefined}>
 						{#snippet children(avatar)}
 							<img {...avatar.image} alt="Your avatar" class="size-10 rounded-full" />
-							<span {...avatar.fallback}
-								>{data.session?.user.name
+							<span {...avatar.fallback} class="size-10 rounded-full">
+								{data.session?.user.name
 									.split(' ')
 									.map((name) => name[0]?.toUpperCase())
-									.join('')}</span
-							>
+									.join('')}
+							</span>
 						{/snippet}
 					</Avatar>
 					<div class="flex flex-col">
