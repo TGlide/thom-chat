@@ -14,7 +14,7 @@
 				Be sure to login first.
 			{/if}
 		</p>
-		<div class="mt-2 flex items-center gap-1">
+		<div class="mt-4 flex items-center gap-1">
 			{#each { length: 4 }}
 				<Button variant="outline" class="rounded-full">
 					<IconAi />
@@ -23,7 +23,7 @@
 			{/each}
 		</div>
 
-		<ul class="mt-2 flex flex-col gap-2">
+		<ul class="mt-2 flex flex-col gap-2 p-2">
 			{#each { length: 3 } as _, i (i)}
 				<li class={['py-2', i !== 2 && 'border-b']}>Hey AI, write me a poem</li>
 			{/each}
