@@ -4,6 +4,8 @@ import { Provider } from '../../../lib/types';
 
 export const providerValidator = v.union(...Object.values(Provider).map((p) => v.literal(p)));
 
+export const ruleAttachValidator = v.union(v.literal('always'), v.literal('manual'));
+
 export default defineSchema({
 	user_keys: defineTable({
 		user_id: v.string(),
@@ -23,4 +25,13 @@ export default defineSchema({
 		.index('by_model_provider', ['model_id', 'provider'])
 		.index('by_provider_user', ['provider', 'user_id'])
 		.index('by_model_provider_user', ['model_id', 'provider', 'user_id']),
+	user_rules: defineTable({
+		user_id: v.string(),
+		name: v.string(),
+		attach: ruleAttachValidator,
+		rule: v.string(),
+	})
+		.index('by_user', ['user_id'])
+		.index('by_user_attach', ['user_id', 'attach'])
+		.index('by_user_name', ['user_id', 'name']),
 });
