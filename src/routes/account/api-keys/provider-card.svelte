@@ -21,8 +21,8 @@
 	const id = $props.id();
 
 	const keyQuery = useCachedQuery(api.user_keys.get, {
-		user_id: session.current?.user.id ?? '',
 		provider,
+		session_token: session.current?.session.token ?? '',
 	});
 
 	const client = useConvexClient();
@@ -44,6 +44,7 @@
 				provider,
 				user_id: session.current?.user.id ?? '',
 				key: `${key}`,
+				session_token: session.current?.session.token,
 			}),
 			(e) => e
 		);

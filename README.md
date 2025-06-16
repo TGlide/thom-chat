@@ -43,6 +43,9 @@ IDK, calm down
 - [ ] File support
 - [ ] Streams on the server
 - [ ] Syntax highlighting with Shiki/markdown renderer
+- [ ] Eliminate FOUC
+- [ ] Cascade deletes and shit in Convex
+- [ ] Error notification central, specially for BYOK models like o3
 
 ### Extra
 
@@ -51,3 +54,4 @@ IDK, calm down
 - [ ] Chat branching
 - [ ] Image generation
 - [ ] Chat sharing
+- [ ] 404 page/redirect
