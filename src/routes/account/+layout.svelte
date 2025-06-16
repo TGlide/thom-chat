@@ -72,7 +72,7 @@
 					<span class="text-sm font-medium">Keyboard Shortcuts</span>
 					<div class="flex flex-col gap-1">
 						<div class="flex place-items-center justify-between">
-							<span>Toggle Sidebar </span>
+							<span class="text-muted-foreground text-sm">Toggle Sidebar </span>
 
 							<div>
 								<Kbd>{isMac.current ? '⌘' : 'Ctrl'}</Kbd>
@@ -83,15 +83,15 @@
 				</div>
 			</div>
 		</div>
-		<div class="pl-12 md:col-start-2">
+		<div class="md:col-start-2 md:pl-12">
 			<div
-				class="bg-card text-muted-foreground flex w-fit place-items-center gap-2 rounded-lg p-1 text-sm"
+				class="bg-card scrollbar-hide text-muted-foreground flex w-fit max-w-full place-items-center gap-2 overflow-x-auto rounded-lg p-1 text-sm"
 			>
 				{#each navigation as tab (tab)}
 					<a
 						href={tab.href}
 						use:active={{ activeForSubdirectories: false }}
-						class="data-[active=true]:bg-background data-[active=true]:text-foreground rounded-md px-2 py-1"
+						class="data-[active=true]:bg-background data-[active=true]:text-foreground rounded-md px-2 py-1 text-nowrap"
 					>
 						{tab.title}
 					</a>
