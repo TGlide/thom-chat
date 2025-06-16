@@ -43,6 +43,7 @@ IDK, calm down
 - [ ] File support
 - [ ] Streams on the server
 - [ ] Syntax highlighting with Shiki/markdown renderer
+- [ ] Eliminate FOUC
 
 ### Extra
 
