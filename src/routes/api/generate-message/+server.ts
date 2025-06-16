@@ -305,7 +305,7 @@ export const POST: RequestHandler = async ({ request }) => {
 // 	const matchedRules: Doc<'user_rules'>[] = [];
 
 // 	for (const rule of rules) {
-// 		const match = message.indexOf(`@${rule.name}`);
+// 		const match = message.indexOf(`@${rule.name} `);
 // 		if (match === -1) continue;
 
 // 		matchedRules.push(rule);
