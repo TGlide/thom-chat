@@ -31,18 +31,29 @@ IDK, calm down
 
 - [x] Login & Auth
 - [x] useCachedQuery
-- [ ] Convex schemas for chats
-- [ ] Actual fucking UI for chat
+- [x] Convex schemas for chats
+- [x] Actual fucking UI for chat
 - [ ] Providers (BYOK)
   - [x] Openrouter
   - [ ] HuggingFace
   - [ ] OpenAI
 - [ ] File upload
 - [ ] Test link with free credits
-- [ ] Ensure responsiveness
+- [x] Ensure responsiveness
 - [ ] File support
-- [ ] Streams on the server
+- [x] Streams on the server
 - [ ] Syntax highlighting with Shiki/markdown renderer
+- [ ] Eliminate FOUC
+- [ ] Cascade deletes and shit in Convex
+- [ ] Error notification central, specially for BYOK models like o3
+
+### Chat
+
+- [ ] loading state
+- [ ] deal with error states, both on creation attempt and message generation failure
+- [ ] delete conversations option
+- [ ] conversation title generation
+- [ ] kbd powered popover model picker
 
 ### Extra
 
@@ -51,3 +62,4 @@ IDK, calm down
 - [ ] Chat branching
 - [ ] Image generation
 - [ ] Chat sharing
+- [ ] 404 page/redirect

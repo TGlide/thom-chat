@@ -71,7 +71,7 @@ export function toMap<T, V>(
 	const map: Record<string, V> = {};
 
 	for (let i = 0; i < arr.length; i++) {
-		const [key, value] = fn(arr[i], i);
+		const [key, value] = fn(arr[i]!, i);
 
 		map[key] = value;
 	}
