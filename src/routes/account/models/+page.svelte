@@ -10,12 +10,7 @@
 	import { Toggle } from 'melt/builders';
 	import XIcon from '~icons/lucide/x';
 	import PlusIcon from '~icons/lucide/plus';
-
-	let { data } = $props();
-
-	const enabledModels = useCachedQuery(api.user_enabled_models.get_enabled, {
-		user_id: session.current?.user.id ?? '',
-	});
+	import { models } from '$lib/state/models.svelte';
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
 		provider: Provider.OpenRouter,
@@ -35,7 +30,7 @@
 	});
 
 	const openRouterModels = $derived(
-		data.openRouterModels.filter((model) => {
+		models.from(Provider.OpenRouter).filter((model) => {
 			if (search !== '' && !hasOpenRouterKey) return false;
 			if (!openRouterToggle.value) return false;
 
@@ -81,12 +76,10 @@
 				})}
 			>
 				{#each openRouterModels as model (model.id)}
-					{@const enabled =
-						enabledModels.data?.[`${Provider.OpenRouter}:${model.id}`] !== undefined}
 					<ModelCard
 						provider={Provider.OpenRouter}
 						{model}
-						{enabled}
+						enabled={model.enabled}
 						disabled={!hasOpenRouterKey}
 					/>
 				{/each}
