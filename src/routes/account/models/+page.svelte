@@ -45,7 +45,7 @@
 		>
 			{#each data.openRouterModels as model (model.id)}
 				{@const enabled = enabledModels.data?.[`${Provider.OpenRouter}:${model.id}`] !== undefined}
-				<ModelCard provider={Provider.OpenRouter} {model} {enabled} />
+				<ModelCard provider={Provider.OpenRouter} {model} {enabled} disabled={!hasOpenRouterKey} />
 			{/each}
 		</div>
 		{#if !hasOpenRouterKey}
