@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { providerValidator } from './schema';
 import * as array from '../../utils/array';
 import * as object from '../../utils/object';
+import { internal } from './_generated/api';
 
 export const get_enabled = query({
 	args: {
@@ -42,8 +43,17 @@ export const set = mutation({
 		model_id: v.string(),
 		user_id: v.string(),
 		enabled: v.boolean(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
 		const existing = await ctx.db
 			.query('user_enabled_models')
 			.withIndex('by_model_provider', (q) =>

@@ -46,6 +46,7 @@
 				user_id: session.current.user.id,
 				model_id: model.id,
 				enabled: v,
+				session_token: session.current?.session.token,
 			}),
 			(e) => e
 		);

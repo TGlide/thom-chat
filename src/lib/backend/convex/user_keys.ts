@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { Provider } from '../../types';
+import { internal } from './_generated/api';
 import { mutation, query } from './_generated/server';
 import { providerValidator } from './schema';
 
@@ -27,8 +28,17 @@ export const get = query({
 	args: {
 		user_id: v.string(),
 		provider: providerValidator,
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
 		const key = await ctx.db
 			.query('user_keys')
 			.withIndex('by_provider_user', (q) =>
@@ -45,8 +55,17 @@ export const set = mutation({
 		provider: providerValidator,
 		user_id: v.string(),
 		key: v.string(),
+		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
 		const existing = await ctx.db
 			.query('user_keys')
 			.withIndex('by_provider_user', (q) =>
