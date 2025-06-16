@@ -53,6 +53,7 @@ IDK, calm down
 - [ ] deal with error states, both on creation attempt and message generation failure
 - [ ] delete conversations option
 - [ ] conversation title generation
+- [ ] kbd powered popover model picker
 
 ### Extra
 
