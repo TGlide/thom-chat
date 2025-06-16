@@ -2,6 +2,8 @@
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/geist-mono';
 @import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter-tight';
+@import '@fontsource-variable/nunito-sans';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -38,14 +40,6 @@
 	--sidebar-accent-foreground: oklch(0.3963 0.0251 285.1962);
 	--sidebar-border: oklch(0.9383 0.0026 48.7178);
 	--sidebar-ring: oklch(0.5916 0.218 0.5844);
-	--font-sans:
-		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-		'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-		'Segoe UI Symbol', 'Noto Color Emoji';
-	--font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-	--font-mono:
-		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-		monospace;
 	--radius: 0.5rem;
 	--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 	--shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -90,14 +84,6 @@
 	--sidebar-accent-foreground: oklch(0.9674 0.0013 286.3752);
 	--sidebar-border: oklch(0 0 0);
 	--sidebar-ring: oklch(0.5797 0.1194 237.7893);
-	--font-sans:
-		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-		'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-		'Segoe UI Symbol', 'Noto Color Emoji';
-	--font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-	--font-mono:
-		ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-		monospace;
 	--radius: 0.5rem;
 	--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 	--shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -142,10 +128,6 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-border: var(--sidebar-border);
 	--color-sidebar-ring: var(--sidebar-ring);
-
-	--font-sans: var(--font-sans);
-	--font-mono: var(--font-mono);
-	--font-serif: var(--font-serif);
 
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
@@ -198,6 +180,10 @@
 
 	--font-sans:
 		'Inter Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+		'Segoe UI Symbol', 'Noto Color Emoji';
+	--font-fake-proxima:
+		'Nunito Sans Variable', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
 		Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
 		'Segoe UI Symbol', 'Noto Color Emoji';
 	--font-serif: 'Fraunces Variable', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
@@ -402,5 +388,64 @@
 			--modal-bl: var(--radius-box);
 			--modal-br: 0;
 		}
+	}
+
+	/* Border reflect from t3 */
+	.button-reflect {
+		/* Derived from dark primary: oklch(0.5797 0.1194 237.7893) */
+		--min: oklch(0.5797 0.1194 237.7893 / 0.25) !important; /* Lighter, more transparent */
+		--max: oklch(0.5797 0.1194 237.7893 / 0.7) !important; /* Slightly more saturated */
+		--start: #000000d9 !important;
+	}
+	.border-reflect {
+		/* Derived from dark primary: oklch(0.5797 0.1194 237.7893) */
+		--c: 237.7893 11.94% 57.97%; /* Using the hue, chroma, and lightness from dark primary */
+		--min: hsl(from var(--primary) h c l / 0.2);
+		--max: hsl(from var(--primary) h c l / 1);
+		--gradientBorder-gradient:
+			linear-gradient(180deg, var(--min), var(--max), var(--min)),
+			linear-gradient(15deg, var(--min) 50%, var(--max));
+		--opacity: 1;
+		--start: rgba(0, 0, 0, 0.85);
+		position: relative;
+	}
+	.boring-dark .border-reflect,
+	.dark .border-reflect {
+		/* Derived from dark primary: oklch(0.5797 0.1194 237.7893) */
+		--gradientBorder-gradient:
+			linear-gradient(
+				180deg,
+				oklch(0.5797 0.1194 237.7893 / 0),
+				oklch(0.5797 0.1194 237.7893 / 0.74),
+				oklch(0.5797 0.1194 237.7893 / 0.09)
+			),
+			linear-gradient(
+				15deg,
+				oklch(0.5797 0.1194 237.7893 / 0.12),
+				oklch(0.5797 0.1194 237.7893 / 0.74)
+			);
+		--start: rgba(0, 0, 0, 0.92);
+	}
+	.border-reflect:before {
+		content: '';
+		pointer-events: none;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		padding: var(--gradientBorder-size, 1px);
+		background: var(--gradientBorder-gradient);
+		-webkit-mask:
+			linear-gradient(var(--start), #000) content-box,
+			linear-gradient(var(--start), #000);
+		mask:
+			linear-gradient(var(--start), #000) content-box,
+			linear-gradient(var(--start), #000);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		opacity: var(--opacity, 1);
 	}
 }

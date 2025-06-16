@@ -59,7 +59,15 @@
 		<div class="flex place-items-center justify-center py-2">
 			<span class="text-center font-serif text-lg">Thom.chat</span>
 		</div>
-		<Button href="/chat" class="w-full">New Chat</Button>
+		<div class="mt-1 flex w-full px-2">
+			<a
+				href="/chat"
+				class="border-reflect button-reflect bg-primary/20 hover:bg-primary/50 font-fake-proxima w-full rounded-lg px-4 py-2 text-center text-sm tracking-[-0.005em] duration-200"
+				style="font-variation-settings: 'wght' 750"
+			>
+				New Chat
+			</a>
+		</div>
 		<div class="flex flex-1 flex-col overflow-y-auto py-2">
 			{#each conversationsQuery.data ?? [] as conversation (conversation._id)}
 				<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">

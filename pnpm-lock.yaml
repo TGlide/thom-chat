@@ -20,6 +20,18 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.2.6
         version: 5.2.6
+      '@fontsource-variable/inter-tight':
+        specifier: ^5.2.6
+        version: 5.2.6
+      '@fontsource-variable/montserrat':
+        specifier: ^5.2.6
+        version: 5.2.6
+      '@fontsource-variable/nunito-sans':
+        specifier: ^5.2.6
+        version: 5.2.6
+      '@fontsource-variable/open-sans':
+        specifier: ^5.2.6
+        version: 5.2.6
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
@@ -588,8 +600,20 @@ packages:
   '@fontsource-variable/geist-mono@5.2.6':
     resolution: {integrity: sha512-vw6T9JGTrYJ980bn7W8iTPhe2jVK5ifunVs7xh9dfTVArjDSkJs03JjeZrH5LKEpGABLXSlSlNU57HRm4tmFMg==}
 
+  '@fontsource-variable/inter-tight@5.2.6':
+    resolution: {integrity: sha512-umb36PJO+bwzqvpKkikmIEDs0YF3P5vUBQe+UEBgPSDffzDZyKVIU07M4/1cWcsZgU1PaXjyheUYKwlsJteopA==}
+
   '@fontsource-variable/inter@5.2.6':
     resolution: {integrity: sha512-jks/bficUPQ9nn7GvXvHtlQIPudW7Wx8CrlZoY8bhxgeobNxlQan8DclUJuYF2loYRrGpfrhCIZZspXYysiVGg==}
+
+  '@fontsource-variable/montserrat@5.2.6':
+    resolution: {integrity: sha512-1eHefcz9ZXSMjZPckKCWSYd8rLjUpmzQIsNO8DuyU0IdPvsqletPvSIJmztr0sCU6sX4EFKsSHxJWawjmROp2A==}
+
+  '@fontsource-variable/nunito-sans@5.2.6':
+    resolution: {integrity: sha512-lDToEZdfmhp+W62yZxDY64+tOzIBF7phjyTcIG+nh8utXMJo8IgS9iqVoOI18LyS/FMJO9Dx3kCsJEDQaf3s9g==}
+
+  '@fontsource-variable/open-sans@5.2.6':
+    resolution: {integrity: sha512-O596UvQZ7KkR8yDJWIP8UZZoqs0DHpYsrL0Szml0/EkrJ35HcMIM3bJ3sSAIAjWsBSqKgzV2HJEIuhvxBd1iog==}
 
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
@@ -2806,7 +2830,15 @@ snapshots:
 
   '@fontsource-variable/geist-mono@5.2.6': {}
 
+  '@fontsource-variable/inter-tight@5.2.6': {}
+
   '@fontsource-variable/inter@5.2.6': {}
+
+  '@fontsource-variable/montserrat@5.2.6': {}
+
+  '@fontsource-variable/nunito-sans@5.2.6': {}
+
+  '@fontsource-variable/open-sans@5.2.6': {}
 
   '@hexagon/base64@1.1.28': {}
 
