@@ -180,7 +180,11 @@
 		return suggestions.length > 0 ? suggestions : undefined;
 	});
 
-	const popover = new Popover();
+	const popover = new Popover({
+		floatingConfig: {
+			computePosition: { placement: 'top' },
+		},
+	});
 
 	function completeRule(rule: Doc<'user_rules'>) {
 		if (!textarea) return;
@@ -252,6 +256,9 @@
 	}
 
 	const textareaSize = new ElementSize(() => textarea);
+
+	let textareaWrapper = $state<HTMLDivElement>();
+	const wrapperSize = new ElementSize(() => textareaWrapper);
 </script>
 
 <svelte:head>
@@ -278,11 +285,12 @@
 			></div>
 			<div class="flex flex-1 flex-col overflow-y-auto py-2">
 				{#each templateConversations as group, index (group.key)}
+					{@const IconComponent = group.icon}
 					{#if group.conversations.length > 0}
 						<div class="px-2 py-1" class:mt-2={index > 0}>
 							<h3 class="text-heading text-xs font-medium">
-								{#if group.icon}
-									<svelte:component this={group.icon} class="inline size-3" />
+								{#if IconComponent}
+									<IconComponent class="inline size-3" />
 								{/if}
 								{group.label}
 							</h3>
@@ -395,114 +403,136 @@
 		</Sidebar.Trigger>
 		<div class="relative">
 			<div class="h-screen overflow-y-auto">
-				<div class="mx-auto flex max-w-3xl flex-col">
+				<div
+					class="mx-auto flex max-w-3xl flex-col"
+					style:padding-bottom={wrapperSize.height + 'px'}
+				>
 					{@render children()}
 				</div>
 			</div>
 
 			<div
 				class="abs-x-center absolute bottom-0 left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+				bind:this={textareaWrapper}
 			>
-				<ModelPicker class=" w-min " />
-				<div class="h-2" aria-hidden="true"></div>
-				<form
-					class="relative min-h-18 w-full"
-					onsubmit={(e) => {
-						e.preventDefault();
-						handleSubmit();
-					}}
-					bind:this={form}
-				>
-					{#if suggestedRules}
-						<div
-							{...popover.content}
-							class="bg-background border-border absolute rounded-lg border"
-							style="width: {textareaSize.width}px"
-						>
-							<div class="flex flex-col p-2" bind:this={ruleList}>
-								{#each suggestedRules as rule, i (rule._id)}
-									<button
-										type="button"
-										data-list-item
-										data-active={i === 0}
-										onmouseover={(e) => {
-											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
-												rule.setAttribute('data-active', 'false');
-											}
+				<div class="border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg">
+					<form
+						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline outline-8 dark:border-white/10"
+						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
+						onsubmit={(e) => {
+							e.preventDefault();
+							handleSubmit();
+						}}
+						bind:this={form}
+					>
+						{#if suggestedRules}
+							<div
+								{...popover.content}
+								class="bg-background border-border absolute rounded-lg border"
+								style="width: {textareaSize.width}px"
+							>
+								<div class="flex flex-col p-2" bind:this={ruleList}>
+									{#each suggestedRules as rule, i (rule._id)}
+										<button
+											type="button"
+											data-list-item
+											data-active={i === 0}
+											onmouseover={(e) => {
+												for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+													rule.setAttribute('data-active', 'false');
+												}
 
-											e.currentTarget.setAttribute('data-active', 'true');
-										}}
-										onfocus={(e) => {
-											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
-												rule.setAttribute('data-active', 'false');
-											}
+												e.currentTarget.setAttribute('data-active', 'true');
+											}}
+											onfocus={(e) => {
+												for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+													rule.setAttribute('data-active', 'false');
+												}
 
-											e.currentTarget.setAttribute('data-active', 'true');
-										}}
-										onclick={() => completeRule(rule)}
-										class="data-[active=true]:bg-accent rounded-md px-2 py-1 text-start"
+												e.currentTarget.setAttribute('data-active', 'true');
+											}}
+											onclick={() => completeRule(rule)}
+											class="data-[active=true]:bg-accent rounded-md px-2 py-1 text-start"
+										>
+											{rule.name}
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/if}
+						<div class="flex flex-grow flex-col">
+							<div class="flex flex-grow flex-row items-start">
+								<!-- TODO: Figure out better autofocus solution -->
+								<!-- svelte-ignore a11y_autofocus -->
+								<textarea
+									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
+									bind:this={textarea}
+									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none bg-transparent text-base leading-6 outline-none disabled:opacity-0"
+									placeholder="Type your message here..."
+									name="message"
+									onkeydown={(e) => {
+										if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
+											e.preventDefault();
+											handleSubmit();
+										}
+
+										if (e.key === 'Enter' && popover.open) {
+											e.preventDefault();
+											completeSelectedRule();
+										}
+
+										if (e.key === 'Escape' && popover.open) {
+											e.preventDefault();
+											popover.open = false;
+										}
+
+										if (e.key === 'ArrowUp' && popover.open) {
+											e.preventDefault();
+											handleKeyboardNavigation('up');
+										}
+
+										if (e.key === 'ArrowDown' && popover.open) {
+											e.preventDefault();
+											handleKeyboardNavigation('down');
+										}
+
+										if (e.key === '@' && !popover.open) {
+											popover.open = true;
+										}
+									}}
+									bind:value={message}
+									autofocus
+									autocomplete="off"
+									{@attach autosize.attachment}
+								></textarea>
+							</div>
+							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
+								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
+									<Button
+										type="submit"
+										size="icon"
+										class="border-reflect button-reflect bg-primary hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow"
 									>
-										{rule.name}
-									</button>
-								{/each}
+										<SendIcon class="!size-5" />
+									</Button>
+								</div>
+								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
+									<ModelPicker />
+								</div>
 							</div>
 						</div>
-					{/if}
-					<!-- TODO: Figure out better autofocus solution -->
-					<!-- svelte-ignore a11y_autofocus -->
-					<textarea
-						{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
-						bind:this={textarea}
-						class="border-input bg-background ring-ring ring-offset-background max-h-64 min-h-18 w-full resize-none overflow-y-auto rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
-						placeholder="Ask me anything..."
-						name="message"
-						onkeydown={(e) => {
-							if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
-								e.preventDefault();
-								handleSubmit();
-							}
-
-							if (e.key === 'Enter' && popover.open) {
-								e.preventDefault();
-								completeSelectedRule();
-							}
-
-							if (e.key === 'Escape' && popover.open) {
-								e.preventDefault();
-								popover.open = false;
-							}
-
-							if (e.key === 'ArrowUp' && popover.open) {
-								e.preventDefault();
-								handleKeyboardNavigation('up');
-							}
-
-							if (e.key === 'ArrowDown' && popover.open) {
-								e.preventDefault();
-								handleKeyboardNavigation('down');
-							}
-
-							if (e.key === '@' && !popover.open) {
-								popover.open = true;
-							}
-						}}
-						bind:value={message}
-						autofocus
-						autocomplete="off"
-						{@attach autosize.attachment}
-					></textarea>
-					<Button type="submit" size="icon" class="absolute right-1 bottom-1 size-8">
-						<SendIcon />
-					</Button>
-				</form>
-				<div class="flex w-full place-items-center justify-between gap-2 pb-1">
-					<span class="text-muted-foreground text-xs">
-						Crafted by <Icons.Svelte class="inline size-3" /> wizards.
-					</span>
-					<a href="https://github.com/TGlide/thom-chat" class="text-muted-foreground text-xs">
-						Source on <Icons.GitHub class="ml-0.5 inline size-3" />
-					</a>
+					</form>
 				</div>
+			</div>
+
+			<!-- Credits in bottom-right, only on large screens -->
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 lg:flex">
+				<span class="text-muted-foreground text-xs">
+					Crafted by <Icons.Svelte class="inline size-3" /> wizards.
+				</span>
+				<a href="https://github.com/TGlide/thom-chat" class="text-muted-foreground text-xs">
+					Source on <Icons.GitHub class="ml-0.5 inline size-3" />
+				</a>
 			</div>
 		</div>
 	</Sidebar.Inset>
