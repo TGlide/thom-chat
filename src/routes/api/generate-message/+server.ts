@@ -7,7 +7,6 @@ import { ConvexHttpClient } from 'convex/browser';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
 import OpenAI from 'openai';
 import { waitUntil } from '@vercel/functions';
-
 import { z } from 'zod/v4';
 import type { ChatCompletionSystemMessageParam } from 'openai/resources';
 import { getSessionCookie } from 'better-auth/cookies';
@@ -325,7 +324,12 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			return;
 		}
 
-		const generationStatsResult = await getGenerationStats(generationId, key);
+		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, key), {
+			delay: 500,
+			retries: 2,
+			startTime,
+			fnName: 'getGenerationStats',
+		});
 
 		if (generationStatsResult.isErr()) {
 			log(`Background: Failed to get generation stats: ${generationStatsResult.error}`, startTime);
@@ -557,6 +561,34 @@ async function getGenerationStats(
 	} catch {
 		return err('Failed to get generation stats');
 	}
+}
+
+async function retryResult<T, E>(
+	fn: () => Promise<Result<T, E>>,
+	{
+		retries,
+		delay,
+		startTime,
+		fnName,
+	}: { retries: number; delay: number; startTime: number; fnName: string }
+): Promise<Result<T, E>> {
+	let attempts = 0;
+	let lastResult: Result<T, E> | null = null;
+
+	while (attempts <= retries) {
+		lastResult = await fn();
+
+		if (lastResult.isOk()) return lastResult;
+
+		log(`Retrying ${fnName} ${attempts} failed: ${lastResult.error}`, startTime);
+
+		await new Promise((resolve) => setTimeout(resolve, delay));
+		attempts++;
+	}
+
+	if (!lastResult) throw new Error('This should never happen');
+
+	return lastResult;
 }
 
 export interface ApiResponse {
