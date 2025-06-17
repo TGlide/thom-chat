@@ -23,6 +23,7 @@
 	import { Popover } from 'melt/builders';
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
+	import { ElementSize } from 'runed';
 
 	const client = useConvexClient();
 
@@ -246,6 +247,8 @@
 			rules[newIndex]?.setAttribute('data-active', 'true');
 		}
 	}
+	
+	const textareaSize = new ElementSize(() => textarea);
 </script>
 
 <svelte:head>
@@ -391,7 +394,8 @@
 					{#if suggestedRules}
 						<div
 							{...popover.content}
-							class="bg-background border-border absolute top-0 w-full -translate-y-[calc(100%+0.5rem)] rounded-lg border"
+							class="bg-background border-border absolute rounded-lg border"
+							style="width: {textareaSize.width}px"
 						>
 							<div class="flex flex-col p-2" bind:this={ruleList}>
 								{#each suggestedRules as rule, i (rule._id)}
