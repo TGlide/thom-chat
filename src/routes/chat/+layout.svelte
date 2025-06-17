@@ -23,10 +23,11 @@
 	import { Popover } from 'melt/builders';
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
-	import { ElementSize } from 'runed';
+	import { ElementSize, ScrollState, Debounced } from 'runed';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import { cn } from '$lib/utils/utils.js';
 	import { pick } from '$lib/utils/object.js';
+	import ChevronDownIcon from '~icons/lucide/chevron-down';
 
 	const client = useConvexClient();
 
@@ -259,6 +260,13 @@
 
 	let textareaWrapper = $state<HTMLDivElement>();
 	const wrapperSize = new ElementSize(() => textareaWrapper);
+
+	let conversationList = $state<HTMLDivElement>();
+	const scrollState = new ScrollState({
+		element: () => conversationList,
+	});
+
+	const notAtBottom = new Debounced(() => !scrollState.arrived.bottom, 500);
 </script>
 
 <svelte:head>
@@ -402,13 +410,25 @@
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
 		<div class="relative">
-			<div class="h-screen overflow-y-auto">
+			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
 					class="mx-auto flex max-w-3xl flex-col"
 					style:padding-bottom={wrapperSize.height + 'px'}
 				>
 					{@render children()}
 				</div>
+				{#if notAtBottom.current}
+					<Button
+						onclick={() => scrollState.scrollToBottom()}
+						variant="secondary"
+						size="sm"
+						class="text-muted-foreground absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full text-xs"
+						style="bottom: {wrapperSize.height + 5}px;"
+					>
+						Scroll to bottom
+						<ChevronDownIcon class="inline" />
+					</Button>
+				{/if}
 			</div>
 
 			<div
