@@ -124,3 +124,32 @@ export const updateTitle = mutation({
 		});
 	},
 });
+
+export const togglePin = mutation({
+	args: {
+		conversation_id: v.id('conversations'),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		// Verify the conversation belongs to the user
+		const conversation = await ctx.db.get(args.conversation_id);
+		if (!conversation || conversation.user_id !== session.userId) {
+			throw new Error('Conversation not found or unauthorized');
+		}
+
+		await ctx.db.patch(args.conversation_id, {
+			pinned: !conversation.pinned,
+			updated_at: Date.now(),
+		});
+
+		return { pinned: !conversation.pinned };
+	},
+});

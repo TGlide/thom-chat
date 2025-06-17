@@ -45,6 +45,7 @@ export default defineSchema({
 		user_id: v.string(),
 		title: v.string(),
 		updated_at: v.optional(v.number()),
+		pinned: v.optional(v.boolean()),
 	}).index('by_user', ['user_id']),
 	messages: defineTable({
 		conversation_id: v.string(),
