@@ -42,6 +42,111 @@ function log(message: string, startTime: number): void {
 
 const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 
+async function generateConversationTitle({
+	conversationId,
+	session,
+	startTime,
+	keyResultPromise,
+	userMessage
+}: {
+	conversationId: string;
+	session: SessionObj;
+	startTime: number;
+	keyResultPromise: ResultAsync<string | null, string>;
+	userMessage: string;
+}) {
+	log('Starting conversation title generation', startTime);
+
+	const keyResult = await keyResultPromise;
+	
+	if (keyResult.isErr()) {
+		log(`Title generation: API key error: ${keyResult.error}`, startTime);
+		return;
+	}
+
+	const key = keyResult.value;
+	if (!key) {
+		log('Title generation: No API key found', startTime);
+		return;
+	}
+
+	// Only generate title if conversation currently has default title
+	const conversationResult = await ResultAsync.fromPromise(
+		client.query(api.conversations.get, {
+			session_token: session.token,
+		}),
+		(e) => `Failed to get conversations: ${e}`
+	);
+
+	if (conversationResult.isErr()) {
+		log(`Title generation: Failed to get conversation: ${conversationResult.error}`, startTime);
+		return;
+	}
+
+	const conversations = conversationResult.value;
+	const conversation = conversations.find(c => c._id === conversationId);
+	
+	if (!conversation || !conversation.title.includes('Untitled')) {
+		log('Title generation: Conversation not found or already has custom title', startTime);
+		return;
+	}
+
+	const openai = new OpenAI({
+		baseURL: 'https://openrouter.ai/api/v1',
+		apiKey: key,
+	});
+
+	// Create a prompt for title generation using only the first user message
+	const titlePrompt = `Based on this user request, generate a concise, specific title (max 4-5 words):
+
+${userMessage}
+
+Generate only the title based on what the user is asking for, nothing else:`;
+
+	const titleResult = await ResultAsync.fromPromise(
+		openai.chat.completions.create({
+			model: 'mistralai/ministral-8b',
+			messages: [{ role: 'user', content: titlePrompt }],
+			max_tokens: 20,
+			temperature: 0.3,
+		}),
+		(e) => `Title generation API call failed: ${e}`
+	);
+
+	if (titleResult.isErr()) {
+		log(`Title generation: OpenAI call failed: ${titleResult.error}`, startTime);
+		return;
+	}
+
+	const titleResponse = titleResult.value;
+	const rawTitle = titleResponse.choices[0]?.message?.content?.trim();
+
+	if (!rawTitle) {
+		log('Title generation: No title generated', startTime);
+		return;
+	}
+
+	// Strip surrounding quotes if present
+	const generatedTitle = rawTitle.replace(/^["']|["']$/g, '');
+
+	// Update the conversation title
+	const updateResult = await ResultAsync.fromPromise(
+		client.mutation(api.conversations.updateTitle, {
+			conversation_id: conversationId as Id<'conversations'>,
+			title: generatedTitle,
+			session_token: session.token,
+		}),
+		(e) => `Failed to update conversation title: ${e}`
+	);
+
+	if (updateResult.isErr()) {
+		log(`Title generation: Failed to update title: ${updateResult.error}`, startTime);
+		return;
+	}
+
+	log(`Title generation: Successfully updated title to "${generatedTitle}"`, startTime);
+}
+
 async function generateAIResponse({
 	conversationId,
 	session,
@@ -210,6 +315,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			`Background stream processing completed. Processed ${chunkCount} chunks, final content length: ${content.length}`,
 			startTime
 		);
+
 	} catch (error) {
 		log(`Background stream processing error: ${error}`, startTime);
 	}
@@ -302,6 +408,19 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		conversationId = convMessageResult.value.conversationId;
 		log('New conversation and message created', startTime);
+
+		// Generate title for new conversation in background
+		waitUntil(
+			generateConversationTitle({
+				conversationId,
+				session,
+				startTime,
+				keyResultPromise,
+				userMessage: args.message
+			}).catch((error) => {
+				log(`Background title generation error: ${error}`, startTime);
+			})
+		);
 	} else {
 		log('Using existing conversation', startTime);
 		const userMessageResult = await ResultAsync.fromPromise(

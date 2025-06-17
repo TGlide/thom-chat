@@ -8,6 +8,7 @@
 	import { Avatar } from 'melt/components';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import PinIcon from '~icons/lucide/pin';
+	import PinOffIcon from '~icons/lucide/pin-off';
 	import XIcon from '~icons/lucide/x';
 	import SendIcon from '~icons/lucide/send';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
@@ -16,10 +17,14 @@
 	import { goto } from '$app/navigation';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import { api } from '$lib/backend/convex/_generated/api.js';
-	import { type Doc } from '$lib/backend/convex/_generated/dataModel.js';
+	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { Popover } from 'melt/builders';
+	import { useConvexClient } from 'convex-svelte';
+	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
+
+	const client = useConvexClient();
 
 	let { data, children } = $props();
 
@@ -65,6 +70,7 @@
 		const thirtyDays = 30 * oneDay;
 
 		const groups = {
+			pinned: [] as Doc<'conversations'>[],
 			today: [] as Doc<'conversations'>[],
 			yesterday: [] as Doc<'conversations'>[],
 			lastWeek: [] as Doc<'conversations'>[],
@@ -73,6 +79,12 @@
 		};
 
 		conversations.forEach((conversation) => {
+			// Pinned conversations go to pinned group regardless of time
+			if (conversation.pinned) {
+				groups.pinned.push(conversation);
+				return;
+			}
+
 			const updatedAt = conversation.updated_at ?? 0;
 			const timeDiff = now - updatedAt;
 
@@ -89,11 +101,47 @@
 			}
 		});
 
+		// Sort pinned conversations by updated_at (most recent first)
+		groups.pinned.sort((a, b) => {
+			const aTime = a.updated_at ?? 0;
+			const bTime = b.updated_at ?? 0;
+			return bTime - aTime;
+		});
+
 		return groups;
 	}
 
 	const groupedConversations = $derived(groupConversationsByTime(conversationsQuery.data ?? []));
+
+	async function togglePin(conversationId: string) {
+		if (!session.current?.session.token) return;
+
+		await client.mutation(api.conversations.togglePin, {
+			conversation_id: conversationId as Id<'conversations'>,
+			session_token: session.current.session.token,
+		});
+	}
+
+	async function deleteConversation(conversationId: string) {
+		const res = await callModal({
+			title: 'Delete conversation',
+			description: 'Are you sure you want to delete this conversation?',
+			actions: { cancel: 'outline', delete: 'destructive' },
+		});
+
+		if (res !== 'delete') return;
+
+		if (!session.current?.session.token) return;
+
+		await client.mutation(api.conversations.remove, {
+			conversation_id: conversationId as Id<'conversations'>,
+			session_token: session.current.session.token,
+		});
+		goto(`/chat`);
+	}
+
 	const templateConversations = $derived([
+		{ key: 'pinned', label: 'Pinned', conversations: groupedConversations.pinned, icon: PinIcon },
 		{ key: 'today', label: 'Today', conversations: groupedConversations.today },
 		{ key: 'yesterday', label: 'Yesterday', conversations: groupedConversations.yesterday },
 		{ key: 'lastWeek', label: 'Last 7 days', conversations: groupedConversations.lastWeek },
@@ -226,7 +274,12 @@
 				{#each templateConversations as group, index (group.key)}
 					{#if group.conversations.length > 0}
 						<div class="px-2 py-1" class:mt-2={index > 0}>
-							<h3 class="text-heading text-xs font-medium">{group.label}</h3>
+							<h3 class="text-heading text-xs font-medium">
+								{#if group.icon}
+									<svelte:component this={group.icon} class="inline size-3" />
+								{/if}
+								{group.label}
+							</h3>
 						</div>
 						{#each group.conversations as conversation (conversation._id)}
 							{@const isActive = page.params.id === conversation._id}
@@ -234,26 +287,49 @@
 								<div class="relative overflow-clip">
 									<p
 										class={[
-											' rounded-lg py-2 pl-3',
+											' truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap',
 											isActive ? 'bg-sidebar-accent' : 'group-hover:bg-sidebar-accent ',
 										]}
 									>
 										<span>{conversation.title}</span>
 									</p>
 									<div
-										class=" to-sidebar-accent pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg bg-gradient-to-r from-transparent pr-2 transition group-hover:pointer-events-auto group-hover:translate-0"
+										class={[
+											'pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg pr-2 pl-6 transition group-hover:pointer-events-auto group-hover:translate-0',
+											'to-sidebar-accent via-sidebar-accent bg-gradient-to-r from-transparent from-10% via-21% ',
+										]}
 									>
 										<Tooltip>
 											{#snippet trigger(tooltip)}
-												<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
-													<PinIcon class="size-4" />
+												<button
+													{...tooltip.trigger}
+													class="hover:bg-muted rounded-md p-1"
+													onclick={(e) => {
+														e.preventDefault();
+														e.stopPropagation();
+														togglePin(conversation._id);
+													}}
+												>
+													{#if conversation.pinned}
+														<PinOffIcon class="size-4" />
+													{:else}
+														<PinIcon class="size-4" />
+													{/if}
 												</button>
 											{/snippet}
-											Pin thread
+											{conversation.pinned ? 'Unpin thread' : 'Pin thread'}
 										</Tooltip>
 										<Tooltip>
 											{#snippet trigger(tooltip)}
-												<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+												<button
+													{...tooltip.trigger}
+													class="hover:bg-muted rounded-md p-1"
+													onclick={(e) => {
+														e.preventDefault();
+														e.stopPropagation();
+														deleteConversation(conversation._id);
+													}}
+												>
 													<XIcon class="size-4" />
 												</button>
 											{/snippet}
