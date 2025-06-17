@@ -157,7 +157,7 @@
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
 
-	let message = $state(page.url.searchParams.get('prompt') ?? '');
+	let message = $state('');
 
 	usePrompt(
 		() => message,
