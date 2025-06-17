@@ -3,13 +3,12 @@ import { api } from '$lib/backend/convex/_generated/api';
 import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 import { Provider } from '$lib/types';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { waitUntil } from '@vercel/functions';
+import { getSessionCookie } from 'better-auth/cookies';
 import { ConvexHttpClient } from 'convex/browser';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
 import OpenAI from 'openai';
-import { waitUntil } from '@vercel/functions';
 import { z } from 'zod/v4';
-import type { ChatCompletionSystemMessageParam } from 'openai/resources';
-import { getSessionCookie } from 'better-auth/cookies';
 import { generationAbortControllers } from './cache.js';
 
 // Set to true to enable debug logging
@@ -249,13 +248,6 @@ async function generateAIResponse({
 
 	log(`Background: ${attachedRules.length} rules attached`, startTime);
 
-	const systemMessage: ChatCompletionSystemMessageParam = {
-		role: 'system',
-		content: `Respond in markdown format. The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
-Rules to follow:
-${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
-	};
-
 	const openai = new OpenAI({
 		baseURL: 'https://openrouter.ai/api/v1',
 		apiKey: key,
@@ -280,20 +272,37 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		};
 	});
 
+	// Only include system message if there are rules to follow
+	const messagesToSend =
+		attachedRules.length > 0
+			? [
+					...formattedMessages,
+					{
+						role: 'system' as const,
+						content: `Respond in markdown format. The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
+Rules to follow:
+${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
+					},
+				]
+			: formattedMessages;
+
 	if (abortSignal?.aborted) {
 		log('AI response generation aborted before OpenAI call', startTime);
 		return;
 	}
 
 	const streamResult = await ResultAsync.fromPromise(
-		openai.chat.completions.create({
-			model: model.model_id,
-			messages: [...formattedMessages, systemMessage],
-			temperature: 0.7,
-			stream: true,
-		}, {
-			signal: abortSignal,
-		}),
+		openai.chat.completions.create(
+			{
+				model: model.model_id,
+				messages: messagesToSend,
+				temperature: 0.7,
+				stream: true,
+			},
+			{
+				signal: abortSignal,
+			}
+		),
 		(e) => `OpenAI API call failed: ${e}`
 	);
 
@@ -590,22 +599,24 @@ export const POST: RequestHandler = async ({ request }) => {
 			keyResultPromise,
 			rulesResultPromise,
 			abortSignal: abortController.signal,
-		}).catch(async (error) => {
-			log(`Background AI response generation error: ${error}`, startTime);
-			// Reset generating status on error
-			try {
-				await client.mutation(api.conversations.updateGenerating, {
-					conversation_id: conversationId as Id<'conversations'>,
-					generating: false,
-					session_token: sessionToken,
-				});
-			} catch (e) {
-				log(`Failed to reset generating status after error: ${e}`, startTime);
-			}
-		}).finally(() => {
-			// Clean up the cached AbortController
-			generationAbortControllers.delete(conversationId);
 		})
+			.catch(async (error) => {
+				log(`Background AI response generation error: ${error}`, startTime);
+				// Reset generating status on error
+				try {
+					await client.mutation(api.conversations.updateGenerating, {
+						conversation_id: conversationId as Id<'conversations'>,
+						generating: false,
+						session_token: sessionToken,
+					});
+				} catch (e) {
+					log(`Failed to reset generating status after error: ${e}`, startTime);
+				}
+			})
+			.finally(() => {
+				// Clean up the cached AbortController
+				generationAbortControllers.delete(conversationId);
+			})
 	);
 
 	log('Response sent, AI generation started in background', startTime);
