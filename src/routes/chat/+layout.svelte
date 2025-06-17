@@ -26,6 +26,7 @@
 	import { ElementSize } from 'runed';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import { cn } from '$lib/utils/utils.js';
+	import { pick } from '$lib/utils/object.js';
 
 	const client = useConvexClient();
 
@@ -303,7 +304,9 @@
 									</p>
 									<div class="pr-2">
 										{#if conversation.generating}
-											<div class="flex animate-[spin_0.75s_linear_infinite] place-items-center justify-center">
+											<div
+												class="flex animate-[spin_0.75s_linear_infinite] place-items-center justify-center"
+											>
 												<LoaderCircleIcon class="size-4" />
 											</div>
 										{/if}
@@ -441,7 +444,7 @@
 					<!-- TODO: Figure out better autofocus solution -->
 					<!-- svelte-ignore a11y_autofocus -->
 					<textarea
-						{...popover.trigger}
+						{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 						bind:this={textarea}
 						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
 						placeholder="Ask me anything..."
