@@ -31,6 +31,7 @@
 	import XIcon from '~icons/lucide/x';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
 
 	const client = useConvexClient();
 
@@ -292,13 +293,19 @@
 			<span class="text-center font-serif text-lg">Thom.chat</span>
 		</div>
 		<div class="mt-1 flex w-full px-2">
-			<a
-				href="/chat"
-				class="border-reflect button-reflect bg-primary/20 hover:bg-primary/50 font-fake-proxima w-full rounded-lg px-4 py-2 text-center text-sm tracking-[-0.005em] duration-200"
-				style="font-variation-settings: 'wght' 750"
-			>
-				New Chat
-			</a>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<a
+						href="/chat"
+						class="border-reflect button-reflect bg-primary/20 hover:bg-primary/50 font-fake-proxima w-full rounded-lg px-4 py-2 text-center text-sm tracking-[-0.005em] duration-200"
+						{...tooltip.trigger}
+						style="font-variation-settings: 'wght' 750"
+					>
+						New Chat
+					</a>
+				{/snippet}
+				{cmdOrCtrl} + Shift + O
+			</Tooltip>
 		</div>
 		<div class="relative flex min-h-0 flex-1 shrink-0 flex-col overflow-clip">
 			<div
@@ -419,9 +426,14 @@
 	</Sidebar.Sidebar>
 
 	<Sidebar.Inset class="w-full overflow-clip ">
-		<Sidebar.Trigger class="fixed top-3 left-2 z-50">
-			<PanelLeftIcon />
-		</Sidebar.Trigger>
+		<Tooltip>
+			{#snippet trigger(tooltip)}
+				<Sidebar.Trigger class="fixed top-3 left-2 z-50" {...tooltip.trigger}>
+					<PanelLeftIcon />
+				</Sidebar.Trigger>
+			{/snippet}
+			{cmdOrCtrl} + B
+		</Tooltip>
 
 		<!-- header -->
 		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
@@ -515,7 +527,7 @@
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
 									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:opacity-0"
-									placeholder="Type your message here..."
+									placeholder="Type your message here... Tag rules with @"
 									name="message"
 									onkeydown={(e) => {
 										if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
