@@ -10,6 +10,7 @@ import { waitUntil } from '@vercel/functions';
 import { z } from 'zod/v4';
 import type { ChatCompletionSystemMessageParam } from 'openai/resources';
 import { getSessionCookie } from 'better-auth/cookies';
+import { generationAbortControllers } from './cache.js';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -162,6 +163,7 @@ async function generateAIResponse({
 	modelResultPromise,
 	keyResultPromise,
 	rulesResultPromise,
+	abortSignal,
 }: {
 	conversationId: string;
 	sessionToken: string;
@@ -169,8 +171,14 @@ async function generateAIResponse({
 	keyResultPromise: ResultAsync<string | null, string>;
 	modelResultPromise: ResultAsync<Doc<'user_enabled_models'> | null, string>;
 	rulesResultPromise: ResultAsync<Doc<'user_rules'>[], string>;
+	abortSignal?: AbortSignal;
 }) {
 	log('Starting AI response generation in background', startTime);
+
+	if (abortSignal?.aborted) {
+		log('AI response generation aborted before starting', startTime);
+		return;
+	}
 
 	const [modelResult, keyResult, messagesQueryResult, rulesResult] = await Promise.all([
 		modelResultPromise,
@@ -272,12 +280,19 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		};
 	});
 
+	if (abortSignal?.aborted) {
+		log('AI response generation aborted before OpenAI call', startTime);
+		return;
+	}
+
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create({
 			model: model.model_id,
 			messages: [...formattedMessages, systemMessage],
 			temperature: 0.7,
 			stream: true,
+		}, {
+			signal: abortSignal,
 		}),
 		(e) => `OpenAI API call failed: ${e}`
 	);
@@ -317,6 +332,11 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 
 	try {
 		for await (const chunk of stream) {
+			if (abortSignal?.aborted) {
+				log('AI response generation aborted during streaming', startTime);
+				break;
+			}
+
 			chunkCount++;
 			content += chunk.choices[0]?.delta?.content || '';
 			if (!content) continue;
@@ -420,6 +440,10 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		log('Background: Cost usd updated', startTime);
 	} catch (error) {
 		log(`Background stream processing error: ${error}`, startTime);
+	} finally {
+		// Clean up the cached AbortController
+		generationAbortControllers.delete(conversationId);
+		log('Background: Cleaned up abort controller', startTime);
 	}
 }
 
@@ -537,6 +561,25 @@ export const POST: RequestHandler = async ({ request }) => {
 		log('User message created', startTime);
 	}
 
+	// Set generating status to true before starting background generation
+	const setGeneratingResult = await ResultAsync.fromPromise(
+		client.mutation(api.conversations.updateGenerating, {
+			conversation_id: conversationId as Id<'conversations'>,
+			generating: true,
+			session_token: sessionToken,
+		}),
+		(e) => `Failed to set generating status: ${e}`
+	);
+
+	if (setGeneratingResult.isErr()) {
+		log(`Failed to set generating status: ${setGeneratingResult.error}`, startTime);
+		return error(500, 'Failed to set generating status');
+	}
+
+	// Create and cache AbortController for this generation
+	const abortController = new AbortController();
+	generationAbortControllers.set(conversationId, abortController);
+
 	// Start AI response generation in background - don't await
 	waitUntil(
 		generateAIResponse({
@@ -546,8 +589,22 @@ export const POST: RequestHandler = async ({ request }) => {
 			modelResultPromise,
 			keyResultPromise,
 			rulesResultPromise,
-		}).catch((error) => {
+			abortSignal: abortController.signal,
+		}).catch(async (error) => {
 			log(`Background AI response generation error: ${error}`, startTime);
+			// Reset generating status on error
+			try {
+				await client.mutation(api.conversations.updateGenerating, {
+					conversation_id: conversationId as Id<'conversations'>,
+					generating: false,
+					session_token: sessionToken,
+				});
+			} catch (e) {
+				log(`Failed to reset generating status after error: ${e}`, startTime);
+			}
+		}).finally(() => {
+			// Clean up the cached AbortController
+			generationAbortControllers.delete(conversationId);
 		})
 	);
 
