@@ -406,7 +406,7 @@
 	</Sidebar.Sidebar>
 
 	<Sidebar.Inset class="w-full overflow-clip ">
-		<Sidebar.Trigger class="fixed top-3 left-2">
+		<Sidebar.Trigger class="fixed top-3 left-2 z-50">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
 		<div class="relative">
