@@ -32,6 +32,7 @@
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
+	import { Provider } from '$lib/types.js';
 
 	const client = useConvexClient();
 
@@ -63,6 +64,11 @@
 	}
 
 	const conversationsQuery = useCachedQuery(api.conversations.get, {
+		session_token: session.current?.session.token ?? '',
+	});
+
+	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
+		provider: Provider.OpenRouter,
 		session_token: session.current?.session.token ?? '',
 	});
 
@@ -526,7 +532,8 @@
 								<textarea
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
-									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:opacity-0"
+									disabled={!openRouterKeyQuery.data}
+									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									placeholder="Type your message here... Tag rules with @"
 									name="message"
 									onkeydown={(e) => {
