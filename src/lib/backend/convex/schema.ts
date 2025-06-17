@@ -46,7 +46,7 @@ export default defineSchema({
 		title: v.string(),
 		updated_at: v.optional(v.number()),
 		pinned: v.optional(v.boolean()),
-		generating: v.boolean(),
+		generating: v.optional(v.boolean()),
 	}).index('by_user', ['user_id']),
 	messages: defineTable({
 		conversation_id: v.string(),
@@ -56,5 +56,14 @@ export default defineSchema({
 		model_id: v.optional(v.string()),
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
+		// Optional image attachments
+		images: v.optional(
+			v.array(
+				v.object({
+					url: v.string(),
+					storage_id: v.string(),
+				})
+			)
+		),
 	}).index('by_conversation', ['conversation_id']),
 });

@@ -25,6 +25,13 @@
 
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
 	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
+		{#if message.images && message.images.length > 0}
+			<div class="flex flex-wrap gap-2 mb-2">
+				{#each message.images as image}
+					<img src={image.url} alt="Uploaded" class="max-w-xs rounded-lg" />
+				{/each}
+			</div>
+		{/if}
 		<div class={style({ role: message.role })}>
 			<svelte:boundary>
 				<MarkdownRenderer content={message.content} />
@@ -32,7 +39,7 @@
 				{#snippet failed(error)}
 					<div class="text-destructive">
 						<span>Error rendering markdown:</span>
-						<pre class="!bg-sidebar"><code>{error.message}</code></pre>
+						<pre class="!bg-sidebar"><code>{error instanceof Error ? error.message : String(error)}</code></pre>
 					</div>
 				{/snippet}
 			</svelte:boundary>

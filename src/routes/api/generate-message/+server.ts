@@ -21,6 +21,10 @@ const reqBodySchema = z.object({
 
 	session_token: z.string(),
 	conversation_id: z.string().optional(),
+	images: z.array(z.object({
+		url: z.string(),
+		storage_id: z.string(),
+	})).optional(),
 });
 
 export type GenerateMessageRequestBody = z.infer<typeof reqBodySchema>;
@@ -247,10 +251,29 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		apiKey: key,
 	});
 
+	const formattedMessages = messages.map((m) => {
+		if (m.images && m.images.length > 0 && m.role === 'user') {
+			return {
+				role: 'user' as const,
+				content: [
+					{ type: 'text' as const, text: m.content },
+					...m.images.map(img => ({
+						type: 'image_url' as const,
+						image_url: { url: img.url }
+					}))
+				]
+			};
+		}
+		return { 
+			role: m.role as 'user' | 'assistant' | 'system', 
+			content: m.content 
+		};
+	});
+
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create({
 			model: model.model_id,
-			messages: [...messages.map((m) => ({ role: m.role, content: m.content })), systemMessage],
+			messages: [...formattedMessages, systemMessage],
 			temperature: 0.7,
 			stream: true,
 		}),
@@ -411,6 +434,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				content: args.message,
 				role: 'user',
 				session_token: session.token,
+				images: args.images,
 			}),
 			(e) => `Failed to create conversation: ${e}`
 		);
@@ -444,6 +468,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				session_token: args.session_token,
 				model_id: args.model_id,
 				role: 'user',
+				images: args.images,
 			}),
 			(e) => `Failed to create user message: ${e}`
 		);

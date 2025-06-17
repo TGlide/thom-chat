@@ -31,6 +31,11 @@
 	import XIcon from '~icons/lucide/x';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
+	import { models } from '$lib/state/models.svelte';
+	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { Provider } from '$lib/types';
+	import { FileUpload } from 'melt/builders';
+	import ImageIcon from '~icons/lucide/image';
 
 	const client = useConvexClient();
 
@@ -46,11 +51,16 @@
 		if (!isString(message) || !session.current?.user.id || !settings.modelId) return;
 
 		if (textarea) textarea.value = '';
+		const messageCopy = message;
+		const imagesCopy = [...selectedImages];
+		selectedImages = [];
+		
 		const res = await callGenerateMessage({
-			message,
+			message: messageCopy,
 			session_token: session.current?.session.token,
 			conversation_id: page.params.id ?? undefined,
 			model_id: settings.modelId,
+			images: imagesCopy.length > 0 ? imagesCopy : undefined,
 		});
 		if (res.isErr()) return; // TODO: Handle error
 
@@ -158,11 +168,84 @@
 	]);
 
 	let message = $state('');
+	let selectedImages = $state<{ url: string; storage_id: string }[]>([]);
+	let isUploading = $state(false);
+	let fileInput = $state<HTMLInputElement>();
 
 	usePrompt(
 		() => message,
 		(v) => (message = v)
 	);
+
+	models.init();
+
+	const currentModelSupportsImages = $derived.by(() => {
+		if (!settings.modelId) return false;
+		const openRouterModels = models.from(Provider.OpenRouter);
+		const currentModel = openRouterModels.find(m => m.id === settings.modelId);
+		return currentModel ? supportsImages(currentModel) : false;
+	});
+
+	const fileUpload = new FileUpload({
+		multiple: true,
+		accept: 'image/*',
+		maxSize: 10 * 1024 * 1024, // 10MB
+	});
+
+	async function handleFileChange(files: File[]) {
+		if (!files.length || !session.current?.session.token) return;
+
+		isUploading = true;
+		const uploadedFiles: { url: string; storage_id: string }[] = [];
+
+		try {
+			for (const file of files) {
+				// Generate upload URL
+				const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {
+					session_token: session.current.session.token,
+				});
+
+				// Upload file
+				const result = await fetch(uploadUrl, {
+					method: 'POST',
+					body: file,
+				});
+
+				if (!result.ok) {
+					throw new Error(`Upload failed: ${result.statusText}`);
+				}
+
+				const { storageId } = await result.json();
+
+				// Get the URL for the uploaded file
+				const url = await client.query(api.storage.getUrl, {
+					storage_id: storageId,
+					session_token: session.current.session.token,
+				});
+
+				if (url) {
+					uploadedFiles.push({ url, storage_id: storageId });
+				}
+			}
+
+			selectedImages = [...selectedImages, ...uploadedFiles];
+		} catch (error) {
+			console.error('Upload failed:', error);
+		} finally {
+			isUploading = false;
+		}
+	}
+
+	function removeImage(index: number) {
+		selectedImages = selectedImages.filter((_, i) => i !== index);
+	}
+
+	$effect(() => {
+		if (fileUpload.selected.size > 0) {
+			handleFileChange(Array.from(fileUpload.selected));
+			fileUpload.clear();
+		}
+	});
 
 	const suggestedRules = $derived.by(() => {
 		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
@@ -508,7 +591,32 @@
 							</div>
 						{/if}
 						<div class="flex flex-grow flex-col">
-							<div class="flex flex-grow flex-row items-start">
+							{#if selectedImages.length > 0}
+								<div class="flex flex-wrap gap-2 mb-2">
+									{#each selectedImages as image, index}
+										<div class="relative">
+											<img src={image.url} alt="Uploaded" class="h-16 w-16 rounded-lg object-cover" />
+											<button
+												type="button"
+												onclick={() => removeImage(index)}
+												class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+											>
+												<XIcon class="h-3 w-3" />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+							<div 
+								{...fileUpload.dropzone}
+								class={cn(
+									"flex flex-grow flex-row items-start relative transition-colors",
+									{
+										'bg-blue-50 border-2 border-dashed border-blue-400 rounded-lg': fileUpload.isDragging && currentModelSupportsImages,
+									}
+								)}
+							>
+								<input {...fileUpload.input} bind:this={fileInput} />
 								<!-- TODO: Figure out better autofocus solution -->
 								<!-- svelte-ignore a11y_autofocus -->
 								<textarea
@@ -552,9 +660,37 @@
 									autocomplete="off"
 									{@attach autosize.attachment}
 								></textarea>
+								{#if fileUpload.isDragging && currentModelSupportsImages}
+									<div class="absolute inset-0 flex items-center justify-center bg-blue-50/90 rounded-lg">
+										<div class="text-blue-600 text-center">
+											<ImageIcon class="h-8 w-8 mx-auto mb-2" />
+											<p class="text-sm font-medium">Drop images here</p>
+										</div>
+									</div>
+								{/if}
 							</div>
 							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
+									{#if currentModelSupportsImages}
+										<Tooltip placement="top">
+											{#snippet trigger(tooltip)}
+												<button
+													type="button"
+													onclick={() => fileInput?.click()}
+													disabled={isUploading}
+													class="border-reflect button-reflect hover:bg-secondary/90 active:bg-secondary text-secondary-foreground relative h-9 w-9 rounded-lg p-2 font-medium shadow transition disabled:opacity-50"
+													{...tooltip.trigger}
+												>
+													{#if isUploading}
+														<div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+													{:else}
+														<ImageIcon class="!size-4" />
+													{/if}
+												</button>
+											{/snippet}
+											{isUploading ? 'Uploading...' : 'Add images'}
+										</Tooltip>
+									{/if}
 									<Tooltip placement="top">
 										{#snippet trigger(tooltip)}
 											<button
