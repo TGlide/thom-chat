@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Markdown } from '$lib/utils/markdown';
+	import { Markdown } from '$lib/utils/markdown.svelte';
 
 	type Props = {
 		content: string;
