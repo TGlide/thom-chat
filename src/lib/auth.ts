@@ -22,4 +22,10 @@ export const auth = betterAuth({
 		},
 	},
 	plugins: [],
+	session: {
+		cookieCache: {
+			enabled: true,
+			maxAge: 5 * 60, // Cache duration in seconds
+		},
+	},
 });
