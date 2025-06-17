@@ -92,6 +92,7 @@ export const createAndAddMessage = mutation({
 		images: v.optional(v.array(v.object({
 			url: v.string(),
 			storage_id: v.string(),
+			fileName: v.optional(v.string()),
 		}))),
 	},
 	handler: async (

@@ -23,6 +23,7 @@
 	import { compressImage } from '$lib/utils/image-compression';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
+	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { Avatar } from 'melt/components';
 	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
@@ -169,9 +170,14 @@
 	]);
 
 	let message = $state('');
-	let selectedImages = $state<{ url: string; storage_id: string }[]>([]);
+	let selectedImages = $state<{ url: string; storage_id: string; fileName?: string }[]>([]);
 	let isUploading = $state(false);
 	let fileInput = $state<HTMLInputElement>();
+	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
+		open: false,
+		imageUrl: '',
+		fileName: '',
+	});
 
 	usePrompt(
 		() => message,
@@ -197,7 +203,7 @@
 		if (!files.length || !session.current?.session.token) return;
 
 		isUploading = true;
-		const uploadedFiles: { url: string; storage_id: string }[] = [];
+		const uploadedFiles: { url: string; storage_id: string; fileName?: string }[] = [];
 
 		try {
 			for (const file of files) {
@@ -234,7 +240,7 @@
 				});
 
 				if (url) {
-					uploadedFiles.push({ url, storage_id: storageId });
+					uploadedFiles.push({ url, storage_id: storageId, fileName: file.name });
 				}
 			}
 
@@ -248,6 +254,22 @@
 
 	function removeImage(index: number) {
 		selectedImages = selectedImages.filter((_, i) => i !== index);
+	}
+
+	function openImageModal(imageUrl: string, fileName: string) {
+		imageModal = {
+			open: true,
+			imageUrl,
+			fileName,
+		};
+	}
+
+	function closeImageModal() {
+		imageModal = {
+			open: false,
+			imageUrl: '',
+			fileName: '',
+		};
 	}
 
 	$effect(() => {
@@ -610,11 +632,17 @@
 										<div
 											class="group border-secondary-foreground/[0.08] bg-secondary-foreground/[0.02] hover:bg-secondary-foreground/10 relative flex h-12 w-12 max-w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-solid p-0 transition-[width,height] duration-500"
 										>
-											<img
-												src={image.url}
-												alt="Uploaded"
-												class="size-10 rounded-lg object-cover opacity-100 transition-opacity"
-											/>
+											<button
+												type="button"
+												onclick={() => openImageModal(image.url, image.fileName || 'image')}
+												class="rounded-lg"
+											>
+												<img
+													src={image.url}
+													alt="Uploaded"
+													class="size-10 rounded-lg object-cover opacity-100 transition-opacity"
+												/>
+											</button>
 											<button
 												type="button"
 												onclick={() => removeImage(index)}
@@ -742,4 +770,10 @@
 			</div>
 		</div>
 	{/if}
+
+	<ImageModal
+		bind:open={imageModal.open}
+		imageUrl={imageModal.imageUrl}
+		fileName={imageModal.fileName}
+	/>
 </Sidebar.Root>

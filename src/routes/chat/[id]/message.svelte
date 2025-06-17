@@ -5,6 +5,7 @@
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import '../../../markdown.css';
 	import MarkdownRenderer from './markdown-renderer.svelte';
+	import { ImageModal } from '$lib/components/ui/image-modal';
 
 	const style = tv({
 		base: 'prose rounded-lg p-2',
@@ -21,6 +22,28 @@
 	};
 
 	let { message }: Props = $props();
+
+	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
+		open: false,
+		imageUrl: '',
+		fileName: ''
+	});
+
+	function openImageModal(imageUrl: string, fileName: string) {
+		imageModal = {
+			open: true,
+			imageUrl,
+			fileName
+		};
+	}
+
+	function closeImageModal() {
+		imageModal = {
+			open: false,
+			imageUrl: '',
+			fileName: ''
+		};
+	}
 </script>
 
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
@@ -28,7 +51,17 @@
 		{#if message.images && message.images.length > 0}
 			<div class="flex flex-wrap gap-2 mb-2">
 				{#each message.images as image}
-					<img src={image.url} alt="Uploaded" class="max-w-xs rounded-lg" />
+					<button
+						type="button"
+						onclick={() => openImageModal(image.url, image.fileName || 'image')}
+						class="rounded-lg"
+					>
+						<img 
+							src={image.url} 
+							alt={image.fileName || 'Uploaded'} 
+							class="max-w-xs rounded-lg hover:opacity-80 transition-opacity" 
+						/>
+					</button>
 				{/each}
 			</div>
 		{/if}
@@ -52,4 +85,11 @@
 			<CopyButton class="size-7" text={message.content} />
 		</div>
 	</div>
+
+	<ImageModal
+		bind:open={imageModal.open}
+		imageUrl={imageModal.imageUrl}
+		fileName={imageModal.fileName}
+		onClose={closeImageModal}
+	/>
 {/if}

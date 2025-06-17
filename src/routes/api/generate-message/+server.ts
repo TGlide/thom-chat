@@ -24,6 +24,7 @@ const reqBodySchema = z.object({
 	images: z.array(z.object({
 		url: z.string(),
 		storage_id: z.string(),
+		fileName: z.string().optional(),
 	})).optional(),
 });
 
