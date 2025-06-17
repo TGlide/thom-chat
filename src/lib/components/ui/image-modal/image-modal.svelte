@@ -14,23 +14,6 @@
 
 	let { open = $bindable(false), imageUrl, fileName = 'image' }: Props = $props();
 
-	async function downloadImage() {
-		try {
-			const response = await fetch(imageUrl);
-			const blob = await response.blob();
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = fileName;
-			document.body.appendChild(a);
-			a.click();
-			window.URL.revokeObjectURL(url);
-			document.body.removeChild(a);
-		} catch (error) {
-			console.error('Failed to download image:', error);
-		}
-	}
-
 	function openInNewTab() {
 		window.open(imageUrl, '_blank');
 	}
@@ -42,7 +25,13 @@
 		<div class="flex items-center gap-2">
 			<Tooltip>
 				{#snippet trigger(tooltip)}
-					<Button size="iconSm" variant="outline" onclick={downloadImage} {...tooltip.trigger}>
+					<Button
+						size="iconSm"
+						variant="outline"
+						download={fileName}
+						href={imageUrl}
+						{...tooltip.trigger}
+					>
 						<DownloadIcon class="size-4" />
 					</Button>
 				{/snippet}
@@ -76,4 +65,3 @@
 		<img src={imageUrl} alt={fileName} class="max-h-[60vh] max-w-full rounded-lg object-contain" />
 	</div>
 </Modal>
-
