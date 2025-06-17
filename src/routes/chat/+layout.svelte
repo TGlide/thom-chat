@@ -131,14 +131,17 @@
 								<div class="relative overflow-clip">
 									<p
 										class={[
-											' rounded-lg py-2 pl-3',
+											' truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap',
 											isActive ? 'bg-sidebar-accent' : 'group-hover:bg-sidebar-accent ',
 										]}
 									>
 										<span>{conversation.title}</span>
 									</p>
 									<div
-										class=" to-sidebar-accent pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg bg-gradient-to-r from-transparent pr-2 transition group-hover:pointer-events-auto group-hover:translate-0"
+										class={[
+											'pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg pr-2 pl-6 transition group-hover:pointer-events-auto group-hover:translate-0',
+											'to-sidebar-accent via-sidebar-accent bg-gradient-to-r from-transparent from-10% via-21% ',
+										]}
 									>
 										<Tooltip>
 											{#snippet trigger(tooltip)}
