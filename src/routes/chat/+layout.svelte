@@ -20,8 +20,12 @@
 	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { Popover } from 'melt/builders';
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
+	import { ElementSize } from 'runed';
+	import LoaderCircleIcon from '~icons/lucide/loader-circle';
+	import { cn } from '$lib/utils/utils.js';
 
 	const client = useConvexClient();
 
@@ -53,6 +57,10 @@
 	}
 
 	const conversationsQuery = useCachedQuery(api.conversations.get, {
+		session_token: session.current?.session.token ?? '',
+	});
+
+	const rulesQuery = useCachedQuery(api.user_rules.all, {
 		session_token: session.current?.session.token ?? '',
 	});
 
@@ -143,6 +151,106 @@
 		{ key: 'lastMonth', label: 'Last 30 days', conversations: groupedConversations.lastMonth },
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
+
+	let message = $state('');
+
+	const suggestedRules = $derived.by(() => {
+		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
+		if (!textarea) return;
+
+		const cursor = textarea.selectionStart;
+
+		const index = message.lastIndexOf('@', cursor);
+		if (index === -1) return;
+
+		const ruleFromCursor = message.slice(index + 1, cursor);
+
+		const suggestions: Doc<'user_rules'>[] = [];
+
+		for (const rule of rulesQuery.data) {
+			// on a match, don't show any suggestions
+			if (rule.name === ruleFromCursor) return;
+
+			if (rule.name.toLowerCase().startsWith(ruleFromCursor.toLowerCase())) {
+				suggestions.push(rule);
+			}
+		}
+
+		return suggestions.length > 0 ? suggestions : undefined;
+	});
+
+	const popover = new Popover();
+
+	function completeRule(rule: Doc<'user_rules'>) {
+		if (!textarea) return;
+
+		const cursor = textarea.selectionStart;
+
+		const index = message.lastIndexOf('@', cursor);
+		if (index === -1) return;
+
+		message = message.slice(0, index) + `@${rule.name}` + message.slice(cursor);
+		textarea.selectionStart = index + rule.name.length + 1;
+		textarea.selectionEnd = index + rule.name.length + 1;
+
+		popover.open = false;
+	}
+
+	function completeSelectedRule() {
+		if (!suggestedRules) return;
+
+		const rules = Array.from(ruleList.querySelectorAll('[data-list-item]'));
+
+		const activeIndex = rules.findIndex((r) => r.getAttribute('data-active') === 'true');
+		if (activeIndex === -1) return;
+
+		const rule = suggestedRules[activeIndex];
+
+		if (!rule) return;
+
+		completeRule(rule);
+	}
+
+	let ruleList = $state<HTMLDivElement>(null!);
+
+	function handleKeyboardNavigation(direction: 'up' | 'down') {
+		if (!suggestedRules) return;
+
+		const rules = Array.from(ruleList.querySelectorAll('[data-list-item]'));
+
+		let activeIndex = rules?.findIndex((r) => r.getAttribute('data-active') === 'true');
+		if (activeIndex === -1) {
+			if (!suggestedRules[0]) return;
+
+			rules[0]?.setAttribute('data-active', 'true');
+			return;
+		}
+
+		// don't loop
+		if (direction === 'up' && activeIndex === 0) {
+			return;
+		}
+		// don't loop
+		if (direction === 'down' && activeIndex === suggestedRules.length - 1) {
+			return;
+		}
+
+		rules[activeIndex]?.setAttribute('data-active', 'false');
+
+		if (direction === 'up') {
+			const newIndex = activeIndex - 1;
+			if (!suggestedRules[newIndex]) return;
+
+			rules[newIndex]?.setAttribute('data-active', 'true');
+		} else {
+			const newIndex = activeIndex + 1;
+			if (!suggestedRules[newIndex]) return;
+
+			rules[newIndex]?.setAttribute('data-active', 'true');
+		}
+	}
+
+	const textareaSize = new ElementSize(() => textarea);
 </script>
 
 <svelte:head>
@@ -180,16 +288,26 @@
 						</div>
 						{#each group.conversations as conversation (conversation._id)}
 							{@const isActive = page.params.id === conversation._id}
-							<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">
-								<div class="relative overflow-clip">
-									<p
-										class={[
-											' truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap',
-											isActive ? 'bg-sidebar-accent' : 'group-hover:bg-sidebar-accent ',
-										]}
-									>
+							<a
+								href={`/chat/${conversation._id}`}
+								class="group w-full py-0.5 pr-2.5 text-left text-sm"
+							>
+								<div
+									class={cn(
+										'relative flex w-full items-center justify-between overflow-clip rounded-lg',
+										{ 'bg-sidebar-accent': isActive, 'group-hover:bg-sidebar-accent': !isActive }
+									)}
+								>
+									<p class="truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap">
 										<span>{conversation.title}</span>
 									</p>
+									<div class="pr-2">
+										{#if conversation.generating}
+											<div class="flex animate-[spin_0.75s_linear_infinite] place-items-center justify-center">
+												<LoaderCircleIcon class="size-4" />
+											</div>
+										{/if}
+									</div>
 									<div
 										class={[
 											'pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg pr-2 pl-6 transition group-hover:pointer-events-auto group-hover:translate-0',
@@ -285,19 +403,80 @@
 					}}
 					bind:this={form}
 				>
+					{#if suggestedRules}
+						<div
+							{...popover.content}
+							class="bg-background border-border absolute rounded-lg border"
+							style="width: {textareaSize.width}px"
+						>
+							<div class="flex flex-col p-2" bind:this={ruleList}>
+								{#each suggestedRules as rule, i (rule._id)}
+									<button
+										type="button"
+										data-list-item
+										data-active={i === 0}
+										onmouseover={(e) => {
+											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+												rule.setAttribute('data-active', 'false');
+											}
+
+											e.currentTarget.setAttribute('data-active', 'true');
+										}}
+										onfocus={(e) => {
+											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+												rule.setAttribute('data-active', 'false');
+											}
+
+											e.currentTarget.setAttribute('data-active', 'true');
+										}}
+										onclick={() => completeRule(rule)}
+										class="data-[active=true]:bg-accent rounded-md px-2 py-1 text-start"
+									>
+										{rule.name}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
 					<!-- TODO: Figure out better autofocus solution -->
 					<!-- svelte-ignore a11y_autofocus -->
 					<textarea
+						{...popover.trigger}
 						bind:this={textarea}
 						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
 						placeholder="Ask me anything..."
 						name="message"
 						onkeydown={(e) => {
-							if (e.key === 'Enter' && !e.shiftKey) {
+							if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
 								e.preventDefault();
 								handleSubmit();
 							}
+
+							if (e.key === 'Enter' && popover.open) {
+								e.preventDefault();
+								completeSelectedRule();
+							}
+
+							if (e.key === 'Escape' && popover.open) {
+								e.preventDefault();
+								popover.open = false;
+							}
+
+							if (e.key === 'ArrowUp' && popover.open) {
+								e.preventDefault();
+								handleKeyboardNavigation('up');
+							}
+
+							if (e.key === 'ArrowDown' && popover.open) {
+								e.preventDefault();
+								handleKeyboardNavigation('down');
+							}
+
+							if (e.key === '@' && !popover.open) {
+								popover.open = true;
+							}
 						}}
+						bind:value={message}
 						autofocus
 						autocomplete="off"
 					></textarea>

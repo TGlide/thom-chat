@@ -34,6 +34,30 @@ export const get = query({
 	},
 });
 
+export const getById = query({
+	args: {
+		conversation_id: v.id('conversations'),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		const conversation = await ctx.db.get(args.conversation_id);
+
+		if (!conversation || conversation.user_id !== session.userId) {
+			throw new Error('Conversation not found or unauthorized');
+		}
+
+		return conversation;
+	},
+});
+
 export const create = mutation({
 	args: {
 		session_token: v.string(),
@@ -52,6 +76,7 @@ export const create = mutation({
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Id type is janking out
 			user_id: session.userId as any,
 			updated_at: Date.now(),
+			generating: true,
 		});
 
 		return res;
@@ -81,6 +106,7 @@ export const createAndAddMessage = mutation({
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Id type is janking out
 			user_id: session.userId as any,
 			updated_at: Date.now(),
+			generating: true,
 		});
 
 		const messageId = await ctx.runMutation(api.messages.create, {
@@ -120,6 +146,34 @@ export const updateTitle = mutation({
 
 		await ctx.db.patch(args.conversation_id, {
 			title: args.title,
+			updated_at: Date.now(),
+		});
+	},
+});
+
+export const updateGenerating = mutation({
+	args: {
+		conversation_id: v.id('conversations'),
+		generating: v.boolean(),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		// Verify the conversation belongs to the user
+		const conversation = await ctx.db.get(args.conversation_id);
+		if (!conversation || conversation.user_id !== session.userId) {
+			throw new Error('Conversation not found or unauthorized');
+		}
+
+		await ctx.db.patch(args.conversation_id, {
+			generating: args.generating,
 			updated_at: Date.now(),
 		});
 	},
@@ -177,4 +231,3 @@ export const remove = mutation({
 		await ctx.db.delete(args.conversation_id);
 	},
 });
-

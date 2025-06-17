@@ -233,6 +233,18 @@
 	display: none; /* Chrome, Safari, and Opera */
 }
 
+@layer utilities {
+	.animation-delay-0 {
+		animation-delay: 0s;
+	}
+	.animation-delay-100 {
+		animation-delay: 0.1s;
+	}
+	.animation-delay-200 {
+		animation-delay: 0.2s;
+	}
+}
+
 @layer components {
 	/* Modal is from DaisyUI */
 	.modal {
