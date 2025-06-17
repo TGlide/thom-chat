@@ -39,10 +39,10 @@
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
 	<header class="flex place-items-center justify-between px-4">
-		<a href="/chat" class="flex place-items-center gap-2 text-sm">
+		<Button href="/chat" variant="ghost" class="flex place-items-center gap-2 text-sm">
 			<ArrowLeftIcon class="size-4" />
 			Back to Chat
-		</a>
+		</Button>
 		<div class="flex place-items-center gap-2">
 			<LightSwitch variant="ghost" />
 			<Button variant="ghost" onClickPromise={signOut}>Sign out</Button>
