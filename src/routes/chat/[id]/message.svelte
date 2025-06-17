@@ -8,10 +8,10 @@
 	import { ImageModal } from '$lib/components/ui/image-modal';
 
 	const style = tv({
-		base: 'prose rounded-lg p-2',
+		base: 'prose rounded-xl p-2',
 		variants: {
 			role: {
-				user: 'bg-primary !text-primary-foreground self-end',
+				user: 'bg-secondary/50 border border-secondary/70 px-3 py-2 !text-primary-foreground self-end',
 				assistant: 'text-foreground',
 			},
 		},
