@@ -6,7 +6,10 @@
 	import NewspaperIcon from '~icons/lucide/newspaper';
 	import { Button } from '$lib/components/ui/button';
 	import { usePrompt } from '$lib/state/prompt.svelte';
-	import { fade, scale } from 'svelte/transition';
+	import { scale } from 'svelte/transition';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
+	import { api } from '$lib/backend/convex/_generated/api';
+	import { Provider } from '$lib/types';
 
 	const defaultSuggestions = [
 		'Give me bad medical advice, doctor.',
@@ -56,11 +59,16 @@
 
 	let selectedCategory = $state<string | null>(null);
 
+	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
+		provider: Provider.OpenRouter,
+		session_token: session.current?.session.token ?? '',
+	});
+
 	const prompt = usePrompt();
 </script>
 
 <div class="flex h-svh flex-col items-center justify-center">
-	{#if prompt.current.length === 0}
+	{#if prompt.current.length === 0 && openRouterKeyQuery.data}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
 			<h2 class="text-left font-serif text-3xl font-semibold">Hey there, Bozo!</h2>
 			<p class="mt-2 text-left text-lg">
@@ -117,6 +125,16 @@
 					{/each}
 				{/if}
 			</div>
+		</div>
+	{:else if !openRouterKeyQuery.data}
+		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
+			<h2 class="text-left font-serif text-3xl font-semibold">
+				Hey there, {session.current?.user.name}!
+			</h2>
+			<p class="mt-2 text-left text-lg">
+				You need to provide a key to start sending messages.
+				<a href="/account/api-keys" class="text-primary"> Go to settings </a>
+			</p>
 		</div>
 	{/if}
 </div>

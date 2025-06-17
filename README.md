@@ -33,8 +33,8 @@ TODO: add instructions
 - [x] Actual fucking UI for chat
 - [ ] Providers (BYOK)
   - [x] Openrouter
-  - [ ] HuggingFace
-  - [ ] OpenAI
+  - ~[ ] HuggingFace~
+  - ~[ ] OpenAI~
 - [ ] File upload
 - [x] Ensure responsiveness
 - [x] Streams on the server (Resumable streams)
@@ -44,7 +44,7 @@ TODO: add instructions
 - [ ] Error notification central, specially for BYOK models like o3
 - [ ] Google Auth
 - [ ] Fix light mode (urgh)
-- [ ] Streamer mode
+- [ ] Privacy mode
 
 ### Chat
 

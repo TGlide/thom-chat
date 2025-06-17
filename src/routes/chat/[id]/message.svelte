@@ -78,11 +78,22 @@
 			</svelte:boundary>
 		</div>
 		<div
-			class={cn('flex place-items-center opacity-0 transition-opacity group-hover:opacity-100', {
-				'justify-end': message.role === 'user',
-			})}
+			class={cn(
+				'flex place-items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100',
+				{
+					'justify-end': message.role === 'user',
+				}
+			)}
 		>
 			<CopyButton class="size-7" text={message.content} />
+			{#if message.model_id !== undefined}
+				<span class="text-muted-foreground text-xs">{message.model_id}</span>
+			{/if}
+			{#if message.cost_usd !== undefined}
+				<span class="text-muted-foreground text-xs">
+					${message.cost_usd.toFixed(6)}
+				</span>
+			{/if}
 		</div>
 	</div>
 

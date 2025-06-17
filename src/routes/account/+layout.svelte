@@ -30,6 +30,22 @@
 		},
 	];
 
+	type Shortcut = {
+		name: string;
+		keys: string[];
+	};
+
+	const shortcuts: Shortcut[] = [
+		{
+			name: 'Toggle Sidebar',
+			keys: [cmdOrCtrl, 'B'],
+		},
+		{
+			name: 'New Chat',
+			keys: [cmdOrCtrl, 'Shift', 'O'],
+		},
+	];
+
 	async function signOut() {
 		await authClient.signOut();
 
@@ -69,14 +85,17 @@
 				<div class="mt-4 flex w-full flex-col gap-2">
 					<span class="text-sm font-medium">Keyboard Shortcuts</span>
 					<div class="flex flex-col gap-1">
-						<div class="flex place-items-center justify-between">
-							<span class="text-muted-foreground text-sm">Toggle Sidebar </span>
+						{#each shortcuts as { name, keys } (name)}
+							<div class="flex place-items-center justify-between">
+								<span class="text-muted-foreground text-sm">{name}</span>
 
-							<div>
-								<Kbd>{cmdOrCtrl}</Kbd>
-								<Kbd>B</Kbd>
+								<div class="flex place-items-center gap-1">
+									{#each keys as key (key)}
+										<Kbd>{key}</Kbd>
+									{/each}
+								</div>
 							</div>
-						</div>
+						{/each}
 					</div>
 				</div>
 			</div>
