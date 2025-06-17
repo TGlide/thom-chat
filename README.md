@@ -12,20 +12,18 @@ Clone of [T3 Chat](https://t3.chat/)
 - **Framework**: SvelteKit
 - **Language**: TypeScript
 - **Styling**: Tailwind
+- **Backend**: Convex
+- **Auth**: BetterAuth + Convex
 - **Components**: Melt UI (next-gen)
 - **Testing**: Humans
 - **Package Manager**: pnpm
 - **Linting**: ESLint
 - **Formatting**: Prettier
 
-### Discussion
-
-- Vercel SDK?
-  - Nah, too limited
-
 ## 📦 Self-hosting
 
-IDK, calm down
+TODO: test self-hosting, including Convex self-hosting perhaps
+TODO: add instructions
 
 ## TODO
 
@@ -39,14 +37,14 @@ IDK, calm down
   - [ ] OpenAI
 - [ ] File upload
 - [x] Ensure responsiveness
-- [ ] File support
-- [x] Streams on the server
+- [x] Streams on the server (Resumable streams)
 - [x] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
-- [ ] Cascade deletes and shit in Convex
+- [x] Cascade deletes
 - [ ] Error notification central, specially for BYOK models like o3
 - [ ] Google Auth
 - [ ] Fix light mode (urgh)
+- [ ] Streamer mode
 
 ### Chat
 
@@ -66,3 +64,4 @@ IDK, calm down
 - [ ] Chat sharing
 - [ ] 404 page/redirect
 - [ ] Test link with free credits
+- [x] Cursor-like Rules (@ieedan's idea!)

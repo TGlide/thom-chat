@@ -11,31 +11,32 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
+	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
 	import { session } from '$lib/state/session.svelte.js';
 	import { settings } from '$lib/state/settings.svelte.js';
+	import { Provider } from '$lib/types';
 	import { isString } from '$lib/utils/is.js';
-	import { pick } from '$lib/utils/object.js';
+	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
+	import { compressImage } from '$lib/utils/image-compression';
 	import { useConvexClient } from 'convex-svelte';
-	import { Popover } from 'melt/builders';
+	import { FileUpload, Popover } from 'melt/builders';
 	import { Avatar } from 'melt/components';
 	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import ImageIcon from '~icons/lucide/image';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import Settings2Icon from '~icons/lucide/settings-2';
 	import XIcon from '~icons/lucide/x';
+	import UploadIcon from '~icons/lucide/upload';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import { models } from '$lib/state/models.svelte';
-	import { supportsImages } from '$lib/utils/model-capabilities';
-	import { Provider } from '$lib/types';
-	import { FileUpload } from 'melt/builders';
-	import ImageIcon from '~icons/lucide/image';
 
 	const client = useConvexClient();
 
@@ -54,7 +55,7 @@
 		const messageCopy = message;
 		const imagesCopy = [...selectedImages];
 		selectedImages = [];
-		
+
 		const res = await callGenerateMessage({
 			message: messageCopy,
 			session_token: session.current?.session.token,
@@ -182,7 +183,7 @@
 	const currentModelSupportsImages = $derived.by(() => {
 		if (!settings.modelId) return false;
 		const openRouterModels = models.from(Provider.OpenRouter);
-		const currentModel = openRouterModels.find(m => m.id === settings.modelId);
+		const currentModel = openRouterModels.find((m) => m.id === settings.modelId);
 		return currentModel ? supportsImages(currentModel) : false;
 	});
 
@@ -200,15 +201,24 @@
 
 		try {
 			for (const file of files) {
+				// Skip non-image files
+				if (!file.type.startsWith('image/')) {
+					console.warn('Skipping non-image file:', file.name);
+					continue;
+				}
+
+				// Compress image to max 1MB
+				const compressedFile = await compressImage(file, 1024 * 1024);
+
 				// Generate upload URL
 				const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {
 					session_token: session.current.session.token,
 				});
 
-				// Upload file
+				// Upload compressed file
 				const result = await fetch(uploadUrl, {
 					method: 'POST',
-					body: file,
+					body: compressedFile,
 				});
 
 				if (!result.ok) {
@@ -369,7 +379,10 @@
 	<title>Chat | Thom.chat</title>
 </svelte:head>
 
-<Sidebar.Root class="h-screen overflow-clip">
+<Sidebar.Root
+	class="h-screen overflow-clip"
+	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
+>
 	<Sidebar.Sidebar class="flex flex-col overflow-clip p-2">
 		<div class="flex place-items-center justify-center py-2">
 			<span class="text-center font-serif text-lg">Thom.chat</span>
@@ -592,14 +605,20 @@
 						{/if}
 						<div class="flex flex-grow flex-col">
 							{#if selectedImages.length > 0}
-								<div class="flex flex-wrap gap-2 mb-2">
-									{#each selectedImages as image, index}
-										<div class="relative">
-											<img src={image.url} alt="Uploaded" class="h-16 w-16 rounded-lg object-cover" />
+								<div class="mb-2 flex flex-wrap gap-2">
+									{#each selectedImages as image, index (image.storage_id)}
+										<div
+											class="group border-secondary-foreground/[0.08] bg-secondary-foreground/[0.02] hover:bg-secondary-foreground/10 relative flex h-12 w-12 max-w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-solid p-0 transition-[width,height] duration-500"
+										>
+											<img
+												src={image.url}
+												alt="Uploaded"
+												class="size-10 rounded-lg object-cover opacity-100 transition-opacity"
+											/>
 											<button
 												type="button"
 												onclick={() => removeImage(index)}
-												class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+												class="bg-secondary hover:bg-muted absolute -top-1 -right-1 cursor-pointer rounded-full p-1 opacity-0 transition group-hover:opacity-100"
 											>
 												<XIcon class="h-3 w-3" />
 											</button>
@@ -607,15 +626,7 @@
 									{/each}
 								</div>
 							{/if}
-							<div 
-								{...fileUpload.dropzone}
-								class={cn(
-									"flex flex-grow flex-row items-start relative transition-colors",
-									{
-										'bg-blue-50 border-2 border-dashed border-blue-400 rounded-lg': fileUpload.isDragging && currentModelSupportsImages,
-									}
-								)}
-							>
+							<div class="relative flex flex-grow flex-row items-start">
 								<input {...fileUpload.input} bind:this={fileInput} />
 								<!-- TODO: Figure out better autofocus solution -->
 								<!-- svelte-ignore a11y_autofocus -->
@@ -660,14 +671,6 @@
 									autocomplete="off"
 									{@attach autosize.attachment}
 								></textarea>
-								{#if fileUpload.isDragging && currentModelSupportsImages}
-									<div class="absolute inset-0 flex items-center justify-center bg-blue-50/90 rounded-lg">
-										<div class="text-blue-600 text-center">
-											<ImageIcon class="h-8 w-8 mx-auto mb-2" />
-											<p class="text-sm font-medium">Drop images here</p>
-										</div>
-									</div>
-								{/if}
 							</div>
 							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
@@ -682,7 +685,9 @@
 													{...tooltip.trigger}
 												>
 													{#if isUploading}
-														<div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+														<div
+															class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+														></div>
 													{:else}
 														<ImageIcon class="!size-4" />
 													{/if}
@@ -727,4 +732,14 @@
 			</div>
 		</div>
 	</Sidebar.Inset>
+
+	{#if fileUpload.isDragging && currentModelSupportsImages}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+			<div class="text-center">
+				<UploadIcon class="text-primary mx-auto mb-4 h-16 w-16" />
+				<p class="text-xl font-semibold">Add image</p>
+				<p class="mt-2 text-sm opacity-75">Drop an image here to attach it to your message.</p>
+			</div>
+		</div>
+	{/if}
 </Sidebar.Root>
