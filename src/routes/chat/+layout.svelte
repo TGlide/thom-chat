@@ -89,7 +89,7 @@
 									<PinIcon class="size-4" />
 								</button>
 							{/snippet}
-							Pin
+							Pin thread
 						</Tooltip>
 						<Tooltip>
 							{#snippet trigger(tooltip)}
@@ -97,7 +97,7 @@
 									<XIcon class="size-4" />
 								</button>
 							{/snippet}
-							Delete
+							Delete thread
 						</Tooltip>
 					</div>
 				</a>

@@ -15,8 +15,8 @@
 	const {
 		children,
 		trigger,
-		placement = 'top',
-		openDelay = 500,
+		placement = 'bottom',
+		openDelay = 250,
 		disabled,
 		...rest
 	}: Props = $props();
@@ -37,28 +37,26 @@
 			else open = v;
 		},
 		openDelay: () => openDelay,
+		disableHoverableContent: true,
 		...getters(rest),
 	});
 </script>
 
 {@render trigger(tooltip)}
 
-<div {...tooltip.content} class="rounded-xl bg-white p-0 shadow-xl dark:bg-stone-700">
-	<div {...tooltip.arrow} class="size-2 rounded-tl"></div>
-	<p class="px-4 py-1 text-stone-700 dark:text-white">{@render children()}</p>
+<div {...tooltip.content} class="bg-popover border-border rounded border p-0 shadow-xl">
+	<p class="text-popover-foreground px-2 py-1 text-xs">{@render children()}</p>
 </div>
 
 <style>
 	[data-melt-tooltip-content] {
-		border: 0;
-
 		position: absolute;
 		pointer-events: none;
 		opacity: 0;
 
 		transform: scale(0.9);
 
-		transition: 0.3s;
+		transition: 0.1s;
 		transition-property: opacity, transform;
 	}
 
