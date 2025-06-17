@@ -35,8 +35,8 @@ IDK, calm down
 - [x] Actual fucking UI for chat
 - [ ] Providers (BYOK)
   - [x] Openrouter
-  - [ ] HuggingFace
-  - [ ] OpenAI
+  - ~[ ] HuggingFace~
+  - ~[ ] OpenAI~
 - [ ] File upload
 - [x] Ensure responsiveness
 - [ ] File support
@@ -47,6 +47,7 @@ IDK, calm down
 - [ ] Error notification central, specially for BYOK models like o3
 - [ ] Google Auth
 - [ ] Fix light mode (urgh)
+- [ ] Privacy mode
 
 ### Chat
 
