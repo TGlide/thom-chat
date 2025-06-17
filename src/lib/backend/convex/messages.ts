@@ -40,6 +40,12 @@ export const create = mutation({
 		model_id: v.optional(v.string()),
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
+		// Optional image attachments
+		images: v.optional(v.array(v.object({
+			url: v.string(),
+			storage_id: v.string(),
+			fileName: v.optional(v.string()),
+		}))),
 	},
 	handler: async (ctx, args): Promise<Id<'messages'>> => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -72,6 +78,8 @@ export const create = mutation({
 				model_id: args.model_id,
 				provider: args.provider,
 				token_count: args.token_count,
+				// Optional image attachments
+				images: args.images,
 			}),
 			ctx.db.patch(args.conversation_id as Id<'conversations'>, {
 				generating: true,

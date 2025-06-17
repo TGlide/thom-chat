@@ -6,33 +6,39 @@
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import * as Icons from '$lib/components/icons';
 	import { Button } from '$lib/components/ui/button';
+	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
+	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
 	import { session } from '$lib/state/session.svelte.js';
 	import { settings } from '$lib/state/settings.svelte.js';
+	import { Provider } from '$lib/types';
+	import { compressImage } from '$lib/utils/image-compression';
 	import { isString } from '$lib/utils/is.js';
-	import { pick } from '$lib/utils/object.js';
+	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
 	import { useConvexClient } from 'convex-svelte';
-	import { Popover } from 'melt/builders';
+	import { FileUpload, Popover } from 'melt/builders';
 	import { Avatar } from 'melt/components';
 	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import ImageIcon from '~icons/lucide/image';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import Settings2Icon from '~icons/lucide/settings-2';
+	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
-	import { Provider } from '$lib/types.js';
 
 	const client = useConvexClient();
 
@@ -48,11 +54,16 @@
 		if (!isString(message) || !session.current?.user.id || !settings.modelId) return;
 
 		if (textarea) textarea.value = '';
+		const messageCopy = message;
+		const imagesCopy = [...selectedImages];
+		selectedImages = [];
+
 		const res = await callGenerateMessage({
-			message,
+			message: messageCopy,
 			session_token: session.current?.session.token,
 			conversation_id: page.params.id ?? undefined,
 			model_id: settings.modelId,
+			images: imagesCopy.length > 0 ? imagesCopy : undefined,
 		});
 		if (res.isErr()) return; // TODO: Handle error
 
@@ -165,11 +176,106 @@
 	]);
 
 	let message = $state('');
+	let selectedImages = $state<{ url: string; storage_id: string; fileName?: string }[]>([]);
+	let isUploading = $state(false);
+	let fileInput = $state<HTMLInputElement>();
+	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
+		open: false,
+		imageUrl: '',
+		fileName: '',
+	});
 
 	usePrompt(
 		() => message,
 		(v) => (message = v)
 	);
+
+	models.init();
+
+	const currentModelSupportsImages = $derived.by(() => {
+		if (!settings.modelId) return false;
+		const openRouterModels = models.from(Provider.OpenRouter);
+		const currentModel = openRouterModels.find((m) => m.id === settings.modelId);
+		return currentModel ? supportsImages(currentModel) : false;
+	});
+
+	const fileUpload = new FileUpload({
+		multiple: true,
+		accept: 'image/*',
+		maxSize: 10 * 1024 * 1024, // 10MB
+	});
+
+	async function handleFileChange(files: File[]) {
+		if (!files.length || !session.current?.session.token) return;
+
+		isUploading = true;
+		const uploadedFiles: { url: string; storage_id: string; fileName?: string }[] = [];
+
+		try {
+			for (const file of files) {
+				// Skip non-image files
+				if (!file.type.startsWith('image/')) {
+					console.warn('Skipping non-image file:', file.name);
+					continue;
+				}
+
+				// Compress image to max 1MB
+				const compressedFile = await compressImage(file, 1024 * 1024);
+
+				// Generate upload URL
+				const uploadUrl = await client.mutation(api.storage.generateUploadUrl, {
+					session_token: session.current.session.token,
+				});
+
+				// Upload compressed file
+				const result = await fetch(uploadUrl, {
+					method: 'POST',
+					body: compressedFile,
+				});
+
+				if (!result.ok) {
+					throw new Error(`Upload failed: ${result.statusText}`);
+				}
+
+				const { storageId } = await result.json();
+
+				// Get the URL for the uploaded file
+				const url = await client.query(api.storage.getUrl, {
+					storage_id: storageId,
+					session_token: session.current.session.token,
+				});
+
+				if (url) {
+					uploadedFiles.push({ url, storage_id: storageId, fileName: file.name });
+				}
+			}
+
+			selectedImages = [...selectedImages, ...uploadedFiles];
+		} catch (error) {
+			console.error('Upload failed:', error);
+		} finally {
+			isUploading = false;
+		}
+	}
+
+	function removeImage(index: number) {
+		selectedImages = selectedImages.filter((_, i) => i !== index);
+	}
+
+	function openImageModal(imageUrl: string, fileName: string) {
+		imageModal = {
+			open: true,
+			imageUrl,
+			fileName,
+		};
+	}
+
+	$effect(() => {
+		if (fileUpload.selected.size > 0) {
+			handleFileChange(Array.from(fileUpload.selected));
+			fileUpload.clear();
+		}
+	});
 
 	const suggestedRules = $derived.by(() => {
 		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
@@ -293,7 +399,10 @@
 	<title>Chat | Thom.chat</title>
 </svelte:head>
 
-<Sidebar.Root class="h-screen overflow-clip">
+<Sidebar.Root
+	class="h-screen overflow-clip"
+	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
+>
 	<Sidebar.Sidebar class="flex flex-col overflow-clip p-2">
 		<div class="flex place-items-center justify-center py-2">
 			<span class="text-center font-serif text-lg">Thom.chat</span>
@@ -526,7 +635,36 @@
 							</div>
 						{/if}
 						<div class="flex flex-grow flex-col">
-							<div class="flex flex-grow flex-row items-start">
+							{#if selectedImages.length > 0}
+								<div class="mb-2 flex flex-wrap gap-2">
+									{#each selectedImages as image, index (image.storage_id)}
+										<div
+											class="group border-secondary-foreground/[0.08] bg-secondary-foreground/[0.02] hover:bg-secondary-foreground/10 relative flex h-12 w-12 max-w-full shrink-0 items-center justify-center gap-2 rounded-xl border border-solid p-0 transition-[width,height] duration-500"
+										>
+											<button
+												type="button"
+												onclick={() => openImageModal(image.url, image.fileName || 'image')}
+												class="rounded-lg"
+											>
+												<img
+													src={image.url}
+													alt="Uploaded"
+													class="size-10 rounded-lg object-cover opacity-100 transition-opacity"
+												/>
+											</button>
+											<button
+												type="button"
+												onclick={() => removeImage(index)}
+												class="bg-secondary hover:bg-muted absolute -top-1 -right-1 cursor-pointer rounded-full p-1 opacity-0 transition group-hover:opacity-100"
+											>
+												<XIcon class="h-3 w-3" />
+											</button>
+										</div>
+									{/each}
+								</div>
+							{/if}
+							<div class="relative flex flex-grow flex-row items-start">
+								<input {...fileUpload.input} bind:this={fileInput} />
 								<!-- TODO: Figure out better autofocus solution -->
 								<!-- svelte-ignore a11y_autofocus -->
 								<textarea
@@ -589,6 +727,23 @@
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker />
+									{#if currentModelSupportsImages}
+										<button
+											type="button"
+											class="border-border hover:bg-muted flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
+											onclick={() => fileInput?.click()}
+											disabled={isUploading}
+										>
+											{#if isUploading}
+												<div
+													class="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
+												></div>
+											{:else}
+												<ImageIcon class="!size-3" />
+											{/if}
+											<span>Attach image</span>
+										</button>
+									{/if}
 								</div>
 							</div>
 						</div>
@@ -610,4 +765,20 @@
 			</div>
 		</div>
 	</Sidebar.Inset>
+
+	{#if fileUpload.isDragging && currentModelSupportsImages}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+			<div class="text-center">
+				<UploadIcon class="text-primary mx-auto mb-4 h-16 w-16" />
+				<p class="text-xl font-semibold">Add image</p>
+				<p class="mt-2 text-sm opacity-75">Drop an image here to attach it to your message.</p>
+			</div>
+		</div>
+	{/if}
+
+	<ImageModal
+		bind:open={imageModal.open}
+		imageUrl={imageModal.imageUrl}
+		fileName={imageModal.fileName}
+	/>
 </Sidebar.Root>

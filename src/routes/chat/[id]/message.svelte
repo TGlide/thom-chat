@@ -5,6 +5,7 @@
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import '../../../markdown.css';
 	import MarkdownRenderer from './markdown-renderer.svelte';
+	import { ImageModal } from '$lib/components/ui/image-modal';
 
 	const style = tv({
 		base: 'prose rounded-lg p-2',
@@ -21,10 +22,41 @@
 	};
 
 	let { message }: Props = $props();
+
+	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
+		open: false,
+		imageUrl: '',
+		fileName: '',
+	});
+
+	function openImageModal(imageUrl: string, fileName: string) {
+		imageModal = {
+			open: true,
+			imageUrl,
+			fileName,
+		};
+	}
 </script>
 
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
 	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
+		{#if message.images && message.images.length > 0}
+			<div class="mb-2 flex flex-wrap gap-2">
+				{#each message.images as image (image.storage_id)}
+					<button
+						type="button"
+						onclick={() => openImageModal(image.url, image.fileName || 'image')}
+						class="rounded-lg"
+					>
+						<img
+							src={image.url}
+							alt={image.fileName || 'Uploaded'}
+							class="max-w-xs rounded-lg transition-opacity hover:opacity-80"
+						/>
+					</button>
+				{/each}
+			</div>
+		{/if}
 		<div class={style({ role: message.role })}>
 			<svelte:boundary>
 				<MarkdownRenderer content={message.content} />
@@ -32,7 +64,9 @@
 				{#snippet failed(error)}
 					<div class="text-destructive">
 						<span>Error rendering markdown:</span>
-						<pre class="!bg-sidebar"><code>{error.message}</code></pre>
+						<pre class="!bg-sidebar"><code
+								>{error instanceof Error ? error.message : String(error)}</code
+							></pre>
 					</div>
 				{/snippet}
 			</svelte:boundary>
@@ -56,4 +90,10 @@
 			{/if}
 		</div>
 	</div>
+
+	<ImageModal
+		bind:open={imageModal.open}
+		imageUrl={imageModal.imageUrl}
+		fileName={imageModal.fileName}
+	/>
 {/if}
