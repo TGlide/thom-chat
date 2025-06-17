@@ -10,6 +10,7 @@ import OpenAI from 'openai';
 import { waitUntil } from '@vercel/functions';
 
 import { z } from 'zod/v4';
+import type { ChatCompletionSystemMessageParam } from 'openai/resources';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -47,16 +48,18 @@ async function generateAIResponse({
 	startTime,
 	modelResultPromise,
 	keyResultPromise,
+	rulesResultPromise,
 }: {
 	conversationId: string;
 	session: SessionObj;
 	startTime: number;
 	keyResultPromise: ResultAsync<string | null, string>;
 	modelResultPromise: ResultAsync<Doc<'user_enabled_models'> | null, string>;
+	rulesResultPromise: ResultAsync<Doc<'user_rules'>[], string>;
 }) {
 	log('Starting AI response generation in background', startTime);
 
-	const [modelResult, keyResult, messagesQueryResult] = await Promise.all([
+	const [modelResult, keyResult, messagesQueryResult, rulesResult] = await Promise.all([
 		modelResultPromise,
 		keyResultPromise,
 		ResultAsync.fromPromise(
@@ -66,6 +69,7 @@ async function generateAIResponse({
 			}),
 			(e) => `Failed to get messages: ${e}`
 		),
+		rulesResultPromise,
 	]);
 
 	if (modelResult.isErr()) {
@@ -104,6 +108,35 @@ async function generateAIResponse({
 
 	log('Background: API key retrieved successfully', startTime);
 
+	if (rulesResult.isErr()) {
+		log(`Background rules query failed: ${rulesResult.error}`, startTime);
+		return;
+	}
+
+	const userMessage = messages[messages.length - 1];
+
+	if (!userMessage) {
+		log('Background: No user message found', startTime);
+		return;
+	}
+
+	const attachedRules = [
+		...rulesResult.value.filter((r) => r.attach === 'always'),
+		...parseMessageForRules(
+			userMessage.content,
+			rulesResult.value.filter((r) => r.attach === 'manual')
+		),
+	];
+
+	log(`Background: ${attachedRules.length} rules attached`, startTime);
+
+	const systemMessage: ChatCompletionSystemMessageParam = {
+		role: 'system',
+		content: `The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
+Rules to follow:
+${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
+	};
+
 	const openai = new OpenAI({
 		baseURL: 'https://openrouter.ai/api/v1',
 		apiKey: key,
@@ -112,7 +145,7 @@ async function generateAIResponse({
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create({
 			model: model.model_id,
-			messages: messages.map((m) => ({ role: m.role, content: m.content })),
+			messages: [...messages.map((m) => ({ role: m.role, content: m.content })), systemMessage],
 			max_tokens: 1000,
 			temperature: 0.7,
 			stream: true,
@@ -242,6 +275,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		(e) => `Failed to get API key: ${e}`
 	);
 
+	const rulesResultPromise = ResultAsync.fromPromise(
+		client.query(api.user_rules.all, {
+			session_token: session.token,
+		}),
+		(e) => `Failed to get rules: ${e}`
+	);
+
 	log('Session authenticated successfully', startTime);
 
 	let conversationId = args.conversation_id;
@@ -291,6 +331,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			startTime,
 			modelResultPromise,
 			keyResultPromise,
+			rulesResultPromise,
 		}).catch((error) => {
 			log(`Background AI response generation error: ${error}`, startTime);
 		})
@@ -300,15 +341,15 @@ export const POST: RequestHandler = async ({ request }) => {
 	return response({ ok: true, conversation_id: conversationId });
 };
 
-// function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<'user_rules'>[] {
-// 	const matchedRules: Doc<'user_rules'>[] = [];
+function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<'user_rules'>[] {
+	const matchedRules: Doc<'user_rules'>[] = [];
 
-// 	for (const rule of rules) {
-// 		const match = message.indexOf(`@${rule.name} `);
-// 		if (match === -1) continue;
+	for (const rule of rules) {
+		const match = message.indexOf(`@${rule.name} `);
+		if (match === -1) continue;
 
-// 		matchedRules.push(rule);
-// 	}
+		matchedRules.push(rule);
+	}
 
-// 	return matchedRules;
-// }
+	return matchedRules;
+}
