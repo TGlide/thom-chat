@@ -195,14 +195,12 @@ async function generateAIResponse({
 
 	log('Background: Model found and enabled', startTime);
 
-	const messagesQuery = await messagesQueryResult;
-
-	if (messagesQuery.isErr()) {
-		log(`Background messages query failed: ${messagesQuery.error}`, startTime);
+	if (messagesQueryResult.isErr()) {
+		log(`Background messages query failed: ${messagesQueryResult.error}`, startTime);
 		return;
 	}
 
-	const messages = messagesQuery.value;
+	const messages = messagesQueryResult.value;
 	log(`Background: Retrieved ${messages.length} messages from conversation`, startTime);
 
 	if (keyResult.isErr()) {
