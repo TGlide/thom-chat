@@ -329,7 +329,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 
 		log('Background: Got generation stats', startTime);
 
-		const [updateMessageResult, updateGeneratingResult] = await Promise.all([
+		const [updateMessageResult, updateGeneratingResult, updateCostUsdResult] = await Promise.all([
 			ResultAsync.fromPromise(
 				client.mutation(api.messages.updateMessage, {
 					message_id: mid,
@@ -348,6 +348,14 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 				}),
 				(e) => `Failed to update generating status: ${e}`
 			),
+			ResultAsync.fromPromise(
+				client.mutation(api.conversations.updateCostUsd, {
+					conversation_id: conversationId as Id<'conversations'>,
+					cost_usd: generationStats.total_cost,
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to update cost usd: ${e}`
+			),
 		]);
 
 		if (updateGeneratingResult.isErr()) {
@@ -363,6 +371,13 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		}
 
 		log('Background: Message updated', startTime);
+
+		if (updateCostUsdResult.isErr()) {
+			log(`Background cost usd update failed: ${updateCostUsdResult.error}`, startTime);
+			return;
+		}
+
+		log('Background: Cost usd updated', startTime);
 	} catch (error) {
 		log(`Background stream processing error: ${error}`, startTime);
 	}

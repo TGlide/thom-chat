@@ -47,6 +47,7 @@ export default defineSchema({
 		updated_at: v.optional(v.number()),
 		pinned: v.optional(v.boolean()),
 		generating: v.boolean(),
+		cost_usd: v.optional(v.number()),
 	}).index('by_user', ['user_id']),
 	messages: defineTable({
 		conversation_id: v.string(),
