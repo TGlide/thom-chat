@@ -1,36 +1,36 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { api } from '$lib/backend/convex/_generated/api.js';
+	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import * as Icons from '$lib/components/icons';
 	import { Button } from '$lib/components/ui/button';
+	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
+	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
+	import { usePrompt } from '$lib/state/prompt.svelte.js';
 	import { session } from '$lib/state/session.svelte.js';
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { isString } from '$lib/utils/is.js';
+	import { pick } from '$lib/utils/object.js';
+	import { cn } from '$lib/utils/utils.js';
+	import { useConvexClient } from 'convex-svelte';
+	import { Popover } from 'melt/builders';
 	import { Avatar } from 'melt/components';
+	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
+	import SendIcon from '~icons/lucide/arrow-up';
+	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
+	import Settings2Icon from '~icons/lucide/settings-2';
 	import XIcon from '~icons/lucide/x';
-	import SendIcon from '~icons/lucide/send';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
-	import { api } from '$lib/backend/convex/_generated/api.js';
-	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
-	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
-	import Tooltip from '$lib/components/ui/tooltip.svelte';
-	import { Popover } from 'melt/builders';
-	import { useConvexClient } from 'convex-svelte';
-	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
-	import { ElementSize, ScrollState, Debounced, IsMounted } from 'runed';
-	import LoaderCircleIcon from '~icons/lucide/loader-circle';
-	import { cn } from '$lib/utils/utils.js';
-	import { pick } from '$lib/utils/object.js';
-	import ChevronDownIcon from '~icons/lucide/chevron-down';
-	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
-	import Settings2Icon from '~icons/lucide/settings-2';
-	import { usePrompt } from '$lib/state/prompt.svelte.js';
 
 	const client = useConvexClient();
 
@@ -278,7 +278,7 @@
 
 	const notAtBottom = new Debounced(
 		() => !scrollState.arrived.bottom,
-		() => (mounted.current ? 500 : 0)
+		() => (mounted.current ? 250 : 0)
 	);
 </script>
 
@@ -437,27 +437,28 @@
 				>
 					{@render children()}
 				</div>
-				{#if notAtBottom.current}
-					<Button
-						onclick={() => scrollState.scrollToBottom()}
-						variant="secondary"
-						size="sm"
-						class="text-muted-foreground absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full text-xs"
-						style="bottom: {wrapperSize.height + 5}px;"
-					>
-						Scroll to bottom
-						<ChevronDownIcon class="inline" />
-					</Button>
-				{/if}
+				<Button
+					onclick={() => scrollState.scrollToBottom()}
+					variant="secondary"
+					size="sm"
+					class={[
+						'text-muted-foreground !border-border absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full !border !pl-3 text-xs transition',
+						notAtBottom.current ? 'opacity-100' : 'pointer-events-none scale-95 opacity-0',
+					]}
+					style="bottom: {wrapperSize.height + 5}px;"
+				>
+					Scroll to bottom
+					<ChevronDownIcon class="inline" />
+				</Button>
 			</div>
 
 			<div
-				class="abs-x-center absolute bottom-0 left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+				class="abs-x-center absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
 				bind:this={textareaWrapper}
 			>
 				<div class="border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg">
 					<form
-						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline outline-8 dark:border-white/10"
+						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10"
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
 							e.preventDefault();
@@ -548,12 +549,18 @@
 							</div>
 							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
-									<button
-										type="submit"
-										class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition"
-									>
-										<SendIcon class="!size-5" />
-									</button>
+									<Tooltip placement="top">
+										{#snippet trigger(tooltip)}
+											<button
+												type="submit"
+												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition"
+												{...tooltip.trigger}
+											>
+												<SendIcon class="!size-5" />
+											</button>
+										{/snippet}
+										Send message
+									</Tooltip>
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker />
