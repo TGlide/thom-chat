@@ -4,6 +4,8 @@
 	import type { Id } from '$lib/backend/convex/_generated/dataModel';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
 	import { session } from '$lib/state/session.svelte';
+	import LoadingDots from './loading-dots.svelte';
+	import Message from './message.svelte';
 
 	const messages = useCachedQuery(api.messages.getAllFromConversation, () => ({
 		conversation_id: page.params.id ?? '',
@@ -29,28 +31,9 @@
 
 <div class="flex h-full flex-1 flex-col overflow-x-clip overflow-y-auto py-4">
 	{#each messages.data ?? [] as message (message._id)}
-		{#if message.role === 'user'}
-			<div class="max-w-[80%] self-end bg-blue-900 p-2 text-white">
-				{message.content}
-			</div>
-		{:else if message.role === 'assistant' && message.content.length > 0}
-			<div class="max-w-[80%] p-2 text-foreground">
-				{message.content}
-			</div>
-		{/if}
+		<Message {message} />
 	{/each}
 	{#if conversation.data?.generating && !lastMessageHasContent}
-		<!-- loading animation -->
-		<div class="flex place-items-center gap-2 p-2">
-			<div
-				class="bg-accent animation-delay-0 size-2.5 animate-[bounce_0.75s_ease-in-out_infinite] rounded-full"
-			></div>
-			<div
-				class="bg-accent animation-delay-100 size-2.5 animate-[bounce_0.75s_ease-in-out_infinite] rounded-full"
-			></div>
-			<div
-				class="bg-accent animation-delay-200 size-2.5 animate-[bounce_0.75s_ease-in-out_infinite] rounded-full"
-			></div>
-		</div>
+		<LoadingDots />
 	{/if}
 </div>
