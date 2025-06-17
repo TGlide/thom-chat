@@ -16,6 +16,7 @@
 	import { goto } from '$app/navigation';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import { api } from '$lib/backend/convex/_generated/api.js';
+	import { type Doc } from '$lib/backend/convex/_generated/dataModel.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 
@@ -51,6 +52,49 @@
 	});
 
 	const _autosize = new TextareaAutosize();
+
+	function groupConversationsByTime(conversations: Doc<'conversations'>[]) {
+		const now = Date.now();
+		const oneDay = 24 * 60 * 60 * 1000;
+		const sevenDays = 7 * oneDay;
+		const thirtyDays = 30 * oneDay;
+
+		const groups = {
+			today: [] as Doc<'conversations'>[],
+			yesterday: [] as Doc<'conversations'>[],
+			lastWeek: [] as Doc<'conversations'>[],
+			lastMonth: [] as Doc<'conversations'>[],
+			older: [] as Doc<'conversations'>[],
+		};
+
+		conversations.forEach((conversation) => {
+			const updatedAt = conversation.updated_at ?? 0;
+			const timeDiff = now - updatedAt;
+
+			if (timeDiff < oneDay) {
+				groups.today.push(conversation);
+			} else if (timeDiff < 2 * oneDay) {
+				groups.yesterday.push(conversation);
+			} else if (timeDiff < sevenDays) {
+				groups.lastWeek.push(conversation);
+			} else if (timeDiff < thirtyDays) {
+				groups.lastMonth.push(conversation);
+			} else {
+				groups.older.push(conversation);
+			}
+		});
+
+		return groups;
+	}
+
+	const groupedConversations = $derived(groupConversationsByTime(conversationsQuery.data ?? []));
+	const templateConversations = $derived([
+		{ key: 'today', label: 'Today', conversations: groupedConversations.today },
+		{ key: 'yesterday', label: 'Yesterday', conversations: groupedConversations.yesterday },
+		{ key: 'lastWeek', label: 'Last 7 days', conversations: groupedConversations.lastWeek },
+		{ key: 'lastMonth', label: 'Last 30 days', conversations: groupedConversations.lastMonth },
+		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
+	]);
 </script>
 
 <svelte:head>
@@ -71,37 +115,57 @@
 				New Chat
 			</a>
 		</div>
-		<div class="flex flex-1 flex-col overflow-y-auto py-2">
-			{#each conversationsQuery.data ?? [] as conversation (conversation._id)}
-				<a
-					href={`/chat/${conversation._id}`}
-					class="group relative overflow-clip py-0.5 pr-2.5 text-left text-sm"
-				>
-					<p class="group-hover:bg-sidebar-accent rounded-md py-1.5 pl-3">
-						{conversation.title}
-					</p>
-					<div
-						class=" to-sidebar-accent pointer-events-none absolute inset-y-0 right-0 flex translate-x-full items-center gap-2 rounded-r-lg bg-gradient-to-r from-transparent pr-2 transition group-hover:pointer-events-auto group-hover:translate-0"
-					>
-						<Tooltip>
-							{#snippet trigger(tooltip)}
-								<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
-									<PinIcon class="size-4" />
-								</button>
-							{/snippet}
-							Pin thread
-						</Tooltip>
-						<Tooltip>
-							{#snippet trigger(tooltip)}
-								<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
-									<XIcon class="size-4" />
-								</button>
-							{/snippet}
-							Delete thread
-						</Tooltip>
-					</div>
-				</a>
-			{/each}
+		<div class="relative flex flex-1 flex-col">
+			<div
+				class="from-sidebar pointer-events-none absolute top-0 right-0 left-0 z-10 h-4 bg-gradient-to-b to-transparent"
+			></div>
+			<div class="flex flex-1 flex-col overflow-y-auto py-2">
+				{#each templateConversations as group, index (group.key)}
+					{#if group.conversations.length > 0}
+						<div class="px-2 py-1" class:mt-2={index > 0}>
+							<h3 class="text-heading text-xs font-medium">{group.label}</h3>
+						</div>
+						{#each group.conversations as conversation (conversation._id)}
+							{@const isActive = page.params.id === conversation._id}
+							<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">
+								<div class="relative overflow-clip">
+									<p
+										class={[
+											' rounded-lg py-2 pl-3',
+											isActive ? 'bg-sidebar-accent' : 'group-hover:bg-sidebar-accent ',
+										]}
+									>
+										<span>{conversation.title}</span>
+									</p>
+									<div
+										class=" to-sidebar-accent pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg bg-gradient-to-r from-transparent pr-2 transition group-hover:pointer-events-auto group-hover:translate-0"
+									>
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+													<PinIcon class="size-4" />
+												</button>
+											{/snippet}
+											Pin thread
+										</Tooltip>
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+													<XIcon class="size-4" />
+												</button>
+											{/snippet}
+											Delete thread
+										</Tooltip>
+									</div>
+								</div>
+							</a>
+						{/each}
+					{/if}
+				{/each}
+			</div>
+			<div
+				class="from-sidebar pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-4 bg-gradient-to-t to-transparent"
+			></div>
 		</div>
 		<div class="py-2">
 			{#if data.session !== null}

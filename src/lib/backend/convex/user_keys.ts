@@ -1,7 +1,8 @@
 import { v } from 'convex/values';
 import { Provider } from '../../types';
 import { api, internal } from './_generated/api';
-import { mutation, query } from './_generated/server';
+import { query } from './_generated/server';
+import { mutation } from './functions';
 import { providerValidator } from './schema';
 import { type SessionObj } from './betterAuth';
 

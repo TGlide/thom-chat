@@ -1,9 +1,10 @@
 import { v } from 'convex/values';
 import { api } from './_generated/api';
-import { mutation, query } from './_generated/server';
+import { query } from './_generated/server';
 import { type Id } from './_generated/dataModel';
 import { type SessionObj } from './betterAuth';
 import { messageRoleValidator } from './schema';
+import { mutation } from './functions';
 
 export const get = query({
 	args: {
@@ -24,7 +25,12 @@ export const get = query({
 			.withIndex('by_user', (q) => q.eq('user_id', s.userId))
 			.collect();
 
-		return conversations;
+		return conversations.sort((a, b) => {
+			const aTime = a.updated_at ?? 0;
+			const bTime = b.updated_at ?? 0;
+
+			return bTime - aTime;
+		});
 	},
 });
 
@@ -45,6 +51,7 @@ export const create = mutation({
 			title: 'Untitled (for now)',
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Id type is janking out
 			user_id: session.userId as any,
+			updated_at: Date.now(),
 		});
 
 		return res;
@@ -73,6 +80,7 @@ export const createAndAddMessage = mutation({
 			title: 'Untitled (for now)',
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Id type is janking out
 			user_id: session.userId as any,
+			updated_at: Date.now(),
 		});
 
 		const messageId = await ctx.runMutation(api.messages.create, {

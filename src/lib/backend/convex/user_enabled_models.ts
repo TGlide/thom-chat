@@ -1,4 +1,5 @@
-import { query, mutation } from './_generated/server';
+import { query } from './_generated/server';
+import { mutation } from './functions';
 import { v } from 'convex/values';
 import { providerValidator } from './schema';
 import * as array from '../../utils/array';
