@@ -4,7 +4,7 @@ import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 import { Provider } from '$lib/types';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
-import { ResultAsync } from 'neverthrow';
+import { err, ok, Result, ResultAsync } from 'neverthrow';
 import OpenAI from 'openai';
 import { waitUntil } from '@vercel/functions';
 
@@ -325,7 +325,17 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			return;
 		}
 
-		const generationStats = await getGenerationStats(generationId, key);
+		const generationStatsResult = await getGenerationStats(generationId, key);
+
+		if (generationStatsResult.isErr()) {
+			log(`Background: Failed to get generation stats: ${generationStatsResult.error}`, startTime);
+		}
+
+		// just default so we don't blow up
+		const generationStats = generationStatsResult.unwrapOr({
+			tokens_completion: undefined,
+			total_cost: undefined,
+		});
 
 		log('Background: Got generation stats', startTime);
 
@@ -351,7 +361,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			ResultAsync.fromPromise(
 				client.mutation(api.conversations.updateCostUsd, {
 					conversation_id: conversationId as Id<'conversations'>,
-					cost_usd: generationStats.total_cost,
+					cost_usd: generationStats.total_cost ?? 0,
 					session_token: sessionToken,
 				}),
 				(e) => `Failed to update cost usd: ${e}`
@@ -526,16 +536,27 @@ function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<
 	return matchedRules;
 }
 
-async function getGenerationStats(generationId: string, token: string): Promise<Data> {
-	const generation = await fetch(`https://openrouter.ai/api/v1/generation?id=${generationId}`, {
-		headers: {
-			Authorization: `Bearer ${token}`,
-		},
-	});
+async function getGenerationStats(
+	generationId: string,
+	token: string
+): Promise<Result<Data, string>> {
+	try {
+		const generation = await fetch(`https://openrouter.ai/api/v1/generation?id=${generationId}`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
 
-	const { data } = await generation.json();
+		const { data } = await generation.json();
 
-	return data;
+		if (!data) {
+			return err('No data returned from OpenRouter');
+		}
+
+		return ok(data);
+	} catch {
+		return err('Failed to get generation stats');
+	}
 }
 
 export interface ApiResponse {
