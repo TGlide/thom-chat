@@ -525,11 +525,14 @@
 			</div>
 
 			<!-- Credits in bottom-right, only on large screens -->
-			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 lg:flex">
-				<a href="https://github.com/TGlide/thom-chat" class="text-muted-foreground text-xs">
-					Source on <Icons.GitHub class="ml-0.5 inline size-3" />
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 xl:flex">
+				<a
+					href="https://github.com/TGlide/thom-chat"
+					class="text-muted-foreground flex place-items-center gap-1 text-xs"
+				>
+					Source on <Icons.GitHub class="inline size-3" />
 				</a>
-				<span class="text-muted-foreground text-xs">
+				<span class="text-muted-foreground flex place-items-center gap-1 text-xs">
 					Crafted by <Icons.Svelte class="inline size-3" /> wizards.
 				</span>
 			</div>
