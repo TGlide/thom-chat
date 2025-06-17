@@ -50,26 +50,34 @@ export const create = mutation({
 			throw new Error('Unauthorized');
 		}
 
-		const messages = await ctx.runQuery(api.messages.getAllFromConversation, {
-			conversation_id: args.conversation_id,
-			session_token: args.session_token,
-		});
+		// I think this just slows us down
 
-		const lastMessage = messages[messages.length - 1];
+		// const messages = await ctx.runQuery(api.messages.getAllFromConversation, {
+		// 	conversation_id: args.conversation_id,
+		// 	session_token: args.session_token,
+		// });
 
-		if (lastMessage?.role === args.role) {
-			throw new Error('Last message has the same role, forbidden');
-		}
+		// const lastMessage = messages[messages.length - 1];
 
-		const id = await ctx.db.insert('messages', {
-			conversation_id: args.conversation_id,
-			content: args.content,
-			role: args.role,
-			// Optional, coming from SK API route
-			model_id: args.model_id,
-			provider: args.provider,
-			token_count: args.token_count,
-		});
+		// if (lastMessage?.role === args.role) {
+		// 	throw new Error('Last message has the same role, forbidden');
+		// }
+
+		const [id] = await Promise.all([
+			ctx.db.insert('messages', {
+				conversation_id: args.conversation_id,
+				content: args.content,
+				role: args.role,
+				// Optional, coming from SK API route
+				model_id: args.model_id,
+				provider: args.provider,
+				token_count: args.token_count,
+			}),
+			ctx.db.patch(args.conversation_id as Id<'conversations'>, {
+				generating: true,
+				updated_at: Date.now(),
+			}),
+		]);
 
 		return id;
 	},

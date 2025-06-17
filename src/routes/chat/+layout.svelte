@@ -24,6 +24,8 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 	import { ElementSize } from 'runed';
+	import LoaderCircleIcon from '~icons/lucide/loader-circle';
+	import { cn } from '$lib/utils/utils.js';
 
 	const client = useConvexClient();
 
@@ -286,16 +288,26 @@
 						</div>
 						{#each group.conversations as conversation (conversation._id)}
 							{@const isActive = page.params.id === conversation._id}
-							<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">
-								<div class="relative overflow-clip">
-									<p
-										class={[
-											' truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap',
-											isActive ? 'bg-sidebar-accent' : 'group-hover:bg-sidebar-accent ',
-										]}
-									>
+							<a
+								href={`/chat/${conversation._id}`}
+								class="group w-full py-0.5 pr-2.5 text-left text-sm"
+							>
+								<div
+									class={cn(
+										'relative flex w-full items-center justify-between overflow-clip rounded-lg',
+										{ 'bg-sidebar-accent': isActive, 'group-hover:bg-sidebar-accent': !isActive }
+									)}
+								>
+									<p class="truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap">
 										<span>{conversation.title}</span>
 									</p>
+									<div class="pr-2">
+										{#if conversation.generating}
+											<div class="flex animate-spin place-items-center justify-center">
+												<LoaderCircleIcon class="size-4" />
+											</div>
+										{/if}
+									</div>
 									<div
 										class={[
 											'pointer-events-none absolute inset-y-0.5 right-0 flex translate-x-full items-center gap-2 rounded-r-lg pr-2 pl-6 transition group-hover:pointer-events-auto group-hover:translate-0',

@@ -47,7 +47,7 @@ async function generateConversationTitle({
 	session,
 	startTime,
 	keyResultPromise,
-	userMessage
+	userMessage,
 }: {
 	conversationId: string;
 	session: SessionObj;
@@ -58,7 +58,7 @@ async function generateConversationTitle({
 	log('Starting conversation title generation', startTime);
 
 	const keyResult = await keyResultPromise;
-	
+
 	if (keyResult.isErr()) {
 		log(`Title generation: API key error: ${keyResult.error}`, startTime);
 		return;
@@ -84,8 +84,8 @@ async function generateConversationTitle({
 	}
 
 	const conversations = conversationResult.value;
-	const conversation = conversations.find(c => c._id === conversationId);
-	
+	const conversation = conversations.find((c) => c._id === conversationId);
+
 	if (!conversation || !conversation.title.includes('Untitled')) {
 		log('Title generation: Conversation not found or already has custom title', startTime);
 		return;
@@ -316,6 +316,21 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			startTime
 		);
 
+		const updateGeneratingResult = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.updateGenerating, {
+				conversation_id: conversationId as Id<'conversations'>,
+				generating: false,
+				session_token: session.token,
+			}),
+			(e) => `Failed to update generating status: ${e}`
+		);
+
+		if (updateGeneratingResult.isErr()) {
+			log(`Background generating status update failed: ${updateGeneratingResult.error}`, startTime);
+			return;
+		}
+
+		log('Background: Generating status updated to false', startTime);
 	} catch (error) {
 		log(`Background stream processing error: ${error}`, startTime);
 	}
@@ -416,7 +431,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				session,
 				startTime,
 				keyResultPromise,
-				userMessage: args.message
+				userMessage: args.message,
 			}).catch((error) => {
 				log(`Background title generation error: ${error}`, startTime);
 			})
