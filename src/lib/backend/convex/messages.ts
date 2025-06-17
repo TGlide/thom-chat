@@ -109,3 +109,34 @@ export const updateContent = mutation({
 		});
 	},
 });
+
+export const updateMessage = mutation({
+	args: {
+		session_token: v.string(),
+		message_id: v.string(),
+		token_count: v.optional(v.number()),
+		cost_usd: v.optional(v.number()),
+		generation_id: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		const message = await ctx.db.get(args.message_id as Id<'messages'>);
+
+		if (!message) {
+			throw new Error('Message not found');
+		}
+
+		await ctx.db.patch(message._id, {
+			token_count: args.token_count,
+			cost_usd: args.cost_usd,
+			generation_id: args.generation_id,
+		});
+	},
+});

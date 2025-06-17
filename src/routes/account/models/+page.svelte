@@ -31,7 +31,15 @@
 	});
 
 	const openRouterModels = $derived(
-		fuzzysearch({ haystack: models.from(Provider.OpenRouter), needle: search, property: 'name' })
+		fuzzysearch({
+			haystack: models.from(Provider.OpenRouter),
+			needle: search,
+			property: 'name',
+		}).sort((a, b) => {
+			if (a.enabled && !b.enabled) return -1;
+			if (!a.enabled && b.enabled) return 1;
+			return 0;
+		})
 	);
 </script>
 

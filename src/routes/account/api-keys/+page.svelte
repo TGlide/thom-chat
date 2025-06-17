@@ -56,7 +56,10 @@
 
 <div class="mt-8 flex flex-col gap-4">
 	{#each allProviders as provider (provider)}
-		{@const meta = providersMeta[provider]}
-		<ProviderCard {provider} {meta} />
+		<!-- only do OpenRouter for now -->
+		{#if provider === Provider.OpenRouter}
+			{@const meta = providersMeta[provider]}
+			<ProviderCard {provider} {meta} />
+		{/if}
 	{/each}
 </div>

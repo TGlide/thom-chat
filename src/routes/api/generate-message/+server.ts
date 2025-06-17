@@ -269,6 +269,8 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	const messageCreationResult = await ResultAsync.fromPromise(
 		client.mutation(api.messages.create, {
 			conversation_id: conversationId,
+			model_id: model.model_id,
+			provider: Provider.OpenRouter,
 			content: '',
 			role: 'assistant',
 			session_token: sessionToken,
@@ -286,12 +288,15 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 
 	let content = '';
 	let chunkCount = 0;
+	let generationId: string | null = null;
 
 	try {
 		for await (const chunk of stream) {
 			chunkCount++;
 			content += chunk.choices[0]?.delta?.content || '';
 			if (!content) continue;
+
+			generationId = chunk.id;
 
 			const updateResult = await ResultAsync.fromPromise(
 				client.mutation(api.messages.updateContent, {
@@ -315,14 +320,43 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			startTime
 		);
 
-		const updateGeneratingResult = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.updateGenerating, {
-				conversation_id: conversationId as Id<'conversations'>,
-				generating: false,
-				session_token: sessionToken,
-			}),
-			(e) => `Failed to update generating status: ${e}`
-		);
+		if (!generationId) {
+			log('Background: No generation id found', startTime);
+			return;
+		}
+
+		const generationStats = await getGenerationStats(generationId, key);
+
+		log('Background: Got generation stats', startTime);
+
+		const [updateMessageResult, updateGeneratingResult, updateCostUsdResult] = await Promise.all([
+			ResultAsync.fromPromise(
+				client.mutation(api.messages.updateMessage, {
+					message_id: mid,
+					token_count: generationStats.tokens_completion,
+					cost_usd: generationStats.total_cost,
+					generation_id: generationId,
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to update message: ${e}`
+			),
+			ResultAsync.fromPromise(
+				client.mutation(api.conversations.updateGenerating, {
+					conversation_id: conversationId as Id<'conversations'>,
+					generating: false,
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to update generating status: ${e}`
+			),
+			ResultAsync.fromPromise(
+				client.mutation(api.conversations.updateCostUsd, {
+					conversation_id: conversationId as Id<'conversations'>,
+					cost_usd: generationStats.total_cost,
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to update cost usd: ${e}`
+			),
+		]);
 
 		if (updateGeneratingResult.isErr()) {
 			log(`Background generating status update failed: ${updateGeneratingResult.error}`, startTime);
@@ -330,6 +364,20 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		}
 
 		log('Background: Generating status updated to false', startTime);
+
+		if (updateMessageResult.isErr()) {
+			log(`Background message update failed: ${updateMessageResult.error}`, startTime);
+			return;
+		}
+
+		log('Background: Message updated', startTime);
+
+		if (updateCostUsdResult.isErr()) {
+			log(`Background cost usd update failed: ${updateCostUsdResult.error}`, startTime);
+			return;
+		}
+
+		log('Background: Cost usd updated', startTime);
 	} catch (error) {
 		log(`Background stream processing error: ${error}`, startTime);
 	}
@@ -476,4 +524,51 @@ function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<
 	}
 
 	return matchedRules;
+}
+
+async function getGenerationStats(generationId: string, token: string): Promise<Data> {
+	const generation = await fetch(`https://openrouter.ai/api/v1/generation?id=${generationId}`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	const { data } = await generation.json();
+
+	return data;
+}
+
+export interface ApiResponse {
+	data: Data;
+}
+
+export interface Data {
+	created_at: string;
+	model: string;
+	app_id: string | null;
+	external_user: string | null;
+	streamed: boolean;
+	cancelled: boolean;
+	latency: number;
+	moderation_latency: number | null;
+	generation_time: number;
+	tokens_prompt: number;
+	tokens_completion: number;
+	native_tokens_prompt: number;
+	native_tokens_completion: number;
+	native_tokens_reasoning: number;
+	native_tokens_cached: number;
+	num_media_prompt: number | null;
+	num_media_completion: number | null;
+	num_search_results: number | null;
+	origin: string;
+	is_byok: boolean;
+	finish_reason: string;
+	native_finish_reason: string;
+	usage: number;
+	id: string;
+	upstream_id: string;
+	total_cost: number;
+	cache_discount: number | null;
+	provider_name: string;
 }
