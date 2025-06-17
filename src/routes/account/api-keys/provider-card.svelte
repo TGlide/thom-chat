@@ -42,7 +42,6 @@
 		const res = await ResultAsync.fromPromise(
 			client.mutation(api.user_keys.set, {
 				provider,
-				user_id: session.current?.user.id ?? '',
 				key: `${key}`,
 				session_token: session.current?.session.token,
 			}),

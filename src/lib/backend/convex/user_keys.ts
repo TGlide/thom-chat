@@ -64,7 +64,6 @@ export const get = query({
 export const set = mutation({
 	args: {
 		provider: providerValidator,
-		user_id: v.string(),
 		key: v.string(),
 		session_token: v.string(),
 	},
@@ -80,14 +79,36 @@ export const set = mutation({
 		const existing = await ctx.db
 			.query('user_keys')
 			.withIndex('by_provider_user', (q) =>
-				q.eq('provider', args.provider).eq('user_id', args.user_id)
+				q.eq('provider', args.provider).eq('user_id', session.userId)
 			)
 			.first();
 
+		const userKey = { ...args, session_token: undefined, user_id: session.userId };
+
 		if (existing) {
-			await ctx.db.replace(existing._id, args);
+			await ctx.db.replace(existing._id, userKey);
 		} else {
-			await ctx.db.insert('user_keys', args);
+			await ctx.db.insert('user_keys', userKey);
+
+			if (args.provider === Provider.OpenRouter) {
+				const defaultModels = [
+					'google/gemini-2.5-flash',
+					'anthropic/claude-sonnet-4',
+					'openai/o3-mini',
+					'deepseek/deepseek-chat-v3-0324:free',
+				];
+
+				await Promise.all(
+					defaultModels.map((model) =>
+						ctx.db.insert('user_enabled_models', {
+							user_id: session.userId,
+							provider: Provider.OpenRouter,
+							model_id: model,
+							pinned: null,
+						})
+					)
+				);
+			}
 		}
 	},
 });

@@ -50,7 +50,10 @@
 <Card.Root>
 	<Card.Header>
 		<div class="flex items-center justify-between">
-			<Card.Title>{model.name}</Card.Title>
+			<div class="flex place-items-center gap-2">
+				<Card.Title>{model.name}</Card.Title>
+				<span class="text-muted-foreground text-xs hidden xl:block">{model.id}</span>
+			</div>
 			<Switch bind:value={() => enabled, toggleEnabled} {disabled} />
 		</div>
 		<Card.Description
