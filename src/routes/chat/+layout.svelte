@@ -630,12 +630,21 @@
 			</div>
 
 			<div
-				class="abs-x-center absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+				class="abs-x-center group absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
 				bind:this={textareaWrapper}
 			>
-				<div class="border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg">
+				<div
+					class={[
+						'border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg',
+						'[--opacity:50%] group-focus-within:[--opacity:100%]',
+					]}
+				>
 					<form
-						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10"
+						class={[
+							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10',
+							'transition duration-200',
+							'outline-primary/1 group-focus-within:outline-primary/10',
+						]}
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
 							e.preventDefault();
