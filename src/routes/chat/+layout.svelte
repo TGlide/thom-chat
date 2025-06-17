@@ -312,6 +312,7 @@
 				>
 					{#if suggestedRules}
 						<div
+							{...popover.content}
 							class="bg-background border-border absolute top-0 w-full -translate-y-[calc(100%+0.5rem)] rounded-lg border"
 						>
 							<div class="flex flex-col p-2" bind:this={ruleList}>
