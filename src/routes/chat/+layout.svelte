@@ -320,6 +320,20 @@
 										type="button"
 										data-list-item
 										data-active={i === 0}
+										onmouseover={(e) => {
+											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+												rule.setAttribute('data-active', 'false');
+											}
+
+											e.currentTarget.setAttribute('data-active', 'true');
+										}}
+										onfocus={(e) => {
+											for (const rule of ruleList.querySelectorAll('[data-list-item]')) {
+												rule.setAttribute('data-active', 'false');
+											}
+
+											e.currentTarget.setAttribute('data-active', 'true');
+										}}
 										onclick={() => completeRule(rule)}
 										class="data-[active=true]:bg-accent rounded-md px-2 py-1 text-start"
 									>
