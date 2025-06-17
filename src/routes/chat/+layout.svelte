@@ -508,13 +508,12 @@
 							</div>
 							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
-									<Button
+									<button
 										type="submit"
-										size="icon"
-										class="border-reflect button-reflect bg-primary hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow"
+										class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition"
 									>
 										<SendIcon class="!size-5" />
-									</Button>
+									</button>
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker />
@@ -527,12 +526,12 @@
 
 			<!-- Credits in bottom-right, only on large screens -->
 			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 lg:flex">
-				<span class="text-muted-foreground text-xs">
-					Crafted by <Icons.Svelte class="inline size-3" /> wizards.
-				</span>
 				<a href="https://github.com/TGlide/thom-chat" class="text-muted-foreground text-xs">
 					Source on <Icons.GitHub class="ml-0.5 inline size-3" />
 				</a>
+				<span class="text-muted-foreground text-xs">
+					Crafted by <Icons.Svelte class="inline size-3" /> wizards.
+				</span>
 			</div>
 		</div>
 	</Sidebar.Inset>
