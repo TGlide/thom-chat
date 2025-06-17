@@ -34,6 +34,30 @@ export const get = query({
 	},
 });
 
+export const getById = query({
+	args: {
+		conversation_id: v.id('conversations'),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		const conversation = await ctx.db.get(args.conversation_id);
+
+		if (!conversation || conversation.user_id !== session.userId) {
+			throw new Error('Conversation not found or unauthorized');
+		}
+
+		return conversation;
+	},
+});
+
 export const create = mutation({
 	args: {
 		session_token: v.string(),

@@ -303,7 +303,7 @@
 									</p>
 									<div class="pr-2">
 										{#if conversation.generating}
-											<div class="flex animate-spin place-items-center justify-center">
+											<div class="flex animate-[spin_0.75s_linear_infinite] place-items-center justify-center">
 												<LoaderCircleIcon class="size-4" />
 											</div>
 										{/if}
