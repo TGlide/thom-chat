@@ -5,6 +5,7 @@ import { type Id } from './_generated/dataModel';
 import { type SessionObj } from './betterAuth';
 import { messageRoleValidator } from './schema';
 import { mutation } from './functions';
+import { getFirstSentence } from '../../utils/strings';
 
 export const get = query({
 	args: {
@@ -101,8 +102,11 @@ export const createAndAddMessage = mutation({
 			throw new Error('Unauthorized');
 		}
 
+		// use first sentence as a placeholder title
+		const [firstSentence, full] = getFirstSentence(args.content);
+
 		const conversationId = await ctx.db.insert('conversations', {
-			title: 'Untitled (for now)',
+			title: firstSentence ?? full.slice(0, 35),
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Id type is janking out
 			user_id: session.userId as any,
 			updated_at: Date.now(),

@@ -6,6 +6,7 @@
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { session } from '$lib/state/session.svelte.js';
 	import { ResultAsync } from 'neverthrow';
+	import { getFirstSentence } from '$lib/utils/strings';
 
 	type Model = {
 		id: string;
@@ -24,16 +25,7 @@
 
 	const client = useConvexClient();
 
-	function getShortDescription(text: string) {
-		// match any punctuation followed by a space or the end of the string
-		const index = text.match(/[.!?](\s|$)/)?.index;
-
-		if (index === undefined) return { shortDescription: null, fullDescription: text };
-
-		return { shortDescription: text.slice(0, index + 1), fullDescription: text };
-	}
-
-	const { shortDescription, fullDescription } = $derived(getShortDescription(model.description));
+	const [shortDescription, fullDescription] = $derived(getFirstSentence(model.description));
 
 	let showMore = $state(false);
 

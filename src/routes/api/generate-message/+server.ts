@@ -86,7 +86,7 @@ async function generateConversationTitle({
 	const conversations = conversationResult.value;
 	const conversation = conversations.find((c) => c._id === conversationId);
 
-	if (!conversation || !conversation.title.includes('Untitled')) {
+	if (!conversation) {
 		log('Title generation: Conversation not found or already has custom title', startTime);
 		return;
 	}
