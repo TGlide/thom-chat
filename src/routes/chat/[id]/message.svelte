@@ -3,12 +3,14 @@
 	import { tv } from 'tailwind-variants';
 	import type { Doc } from '$lib/backend/convex/_generated/dataModel';
 	import { CopyButton } from '$lib/components/ui/copy-button';
+	import '../../../markdown.css';
+	import MarkdownRenderer from './markdown-renderer.svelte';
 
 	const style = tv({
-		base: 'rounded-lg p-2',
+		base: 'prose rounded-lg p-2',
 		variants: {
 			role: {
-				user: 'bg-primary text-primary-foreground self-end',
+				user: 'bg-primary !text-primary-foreground self-end',
 				assistant: 'text-foreground',
 			},
 		},
@@ -24,7 +26,16 @@
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
 	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
 		<div class={style({ role: message.role })}>
-			{message.content}
+			<svelte:boundary>
+				<MarkdownRenderer content={message.content} />
+
+				{#snippet failed(error)}
+					<div class="text-destructive">
+						<span>Error rendering markdown:</span>
+						<pre class="!bg-sidebar"><code>{error.message}</code></pre>
+					</div>
+				{/snippet}
+			</svelte:boundary>
 		</div>
 		<div
 			class={cn('flex place-items-center opacity-0 transition-opacity group-hover:opacity-100', {

@@ -83,7 +83,7 @@
 		</div>
 		<div class="md:col-start-2 md:pl-12">
 			<div
-				class="bg-card scrollbar-hide text-muted-foreground flex w-fit max-w-full place-items-center gap-2 overflow-x-auto rounded-lg p-1 text-sm"
+				class="bg-accent scrollbar-hide text-muted-foreground flex w-fit max-w-full place-items-center gap-2 overflow-x-auto rounded-lg p-1 text-sm"
 			>
 				{#each navigation as tab (tab)}
 					<a
