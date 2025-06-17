@@ -422,11 +422,17 @@
 		<Sidebar.Trigger class="fixed top-3 left-2 z-50">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
+
 		<!-- header -->
 		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
-			<Button variant="ghost" size="icon" class="size-8" href="/account">
-				<Settings2Icon />
-			</Button>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
+						<Settings2Icon />
+					</Button>
+				{/snippet}
+				Settings
+			</Tooltip>
 			<LightSwitch variant="ghost" class="size-8" />
 		</div>
 		<div class="relative">

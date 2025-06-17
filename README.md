@@ -38,23 +38,24 @@ IDK, calm down
   - [ ] HuggingFace
   - [ ] OpenAI
 - [ ] File upload
-- [ ] Test link with free credits
 - [x] Ensure responsiveness
 - [ ] File support
 - [x] Streams on the server
-- [ ] Syntax highlighting with Shiki/markdown renderer
+- [x] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
 - [ ] Cascade deletes and shit in Convex
 - [ ] Error notification central, specially for BYOK models like o3
+- [ ] Google Auth
+- [ ] Fix light mode (urgh)
 
 ### Chat
 
-- [ ] loading state
+- [x] loading state
 - [ ] deal with error states, both on creation attempt and message generation failure
-- [ ] delete conversations option
-- [ ] conversation title generation
+- [x] delete conversations option
+- [x] conversation title generation
 - [ ] kbd powered popover model picker
-- [ ] autosize
+- [x] autosize
 
 ### Extra
 
@@ -64,3 +65,4 @@ IDK, calm down
 - [ ] Image generation
 - [ ] Chat sharing
 - [ ] 404 page/redirect
+- [ ] Test link with free credits
