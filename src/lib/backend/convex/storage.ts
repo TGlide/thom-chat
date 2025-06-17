@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { api } from './_generated/api';
-import { mutation, query } from './_generated/server';
+import { query } from './_generated/server';
+import { mutation } from './functions';
 
 export const generateUploadUrl = mutation({
 	args: {
@@ -54,3 +55,4 @@ export const deleteFile = mutation({
 		await ctx.storage.delete(args.storage_id);
 	},
 });
+

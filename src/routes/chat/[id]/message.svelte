@@ -26,22 +26,14 @@
 	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
 		open: false,
 		imageUrl: '',
-		fileName: ''
+		fileName: '',
 	});
 
 	function openImageModal(imageUrl: string, fileName: string) {
 		imageModal = {
 			open: true,
 			imageUrl,
-			fileName
-		};
-	}
-
-	function closeImageModal() {
-		imageModal = {
-			open: false,
-			imageUrl: '',
-			fileName: ''
+			fileName,
 		};
 	}
 </script>
@@ -49,17 +41,17 @@
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
 	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
 		{#if message.images && message.images.length > 0}
-			<div class="flex flex-wrap gap-2 mb-2">
-				{#each message.images as image}
+			<div class="mb-2 flex flex-wrap gap-2">
+				{#each message.images as image (image.storage_id)}
 					<button
 						type="button"
 						onclick={() => openImageModal(image.url, image.fileName || 'image')}
 						class="rounded-lg"
 					>
-						<img 
-							src={image.url} 
-							alt={image.fileName || 'Uploaded'} 
-							class="max-w-xs rounded-lg hover:opacity-80 transition-opacity" 
+						<img
+							src={image.url}
+							alt={image.fileName || 'Uploaded'}
+							class="max-w-xs rounded-lg transition-opacity hover:opacity-80"
 						/>
 					</button>
 				{/each}
@@ -72,7 +64,9 @@
 				{#snippet failed(error)}
 					<div class="text-destructive">
 						<span>Error rendering markdown:</span>
-						<pre class="!bg-sidebar"><code>{error instanceof Error ? error.message : String(error)}</code></pre>
+						<pre class="!bg-sidebar"><code
+								>{error instanceof Error ? error.message : String(error)}</code
+							></pre>
 					</div>
 				{/snippet}
 			</svelte:boundary>
@@ -101,6 +95,5 @@
 		bind:open={imageModal.open}
 		imageUrl={imageModal.imageUrl}
 		fileName={imageModal.fileName}
-		onClose={closeImageModal}
 	/>
 {/if}

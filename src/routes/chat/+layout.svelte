@@ -6,24 +6,25 @@
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import * as Icons from '$lib/components/icons';
 	import { Button } from '$lib/components/ui/button';
+	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
 	import { session } from '$lib/state/session.svelte.js';
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
+	import { compressImage } from '$lib/utils/image-compression';
 	import { isString } from '$lib/utils/is.js';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
-	import { compressImage } from '$lib/utils/image-compression';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
-	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { Avatar } from 'melt/components';
 	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
@@ -34,12 +35,10 @@
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import Settings2Icon from '~icons/lucide/settings-2';
-	import XIcon from '~icons/lucide/x';
 	import UploadIcon from '~icons/lucide/upload';
+	import XIcon from '~icons/lucide/x';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
-	import { Provider } from '$lib/types.js';
 
 	const client = useConvexClient();
 
