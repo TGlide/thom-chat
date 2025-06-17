@@ -28,6 +28,8 @@
 	import { cn } from '$lib/utils/utils.js';
 	import { pick } from '$lib/utils/object.js';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
+	import Settings2Icon from '~icons/lucide/settings-2';
 
 	const client = useConvexClient();
 
@@ -382,7 +384,7 @@
 		</div>
 		<div class="py-2">
 			{#if data.session !== null}
-				<Button href="/account/api-keys" variant="ghost" class="h-auto w-full justify-start">
+				<Button href="/account" variant="ghost" class="h-auto w-full justify-start">
 					<Avatar src={data.session?.user.image ?? undefined}>
 						{#snippet children(avatar)}
 							<img {...avatar.image} alt="Your avatar" class="size-10 rounded-full" />
@@ -409,6 +411,13 @@
 		<Sidebar.Trigger class="fixed top-3 left-2 z-50">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
+		<!-- header -->
+		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
+			<Button variant="ghost" size="icon" class="size-8" href="/account">
+				<Settings2Icon/>
+			</Button>
+			<LightSwitch variant="ghost" class="size-8"/>
+		</div>
 		<div class="relative">
 			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div

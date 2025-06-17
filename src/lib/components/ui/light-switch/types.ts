@@ -4,4 +4,5 @@
 
 export type LightSwitchProps = {
 	variant?: 'outline' | 'ghost';
+	class?: string;
 };
