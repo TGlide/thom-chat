@@ -29,14 +29,10 @@
 	async function submitNewRule(e: SubmitEvent) {
 		e.preventDefault();
 		const formData = new FormData(e.target as HTMLFormElement);
-		const name = formData.get('name') as string;
 		const attach = formData.get('attach') as 'always' | 'manual';
 		const rule = formData.get('rule') as string;
 
-		if (rule === '' || !rule) return;
-
-		// cannot create rule with the same name
-		if (userRulesQuery.data?.findIndex((r) => r.name === name) !== -1) return;
+		if (rule === '' || !rule || ruleNameExists) return;
 
 		creatingRule = true;
 
@@ -47,10 +43,15 @@
 			session_token: session.current?.session.token ?? '',
 		});
 
-        newRuleCollapsible.open = false;
+		newRuleCollapsible.open = false;
+		name = '';
 
 		creatingRule = false;
 	}
+
+	let name = $state('');
+
+	const ruleNameExists = $derived(userRulesQuery.data?.findIndex((r) => r.name === name) !== -1);
 </script>
 
 <svelte:head>
@@ -91,7 +92,14 @@
 			<form onsubmit={submitNewRule} class="flex flex-col gap-4">
 				<div class="flex flex-col gap-2">
 					<Label for="name">Name (Used when referencing the rule)</Label>
-					<Input id="name" name="name" placeholder="My Rule" required />
+					<Input
+						id="name"
+						name="name"
+						placeholder="My Rule"
+						required
+						bind:value={name}
+						aria-invalid={ruleNameExists}
+					/>
 				</div>
 				<div class="flex flex-col gap-2">
 					<Label for="attach">Rule Type</Label>

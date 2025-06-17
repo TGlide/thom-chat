@@ -51,6 +51,10 @@
 		session_token: session.current?.session.token ?? '',
 	});
 
+	const rulesQuery = useCachedQuery(api.user_rules.all, {
+		session_token: session.current?.session.token ?? '',
+	});
+
 	const _autosize = new TextareaAutosize();
 
 	function groupConversationsByTime(conversations: Doc<'conversations'>[]) {
@@ -95,6 +99,24 @@
 		{ key: 'lastMonth', label: 'Last 30 days', conversations: groupedConversations.lastMonth },
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
+
+	let message = $state('');
+
+	const suggestedRules = $derived.by(() => {
+		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
+		if (!textarea) return;
+
+		const cursor = textarea.selectionStart;
+
+		const index = message.lastIndexOf('@', cursor);
+		if (index === -1) return;
+
+		const ruleFromCursor = message.slice(index + 1, cursor);
+
+		return rulesQuery.data.filter((r) =>
+			r.name.toLowerCase().startsWith(ruleFromCursor.toLowerCase())
+		);
+	});
 </script>
 
 <svelte:head>
@@ -222,6 +244,7 @@
 								handleSubmit();
 							}
 						}}
+						bind:value={message}
 						autofocus
 						autocomplete="off"
 					></textarea>
