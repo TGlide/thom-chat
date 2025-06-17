@@ -264,14 +264,6 @@
 		};
 	}
 
-	function closeImageModal() {
-		imageModal = {
-			open: false,
-			imageUrl: '',
-			fileName: '',
-		};
-	}
-
 	$effect(() => {
 		if (fileUpload.selected.size > 0) {
 			handleFileChange(Array.from(fileUpload.selected));
@@ -702,28 +694,6 @@
 							</div>
 							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
-									{#if currentModelSupportsImages}
-										<Tooltip placement="top">
-											{#snippet trigger(tooltip)}
-												<button
-													type="button"
-													onclick={() => fileInput?.click()}
-													disabled={isUploading}
-													class="border-reflect button-reflect hover:bg-secondary/90 active:bg-secondary text-secondary-foreground relative h-9 w-9 rounded-lg p-2 font-medium shadow transition disabled:opacity-50"
-													{...tooltip.trigger}
-												>
-													{#if isUploading}
-														<div
-															class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-														></div>
-													{:else}
-														<ImageIcon class="!size-4" />
-													{/if}
-												</button>
-											{/snippet}
-											{isUploading ? 'Uploading...' : 'Add images'}
-										</Tooltip>
-									{/if}
 									<Tooltip placement="top">
 										{#snippet trigger(tooltip)}
 											<button
@@ -739,6 +709,23 @@
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker />
+									{#if currentModelSupportsImages}
+										<button
+											type="button"
+											class="border-border hover:bg-muted flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
+											onclick={() => fileInput?.click()}
+											disabled={isUploading}
+										>
+											{#if isUploading}
+												<div
+													class="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
+												></div>
+											{:else}
+												<ImageIcon class="!size-3" />
+											{/if}
+											<span>Attach image</span>
+										</button>
+									{/if}
 								</div>
 							</div>
 						</div>
