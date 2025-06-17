@@ -463,12 +463,16 @@ export const POST: RequestHandler = async ({ request }) => {
 function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<'user_rules'>[] {
 	const matchedRules: Doc<'user_rules'>[] = [];
 
+	console.log('matching rules', rules)
+
 	for (const rule of rules) {
-		const match = message.indexOf(`@${rule.name} `);
-		if (match === -1) continue;
+		const match = message.match(new RegExp(`@${rule.name}(\\s|$)`));
+		if (!match) continue;
 
 		matchedRules.push(rule);
 	}
+
+	console.log('matched rules', matchedRules)
 
 	return matchedRules;
 }
