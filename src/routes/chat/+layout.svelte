@@ -247,7 +247,7 @@
 			rules[newIndex]?.setAttribute('data-active', 'true');
 		}
 	}
-	
+
 	const textareaSize = new ElementSize(() => textarea);
 </script>
 
