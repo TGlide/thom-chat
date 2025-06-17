@@ -1,7 +1,6 @@
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { api } from '$lib/backend/convex/_generated/api';
 import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
-import type { SessionObj } from '$lib/backend/convex/betterAuth';
 import { Provider } from '$lib/types';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
@@ -11,6 +10,7 @@ import { waitUntil } from '@vercel/functions';
 
 import { z } from 'zod/v4';
 import type { ChatCompletionSystemMessageParam } from 'openai/resources';
+import { getSessionCookie } from 'better-auth/cookies';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -44,13 +44,13 @@ const client = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 
 async function generateConversationTitle({
 	conversationId,
-	session,
+	sessionToken,
 	startTime,
 	keyResultPromise,
 	userMessage,
 }: {
 	conversationId: string;
-	session: SessionObj;
+	sessionToken: string;
 	startTime: number;
 	keyResultPromise: ResultAsync<string | null, string>;
 	userMessage: string;
@@ -73,7 +73,7 @@ async function generateConversationTitle({
 	// Only generate title if conversation currently has default title
 	const conversationResult = await ResultAsync.fromPromise(
 		client.query(api.conversations.get, {
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to get conversations: ${e}`
 	);
@@ -134,7 +134,7 @@ Generate only the title based on what the user is asking for, nothing else:`;
 		client.mutation(api.conversations.updateTitle, {
 			conversation_id: conversationId as Id<'conversations'>,
 			title: generatedTitle,
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to update conversation title: ${e}`
 	);
@@ -149,14 +149,14 @@ Generate only the title based on what the user is asking for, nothing else:`;
 
 async function generateAIResponse({
 	conversationId,
-	session,
+	sessionToken,
 	startTime,
 	modelResultPromise,
 	keyResultPromise,
 	rulesResultPromise,
 }: {
 	conversationId: string;
-	session: SessionObj;
+	sessionToken: string;
 	startTime: number;
 	keyResultPromise: ResultAsync<string | null, string>;
 	modelResultPromise: ResultAsync<Doc<'user_enabled_models'> | null, string>;
@@ -170,7 +170,7 @@ async function generateAIResponse({
 		ResultAsync.fromPromise(
 			client.query(api.messages.getAllFromConversation, {
 				conversation_id: conversationId as Id<'conversations'>,
-				session_token: session.token,
+				session_token: sessionToken,
 			}),
 			(e) => `Failed to get messages: ${e}`
 		),
@@ -271,7 +271,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			conversation_id: conversationId,
 			content: '',
 			role: 'assistant',
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to create assistant message: ${e}`
 	);
@@ -297,7 +297,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 				client.mutation(api.messages.updateContent, {
 					message_id: mid,
 					content,
-					session_token: session.token,
+					session_token: sessionToken,
 				}),
 				(e) => `Failed to update message content: ${e}`
 			);
@@ -319,7 +319,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			client.mutation(api.conversations.updateGenerating, {
 				conversation_id: conversationId as Id<'conversations'>,
 				generating: false,
-				session_token: session.token,
+				session_token: sessionToken,
 			}),
 			(e) => `Failed to update generating status: ${e}`
 		);
@@ -360,21 +360,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	log('Schema validation passed', startTime);
 
-	const sessionResult = await ResultAsync.fromPromise(
-		client.query(api.betterAuth.publicGetSession, {
-			session_token: args.session_token,
-		}),
-		(e) => `Failed to get session: ${e}`
-	);
+	const cookie = getSessionCookie(request.headers);
 
-	if (sessionResult.isErr()) {
-		log(`Session query failed: ${sessionResult.error}`, startTime);
-		return error(401, 'Failed to authenticate');
-	}
+	const sessionToken = cookie?.split('.')[0] ?? null;
 
-	const session = sessionResult.value;
-	if (!session) {
-		log('No session found - unauthorized', startTime);
+	if (!sessionToken) {
+		log(`No session token found`, startTime);
 		return error(401, 'Unauthorized');
 	}
 
@@ -382,7 +373,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		client.query(api.user_enabled_models.get, {
 			provider: Provider.OpenRouter,
 			model_id: args.model_id,
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to get model: ${e}`
 	);
@@ -390,14 +381,14 @@ export const POST: RequestHandler = async ({ request }) => {
 	const keyResultPromise = ResultAsync.fromPromise(
 		client.query(api.user_keys.get, {
 			provider: Provider.OpenRouter,
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to get API key: ${e}`
 	);
 
 	const rulesResultPromise = ResultAsync.fromPromise(
 		client.query(api.user_rules.all, {
-			session_token: session.token,
+			session_token: sessionToken,
 		}),
 		(e) => `Failed to get rules: ${e}`
 	);
@@ -410,7 +401,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			client.mutation(api.conversations.createAndAddMessage, {
 				content: args.message,
 				role: 'user',
-				session_token: session.token,
+				session_token: sessionToken,
 			}),
 			(e) => `Failed to create conversation: ${e}`
 		);
@@ -427,7 +418,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		waitUntil(
 			generateConversationTitle({
 				conversationId,
-				session,
+				sessionToken,
 				startTime,
 				keyResultPromise,
 				userMessage: args.message,
@@ -460,7 +451,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	waitUntil(
 		generateAIResponse({
 			conversationId,
-			session,
+			sessionToken,
 			startTime,
 			modelResultPromise,
 			keyResultPromise,
