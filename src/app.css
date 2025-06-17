@@ -473,3 +473,8 @@
 	top: 50%;
 	transform: translateY(-50%);
 }
+
+@utility abs-x-center {
+	left: 50%;
+	transform: translateX(-50%);
+}

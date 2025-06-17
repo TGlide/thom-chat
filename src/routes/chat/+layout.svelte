@@ -65,7 +65,7 @@
 		session_token: session.current?.session.token ?? '',
 	});
 
-	const _autosize = new TextareaAutosize();
+	const autosize = new TextareaAutosize();
 
 	function groupConversationsByTime(conversations: Doc<'conversations'>[]) {
 		const now = Date.now();
@@ -258,8 +258,8 @@
 	<title>Chat | Thom.chat</title>
 </svelte:head>
 
-<Sidebar.Root>
-	<Sidebar.Sidebar class="flex flex-col p-2">
+<Sidebar.Root class="h-screen overflow-clip">
+	<Sidebar.Sidebar class="flex flex-col overflow-clip p-2">
 		<div class="flex place-items-center justify-center py-2">
 			<span class="text-center font-serif text-lg">Thom.chat</span>
 		</div>
@@ -272,7 +272,7 @@
 				New Chat
 			</a>
 		</div>
-		<div class="relative flex flex-1 flex-col">
+		<div class="relative flex min-h-0 flex-1 shrink-0 flex-col overflow-clip">
 			<div
 				class="from-sidebar pointer-events-none absolute top-0 right-0 left-0 z-10 h-4 bg-gradient-to-b to-transparent"
 			></div>
@@ -389,17 +389,24 @@
 		</div>
 	</Sidebar.Sidebar>
 
-	<Sidebar.Inset>
+	<Sidebar.Inset class="w-full overflow-clip ">
 		<Sidebar.Trigger class="fixed top-3 left-2">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
-		<div class="mx-auto flex size-full min-h-svh max-w-3xl flex-col">
-			{@render children()}
-			<div class="mt-auto flex w-full flex-col gap-1">
+		<div class="relative">
+			<div class="h-screen overflow-y-auto">
+				<div class="mx-auto flex max-w-3xl flex-col">
+					{@render children()}
+				</div>
+			</div>
+
+			<div
+				class="abs-x-center absolute bottom-0 left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+			>
 				<ModelPicker class=" w-min " />
 				<div class="h-2" aria-hidden="true"></div>
 				<form
-					class="relative h-18 w-full"
+					class="relative min-h-18 w-full"
 					onsubmit={(e) => {
 						e.preventDefault();
 						handleSubmit();
@@ -446,7 +453,7 @@
 					<textarea
 						{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 						bind:this={textarea}
-						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
+						class="border-input bg-background ring-ring ring-offset-background max-h-64 min-h-18 w-full resize-none overflow-y-auto rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
 						placeholder="Ask me anything..."
 						name="message"
 						onkeydown={(e) => {
@@ -482,6 +489,7 @@
 						bind:value={message}
 						autofocus
 						autocomplete="off"
+						{@attach autosize.attachment}
 					></textarea>
 					<Button type="submit" size="icon" class="absolute right-1 bottom-1 size-8">
 						<SendIcon />
