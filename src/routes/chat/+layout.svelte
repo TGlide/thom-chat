@@ -10,7 +10,7 @@
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import XIcon from '~icons/lucide/x';
-	import SendIcon from '~icons/lucide/send';
+	import SendIcon from '~icons/lucide/arrow-up';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
 	import { page } from '$app/state';
@@ -412,12 +412,12 @@
 			</div>
 
 			<div
-				class="abs-x-center absolute bottom-0 left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+				class="abs-x-center absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
 				bind:this={textareaWrapper}
 			>
 				<div class="border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg">
 					<form
-						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline outline-8 dark:border-white/10"
+						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10"
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
 							e.preventDefault();
