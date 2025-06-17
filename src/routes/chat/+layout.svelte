@@ -467,7 +467,7 @@
 								<textarea
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
-									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none bg-transparent text-base leading-6 outline-none disabled:opacity-0"
+									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:opacity-0"
 									placeholder="Type your message here..."
 									name="message"
 									onkeydown={(e) => {
