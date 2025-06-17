@@ -23,10 +23,14 @@
 	import { Popover } from 'melt/builders';
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
-	import { ElementSize } from 'runed';
+	import { ElementSize, ScrollState, Debounced, IsMounted } from 'runed';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import { cn } from '$lib/utils/utils.js';
 	import { pick } from '$lib/utils/object.js';
+	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
+	import Settings2Icon from '~icons/lucide/settings-2';
+	import { usePrompt } from '$lib/state/prompt.svelte.js';
 
 	const client = useConvexClient();
 
@@ -155,6 +159,11 @@
 
 	let message = $state('');
 
+	usePrompt(
+		() => message,
+		(v) => (message = v)
+	);
+
 	const suggestedRules = $derived.by(() => {
 		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
 		if (!textarea) return;
@@ -259,6 +268,18 @@
 
 	let textareaWrapper = $state<HTMLDivElement>();
 	const wrapperSize = new ElementSize(() => textareaWrapper);
+
+	let conversationList = $state<HTMLDivElement>();
+	const scrollState = new ScrollState({
+		element: () => conversationList,
+	});
+
+	const mounted = new IsMounted();
+
+	const notAtBottom = new Debounced(
+		() => !scrollState.arrived.bottom,
+		() => (mounted.current ? 500 : 0)
+	);
 </script>
 
 <svelte:head>
@@ -374,7 +395,7 @@
 		</div>
 		<div class="py-2">
 			{#if data.session !== null}
-				<Button href="/account/api-keys" variant="ghost" class="h-auto w-full justify-start">
+				<Button href="/account" variant="ghost" class="h-auto w-full justify-start">
 					<Avatar src={data.session?.user.image ?? undefined}>
 						{#snippet children(avatar)}
 							<img {...avatar.image} alt="Your avatar" class="size-10 rounded-full" />
@@ -398,17 +419,36 @@
 	</Sidebar.Sidebar>
 
 	<Sidebar.Inset class="w-full overflow-clip ">
-		<Sidebar.Trigger class="fixed top-3 left-2">
+		<Sidebar.Trigger class="fixed top-3 left-2 z-50">
 			<PanelLeftIcon />
 		</Sidebar.Trigger>
+		<!-- header -->
+		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
+			<Button variant="ghost" size="icon" class="size-8" href="/account">
+				<Settings2Icon />
+			</Button>
+			<LightSwitch variant="ghost" class="size-8" />
+		</div>
 		<div class="relative">
-			<div class="h-screen overflow-y-auto">
+			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
 					class="mx-auto flex max-w-3xl flex-col"
-					style:padding-bottom={wrapperSize.height + 'px'}
+					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px"
 				>
 					{@render children()}
 				</div>
+				{#if notAtBottom.current}
+					<Button
+						onclick={() => scrollState.scrollToBottom()}
+						variant="secondary"
+						size="sm"
+						class="text-muted-foreground absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full text-xs"
+						style="bottom: {wrapperSize.height + 5}px;"
+					>
+						Scroll to bottom
+						<ChevronDownIcon class="inline" />
+					</Button>
+				{/if}
 			</div>
 
 			<div
@@ -525,11 +565,14 @@
 			</div>
 
 			<!-- Credits in bottom-right, only on large screens -->
-			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 lg:flex">
-				<a href="https://github.com/TGlide/thom-chat" class="text-muted-foreground text-xs">
-					Source on <Icons.GitHub class="ml-0.5 inline size-3" />
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 xl:flex">
+				<a
+					href="https://github.com/TGlide/thom-chat"
+					class="text-muted-foreground flex place-items-center gap-1 text-xs"
+				>
+					Source on <Icons.GitHub class="inline size-3" />
 				</a>
-				<span class="text-muted-foreground text-xs">
+				<span class="text-muted-foreground flex place-items-center gap-1 text-xs">
 					Crafted by <Icons.Svelte class="inline size-3" /> wizards.
 				</span>
 			</div>

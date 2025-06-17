@@ -237,7 +237,7 @@ async function generateAIResponse({
 
 	const systemMessage: ChatCompletionSystemMessageParam = {
 		role: 'system',
-		content: `The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
+		content: `Respond in markdown format. The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
 Rules to follow:
 ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	};
@@ -251,7 +251,6 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		openai.chat.completions.create({
 			model: model.model_id,
 			messages: [...messages.map((m) => ({ role: m.role, content: m.content })), systemMessage],
-			max_tokens: 1000,
 			temperature: 0.7,
 			stream: true,
 		}),

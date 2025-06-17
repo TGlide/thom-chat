@@ -3,6 +3,7 @@
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
 	import { session } from '$lib/state/session.svelte';
 	import { settings } from '$lib/state/settings.svelte';
+	import { cn } from '$lib/utils/utils';
 
 	type Props = {
 		class?: string;
@@ -23,7 +24,7 @@
 	});
 </script>
 
-<select bind:value={settings.modelId} class="border {className}">
+<select bind:value={settings.modelId} class={cn('border-border border', className)}>
 	{#each enabledArr as model (model._id)}
 		<option value={model.model_id}>{model.model_id}</option>
 	{/each}
