@@ -141,6 +141,8 @@
 		message = message.slice(0, index) + `@${rule.name}` + message.slice(cursor);
 		textarea.selectionStart = index + rule.name.length + 1;
 		textarea.selectionEnd = index + rule.name.length + 1;
+
+		popover.open = false;
 	}
 
 	function completeSelectedRule() {
@@ -376,6 +378,10 @@
 							if (e.key === 'ArrowDown' && popover.open) {
 								e.preventDefault();
 								handleKeyboardNavigation('down');
+							}
+
+							if (e.key === '@' && !popover.open) {
+								popover.open = true;
 							}
 						}}
 						bind:value={message}
