@@ -56,5 +56,7 @@ export default defineSchema({
 		model_id: v.optional(v.string()),
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
+		cost_usd: v.optional(v.number()),
+		generation_id: v.optional(v.string()),
 	}).index('by_conversation', ['conversation_id']),
 });
