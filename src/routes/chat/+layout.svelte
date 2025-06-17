@@ -30,6 +30,7 @@
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
 	import Settings2Icon from '~icons/lucide/settings-2';
+	import { usePrompt } from '$lib/state/prompt.svelte.js';
 
 	const client = useConvexClient();
 
@@ -156,7 +157,12 @@
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
 
-	let message = $state('');
+	let message = $state(page.url.searchParams.get('prompt') ?? '');
+
+	usePrompt(
+		() => message,
+		(v) => (message = v)
+	);
 
 	const suggestedRules = $derived.by(() => {
 		if (!rulesQuery.data || rulesQuery.data.length === 0) return;
@@ -414,15 +420,15 @@
 		<!-- header -->
 		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
 			<Button variant="ghost" size="icon" class="size-8" href="/account">
-				<Settings2Icon/>
+				<Settings2Icon />
 			</Button>
-			<LightSwitch variant="ghost" class="size-8"/>
+			<LightSwitch variant="ghost" class="size-8" />
 		</div>
 		<div class="relative">
 			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
 					class="mx-auto flex max-w-3xl flex-col"
-					style:padding-bottom={wrapperSize.height + 'px'}
+					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px"
 				>
 					{@render children()}
 				</div>
