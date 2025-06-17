@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import { iterate } from '$lib/utils/array';
 	import type { ButtonVariant } from '../button';
 
 	// We can extend the generics to include form fields if needed
@@ -44,9 +45,18 @@
 	<p class="py-4">{modalArgs?.description}</p>
 	{#if modalArgs?.actions}
 		<div class="modal-action">
-			{#each Object.entries(modalArgs.actions) as [action, variant] (action)}
+			{#each iterate(Object.entries(modalArgs.actions)) as [[action, variant], { isFirst }] (action)}
 				<form method="dialog" onsubmit={() => resolve(action)}>
-					<Button {variant} type="submit" class="capitalize">
+					<Button
+						{variant}
+						type="submit"
+						class="capitalize"
+						{@attach (node) => {
+							setTimeout(() => {
+								if (isFirst) node.focus();
+							}, 100);
+						}}
+					>
 						{action}
 					</Button>
 				</form>

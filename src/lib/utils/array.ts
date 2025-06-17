@@ -78,3 +78,37 @@ export function toMap<T, V>(
 
 	return map;
 }
+
+type IterateReturn<T> = [
+	T,
+	{
+		isFirst: boolean;
+		isLast: boolean;
+		array: T[];
+		index: number;
+		length: number;
+	},
+];
+
+/**
+ * Returns an an iterator that iterates over the given array.
+ * Each returned item contains helpful properties, such as
+ * `isFirst`, `isLast`, `array`, `index`, and `length`
+ *
+ * @param array The array to iterate over.
+ * @returns An iterator that iterates over the given array.
+ */
+export function* iterate<T>(array: T[]): Generator<IterateReturn<T>> {
+	for (let i = 0; i < array.length; i++) {
+		yield [
+			array[i]!,
+			{
+				isFirst: i === 0,
+				isLast: i === array.length - 1,
+				array,
+				index: i,
+				length: array.length,
+			},
+		];
+	}
+}

@@ -21,6 +21,7 @@
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { useConvexClient } from 'convex-svelte';
+	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
 
 	const client = useConvexClient();
 
@@ -110,15 +111,30 @@
 	async function togglePin(conversationId: string) {
 		if (!session.current?.session.token) return;
 
-		try {
-			await client.mutation(api.conversations.togglePin, {
-				conversation_id: conversationId as Id<'conversations'>,
-				session_token: session.current.session.token,
-			});
-		} catch (error) {
-			console.error('Failed to toggle pin:', error);
-		}
+		await client.mutation(api.conversations.togglePin, {
+			conversation_id: conversationId as Id<'conversations'>,
+			session_token: session.current.session.token,
+		});
 	}
+
+	async function deleteConversation(conversationId: string) {
+		const res = await callModal({
+			title: 'Delete conversation',
+			description: 'Are you sure you want to delete this conversation?',
+			actions: { cancel: 'outline', delete: 'destructive' },
+		});
+
+		if (res !== 'delete') return;
+
+		if (!session.current?.session.token) return;
+
+		await client.mutation(api.conversations.remove, {
+			conversation_id: conversationId as Id<'conversations'>,
+			session_token: session.current.session.token,
+		});
+		goto(`/chat`);
+	}
+
 	const templateConversations = $derived([
 		{ key: 'pinned', label: 'Pinned', conversations: groupedConversations.pinned, icon: PinIcon },
 		{ key: 'today', label: 'Today', conversations: groupedConversations.today },
@@ -202,7 +218,15 @@
 										</Tooltip>
 										<Tooltip>
 											{#snippet trigger(tooltip)}
-												<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+												<button
+													{...tooltip.trigger}
+													class="hover:bg-muted rounded-md p-1"
+													onclick={(e) => {
+														e.preventDefault();
+														e.stopPropagation();
+														deleteConversation(conversation._id);
+													}}
+												>
 													<XIcon class="size-4" />
 												</button>
 											{/snippet}

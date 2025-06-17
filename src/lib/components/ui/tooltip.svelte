@@ -42,6 +42,8 @@
 	});
 </script>
 
+<svelte:window onblur={() => (open = false)} />
+
 {@render trigger(tooltip)}
 
 <div {...tooltip.content} class="bg-popover border-border rounded border p-0 shadow-xl">
