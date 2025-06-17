@@ -29,7 +29,7 @@
 	});
 </script>
 
-<div class="flex h-full flex-1 flex-col overflow-x-clip overflow-y-auto py-4">
+<div class="flex h-full flex-1 flex-col py-4">
 	{#each messages.data ?? [] as message (message._id)}
 		<Message {message} />
 	{/each}

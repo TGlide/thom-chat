@@ -13,9 +13,13 @@
 
 <div
 	{...rest}
-	class={cn('[--sidebar-width:0px] md:grid md:grid-cols-[var(--sidebar-width)_1fr]', {
-		'[--sidebar-width:250px]': sidebar.showSidebar,
-	})}
+	class={cn(
+		'[--sidebar-width:0px] md:grid md:grid-cols-[var(--sidebar-width)_1fr]',
+		{
+			'[--sidebar-width:250px]': sidebar.showSidebar,
+		},
+		rest.class
+	)}
 >
 	{@render children?.()}
 </div>
