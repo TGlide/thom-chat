@@ -23,7 +23,7 @@
 	import { Popover } from 'melt/builders';
 	import { useConvexClient } from 'convex-svelte';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
-	import { ElementSize, ScrollState, Debounced } from 'runed';
+	import { ElementSize, ScrollState, Debounced, IsMounted } from 'runed';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 	import { cn } from '$lib/utils/utils.js';
 	import { pick } from '$lib/utils/object.js';
@@ -274,7 +274,12 @@
 		element: () => conversationList,
 	});
 
-	const notAtBottom = new Debounced(() => !scrollState.arrived.bottom, 500);
+	const mounted = new IsMounted();
+
+	const notAtBottom = new Debounced(
+		() => !scrollState.arrived.bottom,
+		() => (mounted.current ? 500 : 0)
+	);
 </script>
 
 <svelte:head>
