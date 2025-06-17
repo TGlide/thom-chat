@@ -19,6 +19,7 @@
 	import { type Doc } from '$lib/backend/convex/_generated/dataModel.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { Popover } from 'melt/builders';
 
 	let { data, children } = $props();
 
@@ -113,10 +114,88 @@
 
 		const ruleFromCursor = message.slice(index + 1, cursor);
 
-		return rulesQuery.data.filter((r) =>
-			r.name.toLowerCase().startsWith(ruleFromCursor.toLowerCase())
-		);
+		const suggestions: Doc<'user_rules'>[] = [];
+
+		for (const rule of rulesQuery.data) {
+			// on a match, don't show any suggestions
+			if (rule.name === ruleFromCursor) return;
+
+			if (rule.name.toLowerCase().startsWith(ruleFromCursor.toLowerCase())) {
+				suggestions.push(rule);
+			}
+		}
+
+		return suggestions.length > 0 ? suggestions : undefined;
 	});
+
+	const popover = new Popover();
+
+	function completeRule(rule: Doc<'user_rules'>) {
+		if (!textarea) return;
+
+		const cursor = textarea.selectionStart;
+
+		const index = message.lastIndexOf('@', cursor);
+		if (index === -1) return;
+
+		message = message.slice(0, index) + `@${rule.name}` + message.slice(cursor);
+		textarea.selectionStart = index + rule.name.length + 1;
+		textarea.selectionEnd = index + rule.name.length + 1;
+	}
+
+	function completeSelectedRule() {
+		if (!suggestedRules) return;
+
+		const rules = Array.from(ruleList.querySelectorAll('[data-list-item]'));
+
+		const activeIndex = rules.findIndex((r) => r.getAttribute('data-active') === 'true');
+		if (activeIndex === -1) return;
+
+		const rule = suggestedRules[activeIndex];
+
+		if (!rule) return;
+
+		completeRule(rule);
+	}
+
+	let ruleList = $state<HTMLDivElement>(null!);
+
+	function handleKeyboardNavigation(direction: 'up' | 'down') {
+		if (!suggestedRules) return;
+
+		const rules = Array.from(ruleList.querySelectorAll('[data-list-item]'));
+
+		let activeIndex = rules?.findIndex((r) => r.getAttribute('data-active') === 'true');
+		if (activeIndex === -1) {
+			if (!suggestedRules[0]) return;
+
+			rules[0]?.setAttribute('data-active', 'true');
+			return;
+		}
+
+		// don't loop
+		if (direction === 'up' && activeIndex === 0) {
+			return;
+		}
+		// don't loop
+		if (direction === 'down' && activeIndex === suggestedRules.length - 1) {
+			return;
+		}
+
+		rules[activeIndex]?.setAttribute('data-active', 'false');
+
+		if (direction === 'up') {
+			const newIndex = activeIndex - 1;
+			if (!suggestedRules[newIndex]) return;
+
+			rules[newIndex]?.setAttribute('data-active', 'true');
+		} else {
+			const newIndex = activeIndex + 1;
+			if (!suggestedRules[newIndex]) return;
+
+			rules[newIndex]?.setAttribute('data-active', 'true');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -231,17 +310,57 @@
 					}}
 					bind:this={form}
 				>
+					{#if suggestedRules}
+						<div
+							class="bg-background border-border absolute top-0 w-full -translate-y-[calc(100%+0.5rem)] rounded-lg border"
+						>
+							<div class="flex flex-col p-2" bind:this={ruleList}>
+								{#each suggestedRules as rule, i (rule._id)}
+									<button
+										type="button"
+										data-list-item
+										data-active={i === 0}
+										onclick={() => completeRule(rule)}
+										class="data-[active=true]:bg-accent rounded-md px-2 py-1 text-start"
+									>
+										{rule.name}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/if}
 					<!-- TODO: Figure out better autofocus solution -->
 					<!-- svelte-ignore a11y_autofocus -->
 					<textarea
+						{...popover.trigger}
 						bind:this={textarea}
 						class="border-input bg-background ring-ring ring-offset-background h-full w-full resize-none rounded-lg border p-2 text-sm ring-offset-2 outline-none focus-visible:ring-2"
 						placeholder="Ask me anything..."
 						name="message"
 						onkeydown={(e) => {
-							if (e.key === 'Enter' && !e.shiftKey) {
+							if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
 								e.preventDefault();
 								handleSubmit();
+							}
+
+							if (e.key === 'Enter' && popover.open) {
+								e.preventDefault();
+								completeSelectedRule();
+							}
+
+							if (e.key === 'Escape' && popover.open) {
+								e.preventDefault();
+								popover.open = false;
+							}
+
+							if (e.key === 'ArrowUp' && popover.open) {
+								e.preventDefault();
+								handleKeyboardNavigation('up');
+							}
+
+							if (e.key === 'ArrowDown' && popover.open) {
+								e.preventDefault();
+								handleKeyboardNavigation('down');
 							}
 						}}
 						bind:value={message}
