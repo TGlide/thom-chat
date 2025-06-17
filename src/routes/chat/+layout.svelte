@@ -7,6 +7,8 @@
 	import { isString } from '$lib/utils/is.js';
 	import { Avatar } from 'melt/components';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
+	import PinIcon from '~icons/lucide/pin';
+	import XIcon from '~icons/lucide/x';
 	import SendIcon from '~icons/lucide/send';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
@@ -15,6 +17,7 @@
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
 	import { api } from '$lib/backend/convex/_generated/api.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
 
 	let { data, children } = $props();
 
@@ -70,10 +73,33 @@
 		</div>
 		<div class="flex flex-1 flex-col overflow-y-auto py-2">
 			{#each conversationsQuery.data ?? [] as conversation (conversation._id)}
-				<a href={`/chat/${conversation._id}`} class="group py-0.5 pr-2.5 text-left text-sm">
-					<p class="group-hover:bg-muted rounded-md py-1.5 pl-3">
+				<a
+					href={`/chat/${conversation._id}`}
+					class="group relative overflow-clip py-0.5 pr-2.5 text-left text-sm"
+				>
+					<p class="group-hover:bg-sidebar-accent rounded-md py-1.5 pl-3">
 						{conversation.title}
 					</p>
+					<div
+						class=" to-sidebar-accent pointer-events-none absolute inset-y-0 right-0 flex translate-x-full items-center gap-2 rounded-r-lg bg-gradient-to-r from-transparent pr-2 transition group-hover:pointer-events-auto group-hover:translate-0"
+					>
+						<Tooltip>
+							{#snippet trigger(tooltip)}
+								<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+									<PinIcon class="size-4" />
+								</button>
+							{/snippet}
+							Pin
+						</Tooltip>
+						<Tooltip>
+							{#snippet trigger(tooltip)}
+								<button {...tooltip.trigger} class="hover:bg-muted rounded-md p-1">
+									<XIcon class="size-4" />
+								</button>
+							{/snippet}
+							Delete
+						</Tooltip>
+					</div>
 				</a>
 			{/each}
 		</div>
