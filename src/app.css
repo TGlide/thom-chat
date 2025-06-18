@@ -68,7 +68,7 @@
 	--secondary-foreground: oklch(0.8483 0.0382 307.9613);
 	--muted: oklch(0.3234 0.0419 257.4748);
 	--muted-foreground: oklch(0.794 0.0372 307.1032);
-	--accent: oklch(0.3649 0.0508 308.4911);
+	--accent: oklch(0.3649 0.0408 290.4911);
 	--accent-foreground: oklch(0.9647 0.0091 341.8035);
 	--destructive: oklch(0.5248 0.1368 20.8317);
 	--destructive-foreground: oklch(1 0 0);
@@ -218,7 +218,7 @@
 	}
 
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-background text-foreground bg-noise;
 	}
 }
 
@@ -474,6 +474,13 @@
 @utility abs-x-center {
 	left: 50%;
 	transform: translateX(-50%);
+}
+
+@utility bg-noise {
+	background-image: url(/images/noise.png);
+	background-size: auto;
+	background-repeat: repeat;
+	background-size: 96px 96px;
 }
 
 /* Copy button */

@@ -537,7 +537,6 @@
 				{/snippet}
 				Search ({cmdOrCtrl} + K)
 			</Tooltip>
-			<SearchModal bind:open={searchModalOpen} />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
@@ -808,3 +807,5 @@
 		fileName={imageModal.fileName}
 	/>
 </Sidebar.Root>
+
+<SearchModal bind:open={searchModalOpen} />
