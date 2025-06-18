@@ -37,6 +37,7 @@
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
+	import { cn } from '$lib/utils/utils.js';
 
 	const client = useConvexClient();
 
