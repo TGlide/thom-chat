@@ -641,7 +641,7 @@
 				>
 					<form
 						class={[
-							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10',
+							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 pt-3 pb-3 outline-8 dark:border-white/10',
 							'transition duration-200',
 							'outline-primary/1 group-focus-within:outline-primary/10',
 						]}
@@ -724,7 +724,7 @@
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
 									disabled={!openRouterKeyQuery.data || isGenerating}
-									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[80px] w-full resize-none !overflow-y-auto bg-transparent px-3 text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									placeholder={isGenerating
 										? 'Generating response...'
 										: 'Type your message here... Tag rules with @'}
@@ -765,7 +765,7 @@
 									{@attach autosize.attachment}
 								></textarea>
 							</div>
-							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between">
+							<div class="mt-2 -mb-px flex w-full flex-row-reverse justify-between px-2">
 								<div class="-mt-0.5 -mr-0.5 flex items-center justify-center gap-2">
 									<Tooltip placement="top">
 										{#snippet trigger(tooltip)}
@@ -791,7 +791,7 @@
 									{#if currentModelSupportsImages}
 										<button
 											type="button"
-											class="border-border hover:bg-muted flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
+											class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
 											onclick={() => fileInput?.click()}
 											disabled={isUploading}
 										>

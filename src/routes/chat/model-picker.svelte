@@ -52,14 +52,17 @@
 		cohere: Cohere,
 	};
 
-	function getModelIcon(modelId: string): typeof LogosClaudeIcon | null {
+	function getModelIcon(modelId: string): Component | null {
 		const id = modelId.toLowerCase();
 
+		// Model-specific icons take priority
 		if (id.includes('claude') || id.includes('anthropic')) return LogosClaudeIcon;
 		if (id.includes('gemini') || id.includes('gemma')) return MaterialIconThemeGeminiAi;
 		if (id.includes('mistral') || id.includes('mixtral')) return LogosMistralAiIcon;
 
-		return null;
+		// Fallback to company icons
+		const company = getCompanyFromModelId(modelId);
+		return companyIcons[company] || null;
 	}
 
 	function getCompanyFromModelId(modelId: string): string {
@@ -124,9 +127,6 @@
 	});
 
 	const currentModel = $derived(enabledArr.find((m) => m.model_id === settings.modelId));
-	const currentCompany = $derived(
-		currentModel ? getCompanyFromModelId(currentModel.model_id) : 'other'
-	);
 
 	$effect(() => {
 		if (!enabledArr.find((m) => m.model_id === settings.modelId) && enabledArr.length > 0) {
@@ -164,8 +164,8 @@
 	function formatModelName(modelId: string) {
 		const cleanId = modelId.replace(/^[^/]+\//, '');
 		const parts = cleanId.split(/[-_,:]/);
-		
-		const formattedParts = parts.map(part => {
+
+		const formattedParts = parts.map((part) => {
 			let formatted = capitalize(part);
 			termReplacements.forEach(({ from, to }) => {
 				formatted = formatted.replace(new RegExp(`\\b${from}\\b`, 'gi'), to);
@@ -176,7 +176,7 @@
 		return {
 			full: formattedParts.join(' '),
 			primary: formattedParts[0] || '',
-			secondary: formattedParts.slice(1).join(' ')
+			secondary: formattedParts.slice(1).join(' '),
 		};
 	}
 </script>
@@ -190,14 +190,14 @@
 	<button
 		{...popover.trigger}
 		class={cn(
-			'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			'ring-offset-background focus:ring-ring flex w-full items-center justify-between rounded-lg px-2 py-1 text-xs transition hover:text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
 			className
 		)}
 		aria-expanded={open}
 	>
-		<div class="flex items-center gap-2">
-			{#if companyIcons[currentCompany]}
-				{@const IconComponent = companyIcons[currentCompany]}
+		<div class="flex items-center gap-2 pr-2">
+			{#if currentModel && getModelIcon(currentModel.model_id)}
+				{@const IconComponent = getModelIcon(currentModel.model_id)}
 				<IconComponent class="size-4" />
 			{/if}
 			<span class="truncate">
@@ -261,9 +261,6 @@
 										{#if getModelIcon(model.model_id)}
 											{@const ModelIcon = getModelIcon(model.model_id)}
 											<ModelIcon class="size-6 shrink-0" />
-										{:else if companyIcons[getCompanyFromModelId(model.model_id)]}
-											{@const CompanyIcon = companyIcons[getCompanyFromModelId(model.model_id)]}
-											<CompanyIcon class="size-6 shrink-0" />
 										{/if}
 										<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
 											{formatted.primary}
