@@ -54,12 +54,14 @@ TODO: add instructions
 - [x] conversation title generation
 - [ ] kbd powered popover model picker
 - [x] autosize
+- [x] AbortController for message generation
 
 ### Extra
 
 - [ ] Web Search
 - [ ] MCPs
 - [ ] Chat branching
+- [ ] Regenerate message
 - [ ] Image generation
 - [ ] Chat sharing
 - [ ] 404 page/redirect

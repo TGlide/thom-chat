@@ -28,6 +28,7 @@
 	import { Avatar } from 'melt/components';
 	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
+	import StopIcon from '~icons/lucide/square';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
@@ -38,6 +39,7 @@
 	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
+	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
 
 	const client = useConvexClient();
@@ -46,7 +48,42 @@
 
 	let form = $state<HTMLFormElement>();
 	let textarea = $state<HTMLTextAreaElement>();
+	let abortController = $state<AbortController | null>(null);
+
+	const currentConversationQuery = useCachedQuery(api.conversations.getById, () => ({
+		conversation_id: page.params.id as Id<'conversations'>,
+		session_token: session.current?.session.token ?? '',
+	}));
+
+	const isGenerating = $derived(Boolean(currentConversationQuery.data?.generating));
+
+	async function stopGeneration() {
+		if (!page.params.id || !session.current?.session.token) return;
+
+		try {
+			const result = await callCancelGeneration({
+				conversation_id: page.params.id,
+				session_token: session.current.session.token,
+			});
+
+			if (result.isErr()) {
+				console.error('Failed to cancel generation:', result.error);
+			} else {
+				console.log('Generation cancelled:', result.value.cancelled);
+			}
+		} catch (error) {
+			console.error('Error cancelling generation:', error);
+		}
+
+		// Clear local abort controller if it exists
+		if (abortController) {
+			abortController = null;
+		}
+	}
+
 	async function handleSubmit() {
+		if (isGenerating) return;
+
 		const formData = new FormData(form);
 		const message = formData.get('message');
 
@@ -58,19 +95,26 @@
 		const imagesCopy = [...selectedImages];
 		selectedImages = [];
 
-		const res = await callGenerateMessage({
-			message: messageCopy,
-			session_token: session.current?.session.token,
-			conversation_id: page.params.id ?? undefined,
-			model_id: settings.modelId,
-			images: imagesCopy.length > 0 ? imagesCopy : undefined,
-		});
-		if (res.isErr()) return; // TODO: Handle error
+		try {
+			const res = await callGenerateMessage({
+				message: messageCopy,
+				session_token: session.current?.session.token,
+				conversation_id: page.params.id ?? undefined,
+				model_id: settings.modelId,
+				images: imagesCopy.length > 0 ? imagesCopy : undefined,
+			});
 
-		const cid = res.value.conversation_id;
+			if (res.isErr()) {
+				return; // TODO: Handle error
+			}
 
-		if (page.params.id !== cid) {
-			goto(`/chat/${cid}`);
+			const cid = res.value.conversation_id;
+
+			if (page.params.id !== cid) {
+				goto(`/chat/${cid}`);
+			}
+		} catch (error) {
+			console.error('Error generating message:', error);
 		}
 	}
 
@@ -586,12 +630,21 @@
 			</div>
 
 			<div
-				class="abs-x-center absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
+				class="abs-x-center group absolute -bottom-px left-1/2 mt-auto flex w-full max-w-3xl flex-col gap-1"
 				bind:this={textareaWrapper}
 			>
-				<div class="border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg">
+				<div
+					class={[
+						'border-reflect bg-background/80 rounded-t-[20px] p-2 pb-0 backdrop-blur-lg',
+						'[--opacity:50%] group-focus-within:[--opacity:100%]',
+					]}
+				>
 					<form
-						class="bg-background/50 text-foreground outline-primary/10 dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10"
+						class={[
+							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 px-3 pt-3 pb-3 outline-8 dark:border-white/10',
+							'transition duration-200',
+							'outline-primary/1 group-focus-within:outline-primary/10',
+						]}
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
 							e.preventDefault();
@@ -670,9 +723,11 @@
 								<textarea
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
-									disabled={!openRouterKeyQuery.data}
+									disabled={!openRouterKeyQuery.data || isGenerating}
 									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-									placeholder="Type your message here... Tag rules with @"
+									placeholder={isGenerating
+										? 'Generating response...'
+										: 'Type your message here... Tag rules with @'}
 									name="message"
 									onkeydown={(e) => {
 										if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
@@ -715,14 +770,20 @@
 									<Tooltip placement="top">
 										{#snippet trigger(tooltip)}
 											<button
-												type="submit"
-												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition"
+												type={isGenerating ? 'button' : 'submit'}
+												onclick={isGenerating ? stopGeneration : undefined}
+												disabled={isGenerating ? false : !message.trim()}
+												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
 												{...tooltip.trigger}
 											>
-												<SendIcon class="!size-5" />
+												{#if isGenerating}
+													<StopIcon class="!size-5" />
+												{:else}
+													<SendIcon class="!size-5" />
+												{/if}
 											</button>
 										{/snippet}
-										Send message
+										{isGenerating ? 'Stop generation' : 'Send message'}
 									</Tooltip>
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
@@ -741,7 +802,7 @@
 											{:else}
 												<ImageIcon class="!size-3" />
 											{/if}
-											<span>Attach image</span>
+											<span class="whitespace-nowrap">Attach image</span>
 										</button>
 									{/if}
 								</div>
