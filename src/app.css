@@ -495,7 +495,7 @@ pre button.copy {
 	backdrop-filter: blur(8px);
 	-webkit-backdrop-filter: blur(8px);
 
-	@apply bg-background/80 hover:bg-background border-border hover:border-border/60 rounded-md border shadow-sm hover:shadow-md; /* Text color removed from here */
+	@apply bg-background/80 hover:bg-background border-border hover:border-border/60 hover:text-foreground rounded-md border shadow-sm hover:shadow-md;
 
 	/* Improved hover and focus states */
 	&:hover {
@@ -519,12 +519,14 @@ pre button.copy {
 		background-position: center;
 		background-size: contain;
 		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		/* Default filter for light mode (assuming black/dark SVGs) */
-		filter: brightness(0.2) sepia(1) saturate(5) hue-rotate(240deg); /* Adjust hue-rotate to match your muted-foreground */
+		background-color: transparent !important;
+	}
+	& svg {
+		width: 16px;
+		height: 16px;
 	}
 
 	& .ready {
-		background-color: transparent;
 		background-image: url(/icons/copy.svg);
 	}
 
@@ -535,12 +537,8 @@ pre button.copy {
 	}
 
 	&.copied {
-		/* Light mode success state colors */
-		@apply bg-primary/10 border-primary/30;
-		/* Filter for success icon in light mode (e.g., primary color) */
-		& span {
-			filter: brightness(0.5) sepia(1) saturate(5) hue-rotate(240deg); /* Adjust to primary color */
-		}
+		/* Light mode success state (dark blue text on light background) */
+		@apply bg-primary/10 border-primary/30 text-primary;
 
 		& .success {
 			display: block;
@@ -553,21 +551,11 @@ pre button.copy {
 	}
 }
 
-/* Dark mode adjustments for copy button */
-.dark pre button.copy {
-	& span {
-		/* Filter for dark mode (turn icons white/light) */
-		filter: invert(1) brightness(1.2); /* Invert and brighten for white/light icons */
-	}
-
-	&.copied {
-		/* Dark mode success state colors */
-		@apply bg-primary/20 border-primary/40;
-		/* Filter for success icon in dark mode (e.g., primary-foreground color) */
-		& span {
-			filter: invert(1) brightness(1.2); /* Keep them white/light for dark mode success */
-		}
-	}
+/* Dark mode adjustments for copy button success state */
+.dark pre button.copy.copied {
+	/* Dark mode success state (light blue text on dark background) */
+	@apply bg-primary/20 border-primary/40 text-primary-foreground;
+	/* Using primary-foreground which is white/light for better visibility */
 }
 
 /* Copy success animation */
