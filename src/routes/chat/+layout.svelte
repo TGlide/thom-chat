@@ -549,7 +549,7 @@
 												type={isGenerating ? 'button' : 'submit'}
 												onclick={isGenerating ? stopGeneration : undefined}
 												disabled={isGenerating ? false : !message.current.trim()}
-												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
+												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-foreground dark:text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
 												{...tooltip.trigger}
 											>
 												{#if isGenerating}
