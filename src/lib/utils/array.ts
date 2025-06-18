@@ -133,39 +133,60 @@ export function last<T>(arr: T[]): T | undefined {
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
 /**
+ * Options for the getNextMatrixItem function.
+ * @template T The type of items stored in the matrix.
+ */
+export interface GetNextMatrixItemOptions<T> {
+	/** The matrix (an array of arrays) where rows can have varying lengths. */
+	matrix: T[][];
+	/** The 0-based index of the current row. */
+	currentRow: number;
+	/** The 0-based index of the current column. */
+	currentCol: number;
+	/** The direction to move ('up', 'down', 'left', 'right'). */
+	direction: Direction;
+	/**
+	 * An optional predicate function that determines if an item is "available".
+	 * If an item is not available, the function will attempt to find the next available candidate.
+	 * Defaults to always returning true (all items are available).
+	 * @param item The item to check.
+	 * @returns True if the item is available, false otherwise.
+	 */
+	isAvailable?: (item: T) => boolean;
+}
+
+/**
  * Retrieves the next item in a matrix based on a current position and a direction.
  * This function is designed to work with "jagged" arrays (rows can have different lengths).
  *
+ * Special behavior for 'up'/'down': If the target row is shorter than the current column,
+ * the column index will snap to the rightmost valid column of the target row.
+ *
+ * If an `isAvailable` function is provided and the initially calculated next item is
+ * not available, the function will attempt to find the next available candidate
+ * within the target row:
+ * - For 'up'/'down': It will scan left from the snapped column.
+ * - For 'left': It will continue scanning left.
+ * - For 'right': It will continue scanning right.
+ *
  * @template T The type of items stored in the matrix.
- * @param matrix The matrix (an array of arrays) where rows can have varying lengths.
- * @param currentRow The 0-based index of the current row.
- * @param currentCol The 0-based index of the current column.
- * @param direction The direction to move ('up', 'down', 'left', 'right').
- * @returns The item at the next position, or `undefined` if the current position is invalid,
- *          the next position is out of bounds, or the matrix itself is invalid.
+ * @param options The options object containing matrix, current position, direction, and optional isAvailable predicate.
+ * @returns The item at the next valid and available position, or `undefined` if no such item is found.
  */
-export function getNextMatrixItem<T>(
-	matrix: T[][],
-	currentRow: number,
-	currentCol: number,
-	direction: Direction
-): T | undefined {
+export function getNextMatrixItem<T>(options: GetNextMatrixItemOptions<T>): T | undefined {
+	const { matrix, currentRow, currentCol, direction, isAvailable = (_i) => true } = options;
+
 	// --- 1. Input Validation: Matrix and Current Position ---
 
-	// Ensure the matrix is a valid array and not empty
 	if (!matrix || !Array.isArray(matrix) || matrix.length === 0) {
 		return undefined;
 	}
 
-	// Validate the current row index
 	if (currentRow < 0 || currentRow >= matrix.length) {
 		return undefined;
 	}
 
-	// Get the current row array to validate the current column
 	const currentRowArray = matrix[currentRow];
-
-	// Ensure the current row is a valid array and validate current column index
 	if (
 		!currentRowArray ||
 		!Array.isArray(currentRowArray) ||
@@ -178,7 +199,7 @@ export function getNextMatrixItem<T>(
 	// --- 2. Calculate Tentative Next Coordinates ---
 
 	let nextRow = currentRow;
-	let nextCol = currentCol; // Start with the same column
+	let nextCol = currentCol;
 
 	switch (direction) {
 		case 'up':
@@ -188,45 +209,70 @@ export function getNextMatrixItem<T>(
 			nextRow++;
 			break;
 		case 'left':
-			nextCol--; // Column changes for horizontal movement
+			nextCol--;
 			break;
 		case 'right':
-			nextCol++; // Column changes for horizontal movement
+			nextCol++;
 			break;
 	}
 
 	// --- 3. Validate and Adjust Next Coordinates Against Matrix Bounds ---
 
-	// Check if the calculated next row is within the matrix's vertical bounds
 	if (nextRow < 0 || nextRow >= matrix.length) {
 		return undefined; // Out of vertical bounds
 	}
 
-	// Get the array for the target row. This is crucial for jagged arrays.
 	const nextRowArray = matrix[nextRow];
-
-	// Ensure the target row is a valid array before checking its length
 	if (!nextRowArray || !Array.isArray(nextRowArray)) {
 		return undefined; // The row itself is malformed or non-existent
 	}
 
 	// --- NEW LOGIC: Adjust nextCol for vertical movements if it's out of bounds ---
 	if (direction === 'up' || direction === 'down') {
-		// If the tentative nextCol is beyond the length of the target row,
-		// clamp it to the last valid index of that row.
-		// If nextRowArray.length is 0, then nextRowArray.length - 1 is -1.
-		// Math.min(currentCol, -1) would result in -1, which will then correctly
-		// be caught by the next `if (nextCol < 0)` check.
+		// Clamp nextCol to the last valid index of the target row if it's too far right
 		nextCol = Math.min(nextCol, nextRowArray.length - 1);
 	}
 
-	// Check if the calculated next column is within the target row's horizontal bounds
-	// This applies to ALL directions, including after potential clamping for up/down.
+	// --- 4. Find the Next Available Item ---
+
+	// Initial check for bounds after clamping/calculation
 	if (nextCol < 0 || nextCol >= nextRowArray.length) {
-		return undefined; // Out of horizontal bounds for the specific nextRow
+		return undefined; // No valid column to start searching from in the target row
 	}
 
-	// --- 4. Return the Item ---
+	// Loop to find the next available item
+	let candidateCol = nextCol;
 
-	return nextRowArray[nextCol];
+	if (direction === 'up' || direction === 'down') {
+		// For vertical moves, try the calculated/clamped 'candidateCol', then scan left
+		while (candidateCol >= 0) {
+			const candidateItem = nextRowArray[candidateCol]!;
+			if (isAvailable(candidateItem)) {
+				return candidateItem;
+			}
+			candidateCol--; // Move left to find an available item
+		}
+	} else if (direction === 'left') {
+		// For 'left' moves, keep scanning left from the calculated 'candidateCol'
+		while (candidateCol >= 0) {
+			const candidateItem = nextRowArray[candidateCol]!;
+			if (isAvailable(candidateItem)) {
+				return candidateItem;
+			}
+			candidateCol--; // Continue moving left
+		}
+	} else {
+		// direction === 'right'
+		// For 'right' moves, keep scanning right from the calculated 'candidateCol'
+		while (candidateCol < nextRowArray.length) {
+			const candidateItem = nextRowArray[candidateCol]!;
+			if (isAvailable(candidateItem)) {
+				return candidateItem;
+			}
+			candidateCol++; // Continue moving right
+		}
+	}
+
+	// If no available item was found in the search path
+	return undefined;
 }

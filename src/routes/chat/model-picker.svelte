@@ -35,9 +35,11 @@
 
 	type Props = {
 		class?: string;
+		/* When images are attached, we should not select models that don't support images */
+		onlyImageModels?: boolean;
 	};
 
-	let { class: className }: Props = $props();
+	let { class: className, onlyImageModels }: Props = $props();
 
 	const enabledModelsQuery = useCachedQuery(api.user_enabled_models.get_enabled, {
 		session_token: session.current?.session.token ?? '',
@@ -280,74 +282,66 @@
 								{@const openRouterModel = modelsState
 									.from(Provider.OpenRouter)
 									.find((m) => m.id === model.model_id)}
+								{@const disabled =
+									onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
 
-								{#if isMobile.current}
-									<div
-										{...gridCommand.getItem(model.model_id)}
-										class={cn(
-											'border-border flex h-10 items-center justify-between rounded-lg border p-2',
-											'relative scroll-m-2 select-none',
-											'data-highlighted:bg-accent/50 data-highlighted:text-accent-foreground',
-											isSelected && 'border-reflect border-none'
-										)}
-									>
-										<div class="flex items-center gap-2">
-											{#if getModelIcon(model.model_id)}
-												{@const ModelIcon = getModelIcon(model.model_id)}
-												<ModelIcon class="size-6 shrink-0" />
-											{/if}
-											<p class="font-fake-proxima text-center leading-tight font-bold">
-												{formatted.full}
-											</p>
-										</div>
-
-										{#if openRouterModel && supportsImages(openRouterModel)}
-											<Tooltip>
-												{#snippet trigger(tooltip)}
-													<div class="" {...tooltip.trigger}>
-														<EyeIcon class="size-3" />
-													</div>
-												{/snippet}
-												Supports image anaylsis
-											</Tooltip>
-										{/if}
-									</div>
-								{:else}
-									<div
-										{...gridCommand.getItem(model.model_id)}
-										class={cn(
-											'border-border flex h-40 w-32 scroll-m-2 flex-col items-center justify-center rounded-lg border p-2',
-											'relative select-none',
-											'data-highlighted:bg-accent/50 data-highlighted:text-accent-foreground',
-											isSelected && 'border-reflect border-none'
-										)}
-									>
+								<div
+									{...gridCommand.getItem(model.model_id, {
+										disabled,
+									})}
+									class={cn(
+										'border-border flex rounded-lg border p-2',
+										'relative scroll-m-2 select-none',
+										'data-highlighted:bg-accent/50 data-highlighted:text-accent-foreground',
+										isSelected && 'border-reflect border-none',
+										isMobile.current
+											? 'h-10 items-center justify-between'
+											: 'h-40 w-32 flex-col items-center justify-center',
+										disabled && 'opacity-50'
+									)}
+								>
+									{onlyImageModels}
+									{disabled}
+									<div class={cn('flex items-center', isMobile.current ? 'gap-2' : 'flex-col')}>
 										{#if getModelIcon(model.model_id)}
 											{@const ModelIcon = getModelIcon(model.model_id)}
 											<ModelIcon class="size-6 shrink-0" />
 										{/if}
-										<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
-											{formatted.primary}
-										</p>
-										<p class="mt-0 text-center text-xs leading-tight font-medium">
-											{formatted.secondary}
+
+										<p
+											class={cn(
+												'font-fake-proxima text-center leading-tight font-bold',
+												!isMobile.current && 'mt-2'
+											)}
+										>
+											{isMobile.current ? formatted.full : formatted.primary}
 										</p>
 
-										{#if openRouterModel && supportsImages(openRouterModel)}
-											<Tooltip>
-												{#snippet trigger(tooltip)}
-													<div
-														class="abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs"
-														{...tooltip.trigger}
-													>
-														<EyeIcon class="size-3" />
-													</div>
-												{/snippet}
-												Supports image anaylsis
-											</Tooltip>
+										{#if !isMobile.current}
+											<p class="mt-0 text-center text-xs leading-tight font-medium">
+												{formatted.secondary}
+											</p>
 										{/if}
 									</div>
-								{/if}
+
+									{#if openRouterModel && supportsImages(openRouterModel)}
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<div
+													class={cn(
+														isMobile.current
+															? ''
+															: 'abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs'
+													)}
+													{...tooltip.trigger}
+												>
+													<EyeIcon class="size-3" />
+												</div>
+											{/snippet}
+											Supports image anaylsis
+										</Tooltip>
+									{/if}
+								</div>
 							{/each}
 						</div>
 					</div>

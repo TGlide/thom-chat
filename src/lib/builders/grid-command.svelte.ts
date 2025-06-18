@@ -84,7 +84,13 @@ export class GridCommand {
 				};
 				const dir = dirMap[e.key];
 				if (dir) {
-					const next = getNextMatrixItem(rows, row, col, dir);
+					const next = getNextMatrixItem({
+						matrix: rows,
+						currentRow: row,
+						currentCol: col,
+						direction: dir,
+						isAvailable: (item) => item.dataset.disabled === undefined,
+					});
 					if (next) {
 						this.highlighted = next.dataset.value;
 						this.scrollToHighlighted();
@@ -170,18 +176,23 @@ export class GridCommand {
 	}
 
 	getItems() {
-		return this.getRows().flatMap((row) => row);
+		return this.getRows()
+			.flatMap((row) => row)
+			.filter((item) => !item.dataset.disabled);
 	}
 
-	getItem(value: string) {
+	getItem(value: string, args: { disabled?: boolean } = {}) {
 		return {
 			'data-thom-grid-command-item': '',
 			'data-highlighted': dataAttr(value === this.highlighted),
 			'data-value': dataAttr(value),
+			'data-disabled': dataAttr(args?.disabled),
 			onmouseover: () => {
+				if (args?.disabled) return;
 				this.highlighted = value;
 			},
 			onclick: () => {
+				if (args?.disabled) return;
 				this.onSelect(value);
 			},
 			[createAttachmentKey()]: () => {

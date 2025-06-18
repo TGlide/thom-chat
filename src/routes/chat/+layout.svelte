@@ -558,7 +558,7 @@
 									</Tooltip>
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
-									<ModelPicker />
+									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									{#if currentModelSupportsImages}
 										<button
 											type="button"
