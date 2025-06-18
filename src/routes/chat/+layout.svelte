@@ -380,8 +380,10 @@
 		<div class="relative">
 			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
-					class="mx-auto flex max-w-3xl flex-col pt-10"
-					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px"
+					class={cn('mx-auto flex max-w-3xl flex-col', {
+						'pt-10': page.url.pathname !== '/chat',
+					})}
+					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px;"
 				>
 					{@render children()}
 				</div>
