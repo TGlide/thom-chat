@@ -39,7 +39,7 @@
 	}
 </script>
 
-{#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
+{#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0 && !message.error)}
 	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
 		{#if message.images && message.images.length > 0}
 			<div class="mb-2 flex flex-wrap gap-2">
@@ -59,7 +59,11 @@
 			</div>
 		{/if}
 		<div class={style({ role: message.role })}>
-			{#if message.content_html}
+			{#if message.error}
+				<div class="text-destructive">
+					<pre class="!bg-sidebar"><code>{message.error}</code></pre>
+				</div>
+			{:else if message.content_html}
 				{@html sanitizeHtml(message.content_html)}
 			{:else}
 				<svelte:boundary>
@@ -84,7 +88,9 @@
 				}
 			)}
 		>
-			<CopyButton class="size-7" text={message.content} />
+			{#if message.content.length > 0}
+				<CopyButton class="size-7" text={message.content} />
+			{/if}
 			{#if message.model_id !== undefined}
 				<span class="text-muted-foreground text-xs">{message.model_id}</span>
 			{/if}

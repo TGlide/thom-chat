@@ -79,20 +79,15 @@
 	async function handleSubmit() {
 		if (isGenerating) return;
 
-		const formData = new FormData(form);
-		const message = formData.get('message');
-
 		// TODO: Re-use zod here from server endpoint for better error messages?
-		if (!isString(message) || !session.current?.user.id || !settings.modelId) return;
+		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
 
-		if (textarea) textarea.value = '';
-		const messageCopy = message;
 		const imagesCopy = [...selectedImages];
 		selectedImages = [];
 
 		try {
 			const res = await callGenerateMessage({
-				message: messageCopy,
+				message: message.current,
 				session_token: session.current?.session.token,
 				conversation_id: page.params.id ?? undefined,
 				model_id: settings.modelId,
@@ -110,6 +105,8 @@
 			}
 		} catch (error) {
 			console.error('Error generating message:', error);
+		} finally {
+			message.current = '';
 		}
 	}
 
@@ -235,7 +232,7 @@
 		const index = message.current.lastIndexOf('@', cursor);
 		if (index === -1) return;
 
-		const ruleFromCursor = message.slice(index + 1, cursor);
+		const ruleFromCursor = message.current.slice(index + 1, cursor);
 
 		const suggestions: Doc<'user_rules'>[] = [];
 
@@ -380,7 +377,7 @@
 		<div class="relative">
 			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
-					class="mx-auto flex max-w-3xl flex-col"
+					class="mx-auto flex max-w-3xl flex-col pt-10"
 					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px"
 				>
 					{@render children()}
