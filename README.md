@@ -48,7 +48,7 @@ TODO: add instructions
 ### Chat
 
 - [x] loading state
-- [x] deal with error states, both on creation attempt and message generation failure
+- [ ] deal with error states, both on creation attempt and message generation failure
 - [x] delete conversations option
 - [x] conversation title generation
 - [x] kbd powered popover model picker
