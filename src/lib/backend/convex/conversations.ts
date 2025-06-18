@@ -1,8 +1,8 @@
 import { v } from 'convex/values';
-import { fuzzyMatchString } from '../../utils/fuzzy-search';
+import enhancedSearch, { type SearchResult } from '../../utils/fuzzy-search';
 import { getFirstSentence } from '../../utils/strings';
 import { api } from './_generated/api';
-import { Doc, type Id } from './_generated/dataModel';
+import { type Doc, type Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import { type SessionObj } from './betterAuth';
 import { mutation } from './functions';
@@ -284,6 +284,7 @@ export const search = query({
 	args: {
 		session_token: v.string(),
 		search_term: v.string(),
+		search_mode: v.optional(v.union(v.literal('exact'), v.literal('words'), v.literal('fuzzy'))),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -294,44 +295,65 @@ export const search = query({
 			throw new Error('Unauthorized');
 		}
 
-		type SearchResult = {
+		type ConversationSearchResult = {
 			conversation: Doc<'conversations'>;
 			messages: Doc<'messages'>[];
+			score: number;
+			titleMatch: boolean;
 		};
-		const res: SearchResult[] = [];
 
-		if (!args.search_term.trim()) return res;
+		if (!args.search_term.trim()) return [];
 
-		const convQuery = ctx.db
+		const searchMode = args.search_mode || 'words';
+		const results: ConversationSearchResult[] = [];
+
+		// Get all conversations for the user
+		const conversations = await ctx.db
 			.query('conversations')
-			.withIndex('by_user', (q) => q.eq('user_id', session.userId));
+			.withIndex('by_user', (q) => q.eq('user_id', session.userId))
+			.collect();
 
-		for await (const conversation of convQuery) {
-			const searchResult: SearchResult = {
-				conversation,
-				messages: [],
-			};
-
-			const msgQuery = ctx.db
+		// Search through conversations and messages
+		for (const conversation of conversations) {
+			// Get messages for this conversation
+			const conversationMessages = await ctx.db
 				.query('messages')
 				.withIndex('by_conversation', (q) => q.eq('conversation_id', conversation._id))
-				.order('asc');
+				.collect();
+			
+			// Search title
+			const titleResults = enhancedSearch({
+				needle: args.search_term,
+				haystack: [conversation],
+				property: 'title',
+				mode: searchMode,
+				minScore: 0.3,
+			});
 
-			for await (const message of msgQuery) {
-				if (fuzzyMatchString(args.search_term, message.content)) {
-					console.log('Found message for search');
-					searchResult.messages.push(message);
-				}
-			}
+			// Search messages
+			const messageResults = enhancedSearch({
+				needle: args.search_term,
+				haystack: conversationMessages,
+				property: 'content',
+				mode: searchMode,
+				minScore: 0.3,
+			});
 
-			if (
-				searchResult.messages.length > 0 ||
-				fuzzyMatchString(args.search_term, conversation.title)
-			) {
-				res.push(searchResult);
+			// If we have matches in title or messages, add to results
+			if (titleResults.length > 0 || messageResults.length > 0) {
+				const titleScore = titleResults.length > 0 ? titleResults[0]?.score ?? 0 : 0;
+				const messageScore = messageResults.length > 0 ? Math.max(...messageResults.map(r => r.score)) : 0;
+				
+				results.push({
+					conversation,
+					messages: messageResults.map(r => r.item),
+					score: Math.max(titleScore, messageScore),
+					titleMatch: titleResults.length > 0,
+				});
 			}
 		}
 
-		return res;
+		// Sort by score (highest first)
+		return results.sort((a, b) => b.score - a.score);
 	},
 });
