@@ -105,7 +105,7 @@
 							<Button
 								onclick={() => (prompt.current = suggestion)}
 								variant="ghost"
-								class="w-full px-2 cursor-pointer justify-start py-2 text-start"
+								class="w-full cursor-pointer justify-start px-2 py-2 text-start"
 							>
 								{suggestion}
 							</Button>
@@ -117,7 +117,7 @@
 							<Button
 								onclick={() => (prompt.current = suggestion)}
 								variant="ghost"
-								class="w-full px-2 cursor-pointer justify-start py-2 text-start group-last:line-through"
+								class="w-full cursor-pointer justify-start px-2 py-2 text-start group-last:line-through"
 							>
 								{suggestion}
 							</Button>

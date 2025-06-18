@@ -19,6 +19,12 @@ export class SidebarRootState {
 			this.open = !this.open;
 		}
 	}
+
+	closeMobile() {
+		if (this.isMobile.current) {
+			this.openMobile = false;
+		}
+	}
 }
 
 export class SidebarTriggerState {
@@ -35,6 +41,16 @@ export class SidebarSidebarState {
 	constructor(readonly root: SidebarRootState) {}
 }
 
+export class SidebarControlState {
+	constructor(readonly root: SidebarRootState) {
+		this.closeMobile = this.closeMobile.bind(this);
+	}
+
+	closeMobile() {
+		this.root.closeMobile();
+	}
+}
+
 export const ctx = new Context<SidebarRootState>('sidebar-root-context');
 
 export function useSidebar() {
@@ -47,4 +63,8 @@ export function useSidebarTrigger() {
 
 export function useSidebarSidebar() {
 	return new SidebarSidebarState(ctx.get());
+}
+
+export function useSidebarControls() {
+	return new SidebarControlState(ctx.get());
 }
