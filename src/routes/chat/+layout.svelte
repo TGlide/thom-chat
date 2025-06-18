@@ -449,11 +449,11 @@
 				Toggle Sidebar ({cmdOrCtrl} + B)
 			</Tooltip>
 
-			{#if page.params.id}
+			{#if page.params.id && currentConversationQuery.data}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
 						<Button
-							class="size-8 bg-sidebar"
+							class="bg-sidebar size-8"
 							size="icon"
 							variant="ghost"
 							onClickPromise={togglePublic}
@@ -478,7 +478,7 @@
 				{ 'hidden md:flex': sidebarOpen }
 			)}
 		>
-			{#if page.params.id}
+			{#if page.params.id && currentConversationQuery.data}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
 						<Button
@@ -761,7 +761,7 @@
 			</div>
 
 			<!-- Credits in bottom-right, only on large screens -->
-			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 xl:flex">
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 2xl:flex">
 				<a
 					href="https://github.com/TGlide/thom-chat"
 					class="text-muted-foreground flex place-items-center gap-1 text-xs"
