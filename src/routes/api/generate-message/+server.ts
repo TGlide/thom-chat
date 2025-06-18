@@ -195,48 +195,124 @@ async function generateAIResponse({
 	]);
 
 	if (modelResult.isErr()) {
-		log(`Background model query failed: ${modelResult.error}`, startTime);
+		handleGenerationError({
+			error: modelResult.error,
+			conversationId,
+			messageId: undefined,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	const model = modelResult.value;
 	if (!model) {
-		log('Background: Model not found or not enabled', startTime);
+		handleGenerationError({
+			error: 'Model not found or not enabled',
+			conversationId,
+			messageId: undefined,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	log('Background: Model found and enabled', startTime);
 
 	if (messagesQueryResult.isErr()) {
-		log(`Background messages query failed: ${messagesQueryResult.error}`, startTime);
+		handleGenerationError({
+			error: `messages query failed: ${messagesQueryResult.error}`,
+			conversationId,
+			messageId: undefined,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	const messages = messagesQueryResult.value;
 	log(`Background: Retrieved ${messages.length} messages from conversation`, startTime);
 
+	// Check if web search is enabled for the last user message
+	const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
+	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
+
+	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
+
+	// Create assistant message
+	const messageCreationResult = await ResultAsync.fromPromise(
+		client.mutation(api.messages.create, {
+			conversation_id: conversationId,
+			model_id: model.model_id,
+			provider: Provider.OpenRouter,
+			content: '',
+			role: 'assistant',
+			session_token: sessionToken,
+			web_search_enabled: webSearchEnabled,
+		}),
+		(e) => `Failed to create assistant message: ${e}`
+	);
+
+	if (messageCreationResult.isErr()) {
+		handleGenerationError({
+			error: `assistant message creation failed: ${messageCreationResult.error}`,
+			conversationId,
+			messageId: undefined,
+			sessionToken,
+			startTime,
+		});
+		return;
+	}
+
+	const mid = messageCreationResult.value;
+	log('Background: Assistant message created', startTime);
+
 	if (keyResult.isErr()) {
-		log(`Background API key query failed: ${keyResult.error}`, startTime);
+		handleGenerationError({
+			error: `API key query failed: ${keyResult.error}`,
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	const key = keyResult.value;
 	if (!key) {
-		log('Background: No API key found', startTime);
+		handleGenerationError({
+			error: 'No API key found',
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	log('Background: API key retrieved successfully', startTime);
 
 	if (rulesResult.isErr()) {
-		log(`Background rules query failed: ${rulesResult.error}`, startTime);
+		handleGenerationError({
+			error: `rules query failed: ${rulesResult.error}`,
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	const userMessage = messages[messages.length - 1];
 
 	if (!userMessage) {
-		log('Background: No user message found', startTime);
+		handleGenerationError({
+			error: 'No user message found',
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
@@ -289,15 +365,15 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			: formattedMessages;
 
 	if (abortSignal?.aborted) {
-		log('AI response generation aborted before OpenAI call', startTime);
+		handleGenerationError({
+			error: 'Cancelled by user',
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
-
-	// Check if web search is enabled for the last user message
-	const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
-	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
-
-	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
 
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create(
@@ -315,34 +391,18 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	);
 
 	if (streamResult.isErr()) {
-		log(`Background OpenAI stream creation failed: ${streamResult.error}`, startTime);
+		handleGenerationError({
+			error: `Failed to create stream: ${streamResult.error}`,
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 		return;
 	}
 
 	const stream = streamResult.value;
 	log('Background: OpenAI stream created successfully', startTime);
-
-	// Create assistant message
-	const messageCreationResult = await ResultAsync.fromPromise(
-		client.mutation(api.messages.create, {
-			conversation_id: conversationId,
-			model_id: model.model_id,
-			provider: Provider.OpenRouter,
-			content: '',
-			role: 'assistant',
-			session_token: sessionToken,
-			web_search_enabled: webSearchEnabled,
-		}),
-		(e) => `Failed to create assistant message: ${e}`
-	);
-
-	if (messageCreationResult.isErr()) {
-		log(`Background assistant message creation failed: ${messageCreationResult.error}`, startTime);
-		return;
-	}
-
-	const mid = messageCreationResult.value;
-	log('Background: Assistant message created', startTime);
 
 	let content = '';
 	let chunkCount = 0;
@@ -469,7 +529,13 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 
 		log('Background: Cost usd updated', startTime);
 	} catch (error) {
-		log(`Background stream processing error: ${error}`, startTime);
+		handleGenerationError({
+			error: `Stream processing error: ${error}`,
+			conversationId,
+			messageId: mid,
+			sessionToken,
+			startTime,
+		});
 	} finally {
 		// Clean up the cached AbortController
 		generationAbortControllers.delete(conversationId);
@@ -709,6 +775,39 @@ async function retryResult<T, E>(
 	if (!lastResult) throw new Error('This should never happen');
 
 	return lastResult;
+}
+
+async function handleGenerationError({
+	error,
+	conversationId,
+	messageId,
+	sessionToken,
+	startTime,
+}: {
+	error: string;
+	conversationId: string;
+	messageId: string | undefined;
+	sessionToken: string;
+	startTime: number;
+}) {
+	log(`Background: ${error}`, startTime);
+
+	const updateErrorResult = await ResultAsync.fromPromise(
+		client.mutation(api.messages.updateError, {
+			conversation_id: conversationId as Id<'conversations'>,
+			message_id: messageId,
+			error,
+			session_token: sessionToken,
+		}),
+		(e) => `Error updating error: ${e}`
+	);
+
+	if (updateErrorResult.isErr()) {
+		log(`Error updating error: ${updateErrorResult.error}`, startTime);
+		return;
+	}
+
+	log('Error updated', startTime);
 }
 
 export interface ApiResponse {
