@@ -361,7 +361,7 @@
 			sharingStatus = 'failure';
 			setTimeout(() => {
 				sharingStatus = undefined;
-			}, 500);
+			}, 1000);
 		}
 
 		clipboard.copy(page.url.toString());
