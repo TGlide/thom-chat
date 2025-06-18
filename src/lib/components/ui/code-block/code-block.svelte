@@ -22,7 +22,7 @@
 </script>
 
 <div class={cn('group relative', className)}>
-	<div class="absolute right-2 top-2 z-10">
+	<div class="absolute top-2 right-2 z-10">
 		<Button
 			variant="ghost"
 			size="sm"
@@ -41,4 +41,4 @@
 	</div>
 	<slot />
 </div>
-</script>
+
