@@ -156,6 +156,7 @@
 			{/snippet}
 			New Chat ({cmdOrCtrl} + Shift + O)
 		</Tooltip>
+		<!--
 		<Tooltip>
 			{#snippet trigger(tooltip)}
 				<button
@@ -170,6 +171,7 @@
 			{/snippet}
 			Search ({cmdOrCtrl} + K)
 		</Tooltip>
+		-->
 	</div>
 	<div class="relative flex min-h-0 flex-1 shrink-0 flex-col overflow-clip">
 		<div

@@ -20,6 +20,7 @@
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
 	import { compressImage } from '$lib/utils/image-compression';
+	import { isHtmlElement } from '$lib/utils/is.js';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
@@ -27,26 +28,22 @@
 	import { FileUpload, Popover } from 'melt/builders';
 	import { ResultAsync } from 'neverthrow';
 	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
-	import { scale } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import SendIcon from '~icons/lucide/arrow-up';
 	import CheckIcon from '~icons/lucide/check';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
+	import SearchIcon from '~icons/lucide/search';
 	import Settings2Icon from '~icons/lucide/settings-2';
+	import ShareIcon from '~icons/lucide/share';
+	import StopIcon from '~icons/lucide/square';
 	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
-	import SearchIcon from '~icons/lucide/search';
-	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
+	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import ShareIcon from '~icons/lucide/share';
-	import { fade } from 'svelte/transition';
-	import LockIcon from '~icons/lucide/lock';
-	import LockOpenIcon from '~icons/lucide/lock-open';
-	import StopIcon from '~icons/lucide/square';
 	import SearchModal from './search-modal.svelte';
-	import { isHtmlElement } from '$lib/utils/is.js';
 
 	const client = useConvexClient();
 
@@ -380,18 +377,18 @@
 		clipboard.copy(page.url.toString());
 	}
 
-	async function togglePublic() {
-		if (!page.params.id || !session.current?.session.token) return;
-
-		await ResultAsync.fromPromise(
-			client.mutation(api.conversations.setPublic, {
-				conversation_id: page.params.id as Id<'conversations'>,
-				public: !currentConversationQuery.data?.public,
-				session_token: session.current?.session.token ?? '',
-			}),
-			(e) => e
-		);
-	}
+	// async function togglePublic() {
+	// 	if (!page.params.id || !session.current?.session.token) return;
+	//
+	// 	await ResultAsync.fromPromise(
+	// 		client.mutation(api.conversations.setPublic, {
+	// 			conversation_id: page.params.id as Id<'conversations'>,
+	// 			public: !currentConversationQuery.data?.public,
+	// 			session_token: session.current?.session.token ?? '',
+	// 		}),
+	// 		(e) => e
+	// 	);
+	// }
 
 	const textareaSize = new ElementSize(() => textarea);
 
@@ -446,46 +443,27 @@
 	<AppSidebar bind:searchModalOpen />
 
 	<Sidebar.Inset class="w-full overflow-clip px-2">
-		<!-- header - top left -->
-		<div
-			class={cn(
-				'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
-				{
-					'md:left-(--sidebar-width)': sidebarOpen,
-					'hidden md:flex': sidebarOpen,
-				}
-			)}
-		>
-			<Tooltip>
-				{#snippet trigger(tooltip)}
-					<Sidebar.Trigger class="size-8" {...tooltip.trigger}>
-						<PanelLeftIcon />
-					</Sidebar.Trigger>
-				{/snippet}
-				Toggle Sidebar ({cmdOrCtrl} + B)
-			</Tooltip>
-
-			{#if page.params.id && currentConversationQuery.data}
+		{#if !sidebarOpen}
+			<!-- header - top left -->
+			<div
+				class={cn(
+					'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
+					{
+						'md:left-(--sidebar-width)': sidebarOpen,
+						'hidden md:flex': sidebarOpen,
+					}
+				)}
+			>
 				<Tooltip>
 					{#snippet trigger(tooltip)}
-						<Button
-							class="bg-sidebar size-8"
-							size="icon"
-							variant="ghost"
-							onClickPromise={togglePublic}
-							{...tooltip.trigger}
-						>
-							{#if currentConversationQuery.data?.public}
-								<LockOpenIcon class="size-4" />
-							{:else}
-								<LockIcon class="size-4" />
-							{/if}
-						</Button>
+						<Sidebar.Trigger class="size-8" {...tooltip.trigger}>
+							<PanelLeftIcon />
+						</Sidebar.Trigger>
 					{/snippet}
-					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+					Toggle Sidebar ({cmdOrCtrl} + B)
 				</Tooltip>
-			{/if}
-		</div>
+			</div>
+		{/if}
 
 		<!-- header - top right -->
 		<div

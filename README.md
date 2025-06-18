@@ -50,7 +50,7 @@ Clone of [T3 Chat](https://t3.chat/)
 - [x] Ensure responsiveness
 - [x] Streams on the server (Resumable streams)
 - [x] Syntax highlighting with Shiki/markdown renderer
-- [x] Eliminate FOUC (kinda)
+- [x] Eliminate FOUC
 - [x] Cascade deletes
 - [x] Google Auth
 - [x] Fix light mode (urgh)

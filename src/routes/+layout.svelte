@@ -7,6 +7,7 @@
 	import { setupConvex } from 'convex-svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
+	import { browser } from '$app/environment';
 
 	let { children } = $props();
 
@@ -19,6 +20,8 @@
 />
 
 <ModeWatcher />
-{@render children()}
+{#if browser}
+	{@render children()}
+{/if}
 
 <GlobalModal />
