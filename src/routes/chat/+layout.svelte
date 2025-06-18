@@ -405,21 +405,23 @@
 			{cmdOrCtrl} + B
 		</Tooltip>
 
-		<Tooltip>
-			{#snippet trigger(tooltip)}
-				<div
-					class="fixed top-3 left-10 z-50 flex size-9 items-center justify-center md:top-1 md:left-auto"
-					{...tooltip.trigger}
-				>
-					{#if currentConversationQuery.data?.public}
-						<LockOpenIcon class="size-4" />
-					{:else}
-						<LockIcon class="size-4" />
-					{/if}
-				</div>
-			{/snippet}
-			{currentConversationQuery.data?.public ? 'Public' : 'Private'}
-		</Tooltip>
+		{#if page.params.id}
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<div
+						class="fixed top-3 left-10 z-50 flex size-9 items-center justify-center md:top-1 md:left-auto"
+						{...tooltip.trigger}
+					>
+						{#if currentConversationQuery.data?.public}
+							<LockOpenIcon class="size-4" />
+						{:else}
+							<LockIcon class="size-4" />
+						{/if}
+					</div>
+				{/snippet}
+				{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+			</Tooltip>
+		{/if}
 
 		<!-- header -->
 		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
