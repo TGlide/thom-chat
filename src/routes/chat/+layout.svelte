@@ -369,7 +369,7 @@
 		</Tooltip>
 
 		<!-- header -->
-		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
+		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
