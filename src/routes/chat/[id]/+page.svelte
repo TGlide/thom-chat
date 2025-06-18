@@ -46,6 +46,12 @@
 			settings.modelId = lastMessage.model_id;
 		}
 
+		// Auto-enable/disable web search based on last user message
+		const lastUserMessage = messages.data.filter((m) => m.role === 'user').pop();
+		if (lastUserMessage) {
+			settings.webSearchEnabled = Boolean(lastUserMessage.web_search_enabled);
+		}
+
 		changedRoute = false;
 	});
 </script>

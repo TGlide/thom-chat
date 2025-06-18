@@ -131,6 +131,7 @@ export const createAndAddMessage = mutation({
 			role: args.role,
 			conversation_id: conversationId,
 			session_token: args.session_token,
+			web_search_enabled: args.web_search_enabled,
 			images: args.images,
 		});
 

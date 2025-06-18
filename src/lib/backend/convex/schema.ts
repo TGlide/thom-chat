@@ -70,5 +70,6 @@ export default defineSchema({
 		),
 		cost_usd: v.optional(v.number()),
 		generation_id: v.optional(v.string()),
+		web_search_enabled: v.optional(v.boolean()),
 	}).index('by_conversation', ['conversation_id']),
 });

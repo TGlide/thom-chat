@@ -32,6 +32,7 @@
 	import Settings2Icon from '~icons/lucide/settings-2';
 	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
+	import SearchIcon from '~icons/lucide/search';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
@@ -97,6 +98,7 @@
 				conversation_id: page.params.id ?? undefined,
 				model_id: settings.modelId,
 				images: imagesCopy.length > 0 ? imagesCopy : undefined,
+				web_search_enabled: settings.webSearchEnabled,
 			});
 
 			if (res.isErr()) {
@@ -559,6 +561,17 @@
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker />
+									<button
+										type="button"
+										class={cn(
+											'border-border flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors',
+											settings.webSearchEnabled ? 'bg-accent/50' : 'hover:bg-accent/20'
+										)}
+										onclick={() => (settings.webSearchEnabled = !settings.webSearchEnabled)}
+									>
+										<SearchIcon class="!size-3" />
+										<span class="whitespace-nowrap">Web search</span>
+									</button>
 									{#if currentModelSupportsImages}
 										<button
 											type="button"
