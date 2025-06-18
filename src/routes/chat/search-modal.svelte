@@ -7,12 +7,16 @@
 	import { useQuery } from 'convex-svelte';
 	import { Debounced } from 'runed';
 	import { tick } from 'svelte';
+	import { goto } from '$app/navigation';
 	import SearchIcon from '~icons/lucide/search';
+	import { shortcut } from '$lib/actions/shortcut.svelte';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte';
 
 	let open = $state(false);
 	let input = $state('');
 	let searchMode = $state<'exact' | 'words' | 'fuzzy'>('words');
 	let inputEl = $state<HTMLInputElement>();
+	let selectedIndex = $state(-1);
 
 	const debouncedInput = new Debounced(() => input, 500);
 
@@ -21,7 +25,62 @@
 		search_mode: searchMode,
 		session_token: session.current?.session.token ?? '',
 	}));
+
+	// Reset selected index when search results change
+	$effect(() => {
+		if (search.data) {
+			selectedIndex = -1;
+		}
+	});
+
+	// Reset selected index when input changes
+	$effect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+		input; // Track input changes
+		selectedIndex = -1;
+	});
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (!search.data?.length) return;
+
+		switch (event.key) {
+			case 'ArrowDown':
+				event.preventDefault();
+				selectedIndex = Math.min(selectedIndex + 1, search.data.length - 1);
+				scrollToSelected();
+				break;
+			case 'ArrowUp':
+				event.preventDefault();
+				selectedIndex = Math.max(selectedIndex - 1, -1);
+				scrollToSelected();
+				break;
+			case 'Enter':
+				event.preventDefault();
+				if (selectedIndex >= 0 && selectedIndex < search.data.length) {
+					const result = search.data[selectedIndex];
+					if (result) {
+						goto(`/chat/${result.conversation._id}`);
+						open = false;
+					}
+				}
+				break;
+			case 'Escape':
+				event.preventDefault();
+				open = false;
+				break;
+		}
+	}
+
+	async function scrollToSelected() {
+		await tick();
+		const selectedElement = document.querySelector(`[data-result-index="${selectedIndex}"]`);
+		if (selectedElement) {
+			selectedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		}
+	}
 </script>
+
+<svelte:window use:shortcut={{ ctrl: true, key: 'k', callback: () => (open = true) }} />
 
 <Tooltip>
 	{#snippet trigger(tooltip)}
@@ -36,7 +95,7 @@
 			<span class="sr-only">Search</span>
 		</Button>
 	{/snippet}
-	Search
+	Search ({cmdOrCtrl} + K)
 </Tooltip>
 
 <Modal bind:open>
@@ -47,6 +106,7 @@
 			<input
 				bind:this={inputEl}
 				bind:value={input}
+				onkeydown={handleKeydown}
 				class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
 				placeholder="Search conversations and messages..."
 				{@attach (node) => {
@@ -82,9 +142,27 @@
 			</div>
 		{:else if search.data?.length}
 			<div class="max-h-96 space-y-2 overflow-y-auto">
-				{#each search.data as { conversation, messages, score, titleMatch }}
+				{#each search.data as { conversation, messages, score, titleMatch }, index}
 					<div
-						class="border-border flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
+						data-result-index={index}
+						class="border-border flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2 transition-colors {index ===
+						selectedIndex
+							? 'bg-accent'
+							: 'hover:bg-muted/50'}"
+						role="button"
+						tabindex="0"
+						onclick={() => {
+							goto(`/chat/${conversation._id}`);
+							open = false;
+						}}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								e.preventDefault();
+								goto(`/chat/${conversation._id}`);
+								open = false;
+							}
+						}}
+						onmouseenter={() => (selectedIndex = index)}
 					>
 						<div class="min-w-0 flex-1">
 							<div class="mb-1 flex items-center gap-2">
@@ -106,8 +184,11 @@
 							variant="secondary"
 							size="sm"
 							class="shrink-0 text-xs"
-							href="/chat/{conversation._id}"
-							onclick={() => (open = false)}
+							onclick={(e: MouseEvent) => {
+								e.stopPropagation();
+								goto(`/chat/${conversation._id}`);
+								open = false;
+							}}
 						>
 							View
 						</Button>
@@ -122,6 +203,7 @@
 		{:else}
 			<div class="text-muted-foreground py-8 text-center">
 				<p>Start typing to search your conversations</p>
+				<p class="mt-1 text-xs">Use ↑↓ to navigate, Enter to select, Esc to close</p>
 			</div>
 		{/if}
 	</div>

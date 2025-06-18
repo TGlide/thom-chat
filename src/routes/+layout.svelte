@@ -5,8 +5,9 @@
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 	import { models } from '$lib/state/models.svelte';
 	import GlobalModal from '$lib/components/ui/modal/global-modal.svelte';
-	import { shortcut } from '$lib/actions/shortcut.svelte';
+	import { attachShortcut, shortcut } from '$lib/actions/shortcut.svelte';
 	import { goto } from '$app/navigation';
+	import { openSearchModal } from './chat/search-modal.svelte';
 
 	let { children } = $props();
 
