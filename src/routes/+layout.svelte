@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { setupConvex } from 'convex-svelte';
-	import '../app.css';
-	import { ModeWatcher } from 'mode-watcher';
-	import { PUBLIC_CONVEX_URL } from '$env/static/public';
-	import { models } from '$lib/state/models.svelte';
-	import GlobalModal from '$lib/components/ui/modal/global-modal.svelte';
-	import { shortcut } from '$lib/actions/shortcut.svelte';
 	import { goto } from '$app/navigation';
+	import { PUBLIC_CONVEX_URL } from '$env/static/public';
+	import { shortcut } from '$lib/actions/shortcut.svelte';
+	import GlobalModal from '$lib/components/ui/modal/global-modal.svelte';
+	import { models } from '$lib/state/models.svelte';
+	import { setupConvex } from 'convex-svelte';
+	import { ModeWatcher } from 'mode-watcher';
+	import '../app.css';
 
 	let { children } = $props();
 

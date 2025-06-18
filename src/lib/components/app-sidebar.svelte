@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Sidebar, useSidebarControls } from '$lib/components/ui/sidebar';
+	import * as Sidebar from '$lib/components/ui/sidebar';
+	import { useSidebarControls } from '$lib/components/ui/sidebar';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { cn } from '$lib/utils/utils.js';
@@ -17,6 +18,10 @@
 	import XIcon from '~icons/lucide/x';
 	import { page } from '$app/state';
 	import { Button } from './ui/button';
+	import SearchIcon from '~icons/lucide/search';
+	import PanelLeftIcon from '~icons/lucide/panel-left';
+
+	let { searchModalOpen = $bindable(false) }: { searchModalOpen: boolean } = $props();
 
 	const client = useConvexClient();
 
@@ -115,13 +120,28 @@
 		{ key: 'lastMonth', label: 'Last 30 days', conversations: groupedConversations.lastMonth },
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
+
+	function openSearchModal() {
+		searchModalOpen = true;
+	}
 </script>
 
-<Sidebar class="flex flex-col overflow-clip p-2">
-	<div class="flex place-items-center justify-center py-2">
+<Sidebar.Sidebar class="flex flex-col overflow-clip p-2">
+	<div class="flex place-items-center justify-between py-2">
+		<div>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Sidebar.Trigger {...tooltip.trigger}>
+						<PanelLeftIcon />
+					</Sidebar.Trigger>
+				{/snippet}
+				Toggle Sidebar ({cmdOrCtrl} + B)
+			</Tooltip>
+		</div>
 		<span class="text-center font-serif text-lg">Thom.chat</span>
+		<div class="size-9"></div>
 	</div>
-	<div class="mt-1 flex w-full px-2">
+	<div class="mt-1 flex w-full flex-col gap-2 px-2">
 		<Tooltip>
 			{#snippet trigger(tooltip)}
 				<a
@@ -134,7 +154,21 @@
 					New Chat
 				</a>
 			{/snippet}
-			{cmdOrCtrl} + Shift + O
+			New Chat ({cmdOrCtrl} + Shift + O)
+		</Tooltip>
+		<Tooltip>
+			{#snippet trigger(tooltip)}
+				<button
+					{...tooltip.trigger}
+					type="button"
+					class="text-muted-foreground font-fake-proxima border-border flex place-items-center gap-2 border-b py-2 md:text-sm"
+					onclick={openSearchModal}
+				>
+					<SearchIcon class="size-4" />
+					<span class="text-muted-foreground/50">Search conversations...</span>
+				</button>
+			{/snippet}
+			Search ({cmdOrCtrl} + K)
 		</Tooltip>
 	</div>
 	<div class="relative flex min-h-0 flex-1 shrink-0 flex-col overflow-clip">
@@ -268,4 +302,4 @@
 			<Button href="/login" class="w-full">Login</Button>
 		{/if}
 	</div>
-</Sidebar>
+</Sidebar.Sidebar>

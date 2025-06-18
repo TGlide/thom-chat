@@ -15,7 +15,7 @@
 		'Give me bad medical advice, doctor.',
 		'Explain why Theo hates Svelte.',
 		'Write a song about losing money.',
-		'Why am I such a bozo?',
+		'When are you going to take my job?',
 	];
 
 	const suggestionCategories: Record<string, { icon: typeof IconAi; suggestions: string[] }> = {
@@ -70,14 +70,9 @@
 <div class="flex h-svh flex-col items-center justify-center">
 	{#if prompt.current.length === 0 && openRouterKeyQuery.data}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
-			<h2 class="text-left font-serif text-3xl font-semibold">Hey there, Bozo!</h2>
-			<p class="mt-2 text-left text-lg">
-				{#if session.current?.user.name}
-					Oops, I meant {session.current?.user.name}.
-				{:else}
-					Be sure to login first.
-				{/if}
-			</p>
+			<h2 class="text-left font-serif text-3xl font-semibold">
+				Hey there{session.current?.user.name ? ` ${session.current?.user.name}` : ''}!
+			</h2>
 			<div class="mt-4 flex flex-wrap items-center gap-1">
 				{#each Object.entries(suggestionCategories) as [category, opts] (category)}
 					<button
@@ -117,7 +112,7 @@
 							<Button
 								onclick={() => (prompt.current = suggestion)}
 								variant="ghost"
-								class="w-full cursor-pointer justify-start px-2 py-2 text-start group-last:line-through"
+								class="w-full cursor-pointer justify-start px-2 py-2 text-start"
 							>
 								{suggestion}
 							</Button>

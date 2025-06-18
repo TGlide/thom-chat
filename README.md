@@ -4,8 +4,16 @@ Clone of [T3 Chat](https://t3.chat/)
 
 ## 🚀 Features
 
-- Fast chat goes brrrr
-- Self-hostable
+- Cached query for fast chat loading
+- Openrouter provider for access to 400+ models
+- File uploads
+- Web search
+- Full-text search over your chat history
+- Cursor-like rules
+- Privacy mode for streams and screen-sharing
+- Markdown rendered messages with syntax highlighting
+- Chat sharing
+- Keyboard shortcuts
 
 ## 🛠️ Tech Stack
 
@@ -20,10 +28,13 @@ Clone of [T3 Chat](https://t3.chat/)
 - **Linting**: ESLint
 - **Formatting**: Prettier
 
-## 📦 Self-hosting
+## 📦 Running locally
 
-TODO: test self-hosting, including Convex self-hosting perhaps
-TODO: add instructions
+1. Clone the repo
+2. Install dependencies with `pnpm install`
+3. Copy `.env.example` to `.env` and fill in the values
+4. Run `pnpm dev`
+5. Open [http://localhost:5173](http://localhost:5173)
 
 ## TODO
 
@@ -39,10 +50,10 @@ TODO: add instructions
 - [x] Ensure responsiveness
 - [x] Streams on the server (Resumable streams)
 - [x] Syntax highlighting with Shiki/markdown renderer
-- [ ] Eliminate FOUC
+- [x] Eliminate FOUC (kinda)
 - [x] Cascade deletes
-- [ ] Google Auth
-- [ ] Fix light mode (urgh)
+- [x] Google Auth
+- [x] Fix light mode (urgh)
 - [x] Privacy mode
 
 ### Chat
@@ -54,7 +65,7 @@ TODO: add instructions
 - [x] kbd powered popover model picker
 - [x] autosize
 - [x] AbortController for message generation
-- [ ] Per route msg persistance
+- [x] Per route msg persistance
 
 ### Extra
 
@@ -62,7 +73,8 @@ TODO: add instructions
 - [ ] Chat branching
 - [ ] Regenerate message
 - ~[ ] Image generation~
-- [ ] Chat sharing
+- [x] Chat sharing
 - [ ] 404 page/redirect
 - ~[ ] Test link with free credits~
 - [x] Cursor-like Rules (@ieedan's idea!)
+- [x] Full-text search

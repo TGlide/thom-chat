@@ -10,7 +10,7 @@
 	import { session } from '$lib/state/session.svelte';
 	import { settings } from '$lib/state/settings.svelte';
 	import { Provider } from '$lib/types';
-	import fuzzysearch from '$lib/utils/fuzzy-search';
+	import { fuzzysearch } from '$lib/utils/fuzzy-search';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { capitalize } from '$lib/utils/strings';
 	import { cn } from '$lib/utils/utils';

@@ -11,7 +11,7 @@
 	import XIcon from '~icons/lucide/x';
 	import PlusIcon from '~icons/lucide/plus';
 	import { models } from '$lib/state/models.svelte';
-	import fuzzysearch from '$lib/utils/fuzzy-search';
+	import { fuzzysearch } from '$lib/utils/fuzzy-search';
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
 		provider: Provider.OpenRouter,

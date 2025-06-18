@@ -9,6 +9,7 @@
 	import Message from './message.svelte';
 	import { last } from '$lib/utils/array';
 	import { settings } from '$lib/state/settings.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	const messages = useCachedQuery(api.messages.getAllFromConversation, () => ({
 		conversation_id: page.params.id ?? '',
@@ -56,11 +57,25 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{conversation.data?.title} | Thom.chat</title>
+</svelte:head>
+
 <div class="flex h-full flex-1 flex-col py-4">
-	{#each messages.data ?? [] as message (message._id)}
-		<Message {message} />
-	{/each}
-	{#if conversation.data?.generating && !lastMessageHasContent}
-		<LoadingDots />
+	{#if !conversation.data && !conversation.isLoading}
+		<div class="flex flex-1 flex-col items-center justify-center gap-4 pt-[25svh]">
+			<div>
+				<h1 class="text-center font-mono text-8xl font-semibold">404</h1>
+				<p class="text-muted-foreground text-center text-2xl">Conversation not found</p>
+			</div>
+			<Button size="sm" variant="outline" href="/chat">Create a new conversation</Button>
+		</div>
+	{:else}
+		{#each messages.data ?? [] as message (message._id)}
+			<Message {message} />
+		{/each}
+		{#if conversation.data?.generating && !lastMessageHasContent}
+			<LoadingDots />
+		{/if}
 	{/if}
 </div>

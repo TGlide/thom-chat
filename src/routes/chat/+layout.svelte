@@ -4,6 +4,7 @@
 	import { api } from '$lib/backend/convex/_generated/api.js';
 	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
+	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import * as Icons from '$lib/components/icons';
 	import { Button } from '$lib/components/ui/button';
 	import { ImageModal } from '$lib/components/ui/image-modal';
@@ -11,6 +12,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
+	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
@@ -20,11 +22,14 @@
 	import { compressImage } from '$lib/utils/image-compression';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
+	import { cn } from '$lib/utils/utils.js';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
+	import { ResultAsync } from 'neverthrow';
 	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
+	import { scale } from 'svelte/transition';
 	import SendIcon from '~icons/lucide/arrow-up';
-	import StopIcon from '~icons/lucide/square';
+	import CheckIcon from '~icons/lucide/check';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
@@ -35,14 +40,18 @@
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
-	import { cn } from '$lib/utils/utils.js';
+	import ShareIcon from '~icons/lucide/share';
+	import { fade } from 'svelte/transition';
+	import LockIcon from '~icons/lucide/lock';
+	import LockOpenIcon from '~icons/lucide/lock-open';
+	import StopIcon from '~icons/lucide/square';
+	import SearchModal from './search-modal.svelte';
+	import { isHtmlElement } from '$lib/utils/is.js';
 
 	const client = useConvexClient();
 
 	let { children } = $props();
 
-	let form = $state<HTMLFormElement>();
 	let textarea = $state<HTMLTextAreaElement>();
 	let abortController = $state<AbortController | null>(null);
 
@@ -81,10 +90,19 @@
 
 	let loading = $state(false);
 
-	const textareaDisabled = $derived(isGenerating || loading);
+	const textareaDisabled = $derived(
+		isGenerating ||
+			loading ||
+			(currentConversationQuery.data &&
+				currentConversationQuery.data.user_id !== session.current?.user.id)
+	);
+
+	let error = $state<string | null>(null);
 
 	async function handleSubmit() {
 		if (isGenerating) return;
+
+		error = null;
 
 		// TODO: Re-use zod here from server endpoint for better error messages?
 		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
@@ -105,7 +123,8 @@
 			});
 
 			if (res.isErr()) {
-				return; // TODO: Handle error
+				error = res._unsafeUnwrapErr() ?? 'An unknown error occurred';
+				return;
 			}
 
 			const cid = res.value.conversation_id;
@@ -330,6 +349,50 @@
 		}
 	}
 
+	const clipboard = new UseClipboard();
+
+	let sharingStatus = $derived(clipboard.status);
+
+	async function shareConversation() {
+		if (currentConversationQuery.data?.public) {
+			clipboard.copy(page.url.toString());
+			return;
+		}
+
+		if (!page.params.id || !session.current?.session.token) return;
+
+		const result = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.setPublic, {
+				conversation_id: page.params.id as Id<'conversations'>,
+				public: true,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (result.isErr()) {
+			sharingStatus = 'failure';
+			setTimeout(() => {
+				sharingStatus = undefined;
+			}, 1000);
+		}
+
+		clipboard.copy(page.url.toString());
+	}
+
+	async function togglePublic() {
+		if (!page.params.id || !session.current?.session.token) return;
+
+		await ResultAsync.fromPromise(
+			client.mutation(api.conversations.setPublic, {
+				conversation_id: page.params.id as Id<'conversations'>,
+				public: !currentConversationQuery.data?.public,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+	}
+
 	const textareaSize = new ElementSize(() => textarea);
 
 	let textareaWrapper = $state<HTMLDivElement>();
@@ -346,30 +409,135 @@
 		() => !scrollState.arrived.bottom,
 		() => (mounted.current ? 250 : 0)
 	);
+
+	let searchModalOpen = $state(false);
+
+	function openSearchModal() {
+		searchModalOpen = true;
+	}
+
+	let sidebarOpen = $state(false);
 </script>
 
 <svelte:head>
 	<title>Chat | Thom.chat</title>
 </svelte:head>
 
+<svelte:document
+	onclick={(e) => {
+		const el = e.target as HTMLElement;
+		const closestCopyButton = el.closest('.copy[data-code]');
+		if (!isHtmlElement(closestCopyButton)) return;
+
+		const code = closestCopyButton.dataset.code;
+		if (!code) return;
+
+		navigator.clipboard.writeText(code);
+		closestCopyButton.classList.add('copied');
+		setTimeout(() => closestCopyButton.classList.remove('copied'), 3000);
+	}}
+/>
+
 <Sidebar.Root
+	bind:open={sidebarOpen}
 	class="h-screen overflow-clip"
 	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
 >
-	<AppSidebar />
+	<AppSidebar bind:searchModalOpen />
 
 	<Sidebar.Inset class="w-full overflow-clip px-2">
-		<Tooltip>
-			{#snippet trigger(tooltip)}
-				<Sidebar.Trigger class="fixed top-3 left-2 z-50" {...tooltip.trigger}>
-					<PanelLeftIcon />
-				</Sidebar.Trigger>
-			{/snippet}
-			{cmdOrCtrl} + B
-		</Tooltip>
+		<!-- header - top left -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
+				{
+					'md:left-(--sidebar-width)': sidebarOpen,
+					'hidden md:flex': sidebarOpen,
+				}
+			)}
+		>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Sidebar.Trigger class="size-8" {...tooltip.trigger}>
+						<PanelLeftIcon />
+					</Sidebar.Trigger>
+				{/snippet}
+				Toggle Sidebar ({cmdOrCtrl} + B)
+			</Tooltip>
 
-		<!-- header -->
-		<div class="bg-sidebar fixed top-0 right-0 z-50 hidden rounded-bl-lg p-1 md:flex">
+			{#if page.params.id && currentConversationQuery.data}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button
+							class="bg-sidebar size-8"
+							size="icon"
+							variant="ghost"
+							onClickPromise={togglePublic}
+							{...tooltip.trigger}
+						>
+							{#if currentConversationQuery.data?.public}
+								<LockOpenIcon class="size-4" />
+							{:else}
+								<LockIcon class="size-4" />
+							{/if}
+						</Button>
+					{/snippet}
+					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+				</Tooltip>
+			{/if}
+		</div>
+
+		<!-- header - top right -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 right-2 z-50 flex rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:rounded-none md:rounded-bl-lg',
+				{ 'hidden md:flex': sidebarOpen }
+			)}
+		>
+			{#if page.params.id && currentConversationQuery.data}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button
+							onClickPromise={shareConversation}
+							variant="ghost"
+							size="icon"
+							class="bg-sidebar size-8"
+							{...tooltip.trigger}
+						>
+							{#if sharingStatus === 'success'}
+								<div in:scale={{ duration: 1000, start: 0.85 }}>
+									<CheckIcon tabindex={-1} />
+									<span class="sr-only">Copied</span>
+								</div>
+							{:else if sharingStatus === 'failure'}
+								<div in:scale={{ duration: 1000, start: 0.85 }}>
+									<XIcon tabindex={-1} />
+									<span class="sr-only">Failed to copy</span>
+								</div>
+							{:else}
+								<ShareIcon />
+							{/if}
+						</Button>
+					{/snippet}
+					Share
+				</Tooltip>
+			{/if}
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button
+						onclick={openSearchModal}
+						variant="ghost"
+						size="icon"
+						class="size-8"
+						{...tooltip.trigger}
+					>
+						<SearchIcon class="!size-4" />
+						<span class="sr-only">Search</span>
+					</Button>
+				{/snippet}
+				Search ({cmdOrCtrl} + K)
+			</Tooltip>
+			<SearchModal bind:open={searchModalOpen} />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
@@ -419,15 +587,25 @@
 						class={[
 							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 pt-3 pb-3 outline-8 dark:border-white/10',
 							'transition duration-200',
-							'outline-primary/1 group-focus-within:outline-primary/10',
+							'outline-primary/10 group-focus-within:outline-primary/20',
+							'dark:outline-primary/1 dark:group-focus-within:outline-primary/10',
 						]}
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
 							e.preventDefault();
 							handleSubmit();
 						}}
-						bind:this={form}
 					>
+						{#if error}
+							<div
+								in:fade={{ duration: 150 }}
+								class="bg-background absolute top-0 left-0 -translate-y-10 rounded-lg"
+							>
+								<div class="rounded-lg bg-red-500/50 px-2 py-0.5 text-sm text-red-400">
+									{error}
+								</div>
+							</div>
+						{/if}
 						{#if suggestedRules}
 							<div
 								{...popover.content}
@@ -562,7 +740,7 @@
 										{isGenerating ? 'Stop generation' : 'Send message'}
 									</Tooltip>
 								</div>
-								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
+								<div class="flex flex-col items-start gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									<button
 										type="button"
@@ -600,7 +778,7 @@
 			</div>
 
 			<!-- Credits in bottom-right, only on large screens -->
-			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 xl:flex">
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 2xl:flex">
 				<a
 					href="https://github.com/TGlide/thom-chat"
 					class="text-muted-foreground flex place-items-center gap-1 text-xs"

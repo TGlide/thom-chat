@@ -15,15 +15,20 @@ export const getAllFromConversation = query({
 			session_token: args.session_token,
 		});
 
-		if (!session) {
+		if (!session) throw new Error('Unauthorized');
+
+		const [messages, conversation] = await Promise.all([
+			ctx.db
+				.query('messages')
+				.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
+				.order('asc')
+				.collect(),
+			ctx.db.get(args.conversation_id as Id<'conversations'>),
+		]);
+
+		if (!conversation?.public && conversation?.user_id !== session.userId) {
 			throw new Error('Unauthorized');
 		}
-
-		const messages = await ctx.db
-			.query('messages')
-			.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
-			.order('asc')
-			.collect();
 
 		return messages;
 	},
@@ -61,6 +66,9 @@ export const create = mutation({
 		if (!session) {
 			throw new Error('Unauthorized');
 		}
+
+		const conversation = await ctx.db.get(args.conversation_id as Id<'conversations'>);
+		if (conversation?.user_id !== session.userId) throw new Error('Unauthorized');
 
 		// I think this just slows us down
 
