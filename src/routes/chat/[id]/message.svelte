@@ -6,6 +6,7 @@
 	import '../../../markdown.css';
 	import MarkdownRenderer from './markdown-renderer.svelte';
 	import { ImageModal } from '$lib/components/ui/image-modal';
+	import { sanitizeHtml } from '$lib/utils/markdown-it';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2',
@@ -58,18 +59,22 @@
 			</div>
 		{/if}
 		<div class={style({ role: message.role })}>
-			<svelte:boundary>
-				<MarkdownRenderer content={message.content} />
+			{#if message.content_html}
+				{@html sanitizeHtml(message.content_html)}
+			{:else}
+				<svelte:boundary>
+					<MarkdownRenderer content={message.content} />
 
-				{#snippet failed(error)}
-					<div class="text-destructive">
-						<span>Error rendering markdown:</span>
-						<pre class="!bg-sidebar"><code
-								>{error instanceof Error ? error.message : String(error)}</code
-							></pre>
-					</div>
-				{/snippet}
-			</svelte:boundary>
+					{#snippet failed(error)}
+						<div class="text-destructive">
+							<span>Error rendering markdown:</span>
+							<pre class="!bg-sidebar"><code
+									>{error instanceof Error ? error.message : String(error)}</code
+								></pre>
+						</div>
+					{/snippet}
+				</svelte:boundary>
+			{/if}
 		</div>
 		<div
 			class={cn(

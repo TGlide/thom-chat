@@ -37,10 +37,12 @@ export const get = query({
 
 export const getById = query({
 	args: {
-		conversation_id: v.id('conversations'),
+		conversation_id: v.optional(v.id('conversations')),
 		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
+		if (!args.conversation_id) return null;
+
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
 			session_token: args.session_token,
 		});
@@ -87,6 +89,7 @@ export const create = mutation({
 export const createAndAddMessage = mutation({
 	args: {
 		content: v.string(),
+		content_html: v.optional(v.string()),
 		role: messageRoleValidator,
 		session_token: v.string(),
 		images: v.optional(
@@ -124,6 +127,7 @@ export const createAndAddMessage = mutation({
 
 		const messageId = await ctx.runMutation(api.messages.create, {
 			content: args.content,
+			content_html: args.content_html,
 			role: args.role,
 			conversation_id: conversationId,
 			session_token: args.session_token,

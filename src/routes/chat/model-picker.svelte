@@ -28,6 +28,8 @@
 	import { models as modelsState } from '$lib/state/models.svelte';
 	import { Provider } from '$lib/types';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import fuzzysearch from '$lib/utils/fuzzy-search';
+	import { IsMobile } from '$lib/hooks/is-mobile.svelte';
 
 	type Props = {
 		class?: string;
@@ -109,11 +111,21 @@
 		return 'other';
 	}
 
+	let search = $state('');
+
+	const filteredModels = $derived(
+		fuzzysearch({
+			haystack: enabledArr,
+			needle: search,
+			property: 'model_id',
+		})
+	);
+
 	// Group models by company
 	const groupedModels = $derived.by(() => {
-		const groups: Record<string, typeof enabledArr> = {};
+		const groups: Record<string, typeof filteredModels> = {};
 
-		enabledArr.forEach((model) => {
+		filteredModels.forEach((model) => {
 			const company = getCompanyFromModelId(model.model_id);
 			if (!groups[company]) {
 				groups[company] = [];
@@ -184,6 +196,8 @@
 			secondary: formattedParts.slice(1).join(' '),
 		};
 	}
+
+	const isMobile = new IsMobile();
 </script>
 
 {#if enabledArr.length === 0}
@@ -216,12 +230,19 @@
 		{...popover.content}
 		class="border-border bg-popover mt-1 max-h-200 min-w-80 flex-col overflow-hidden rounded-xl border p-0 backdrop-blur-sm data-[open]:flex"
 	>
-		<Command.Root class="flex h-full flex-col overflow-hidden" columns={4}>
-			<label class="group/label relative flex items-center gap-2 px-4 py-3 text-sm">
+		<Command.Root
+			shouldFilter={false}
+			class="flex h-full flex-col overflow-hidden md:w-[572px]"
+			columns={isMobile.current ? undefined : 4}
+		>
+			<label
+				class="group/label border-border relative flex items-center gap-2 border-b px-4 py-3 text-sm"
+			>
 				<SearchIcon class="text-muted-foreground" />
 				<Command.Input
 					class="w-full outline-none"
 					placeholder="Search models..."
+					bind:value={search}
 					{@attach (node) => {
 						if (popover.open) {
 							node.focus();
@@ -231,66 +252,102 @@
 						};
 					}}
 				/>
-				<div
-					class="border-border/50 group-focus-within/label:border-foreground/30 absolute inset-x-2 bottom-0 h-1 border-b"
-					aria-hidden="true"
-				></div>
 			</label>
-			<Command.List class="overflow-y-auto">
+			<Command.List class="h-[300px] overflow-y-auto md:h-[430px]">
 				<Command.Viewport>
-					<Command.Empty class="text-muted-foreground p-4 text-sm">
+					<Command.Empty
+						class="text-muted-foreground flex items-center justify-center p-4 text-sm md:h-[120px]"
+					>
 						No models available. Enable some models in the account settings.
 					</Command.Empty>
 					{#each groupedModels as [company, models] (company)}
 						<Command.Group class="space-y-2">
 							<Command.GroupHeading
-								class="text-heading/75 flex items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize"
+								class="text-heading/75 flex items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize md:scroll-m-[180px]"
 							>
 								{company}
 							</Command.GroupHeading>
-							<Command.GroupItems class="grid grid-cols-4 gap-3 px-3 pb-3">
+							<Command.GroupItems
+								class="flex flex-col gap-2 px-3 pb-3 md:grid md:grid-cols-4 md:gap-3"
+							>
 								{#each models as model (model._id)}
 									{@const isSelected = settings.modelId === model.model_id}
 									{@const formatted = formatModelName(model.model_id)}
-									<Command.Item
-										value={model.model_id}
-										onSelect={() => selectModel(model.model_id)}
-										class={cn(
-											'border-border flex h-40 w-32 flex-col items-center justify-center rounded-lg border p-2',
-											'relative select-none',
-											'data-selected:bg-accent/50 data-selected:text-accent-foreground',
-											isSelected && 'border-reflect border-none',
-											'scroll-m-10'
-										)}
-									>
-										{#if getModelIcon(model.model_id)}
-											{@const ModelIcon = getModelIcon(model.model_id)}
-											<ModelIcon class="size-6 shrink-0" />
-										{/if}
-										<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
-											{formatted.primary}
-										</p>
-										<p class="mt-0 text-center text-xs leading-tight font-medium">
-											{formatted.secondary}
-										</p>
+									{#if isMobile.current}
+										<Command.Item
+											value={model.model_id}
+											onSelect={() => selectModel(model.model_id)}
+											class={cn(
+												'border-border flex h-10 items-center justify-between rounded-lg border p-2',
+												'relative scroll-m-2 select-none',
+												'data-selected:bg-accent/50 data-selected:text-accent-foreground',
+												isSelected && 'border-reflect border-none'
+											)}
+										>
+											<div class="flex items-center gap-2">
+												{#if getModelIcon(model.model_id)}
+													{@const ModelIcon = getModelIcon(model.model_id)}
+													<ModelIcon class="size-6 shrink-0" />
+												{/if}
+												<p class="font-fake-proxima text-center leading-tight font-bold">
+													{formatted.full}
+												</p>
+											</div>
 
-										{@const openRouterModel = modelsState
-											.from(Provider.OpenRouter)
-											.find((m) => m.id === model.model_id)}
-										{#if openRouterModel && supportsImages(openRouterModel)}
-											<Tooltip>
-												{#snippet trigger(tooltip)}
-													<div
-														class="abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs"
-														{...tooltip.trigger}
-													>
-														<EyeIcon class="size-3" />
-													</div>
-												{/snippet}
-												Supports image anaylsis
-											</Tooltip>
-										{/if}
-									</Command.Item>
+											{@const openRouterModel = modelsState
+												.from(Provider.OpenRouter)
+												.find((m) => m.id === model.model_id)}
+											{#if openRouterModel && supportsImages(openRouterModel)}
+												<Tooltip>
+													{#snippet trigger(tooltip)}
+														<div class="" {...tooltip.trigger}>
+															<EyeIcon class="size-3" />
+														</div>
+													{/snippet}
+													Supports image anaylsis
+												</Tooltip>
+											{/if}
+										</Command.Item>
+									{:else}
+										<Command.Item
+											value={model.model_id}
+											onSelect={() => selectModel(model.model_id)}
+											class={cn(
+												'border-border flex h-40 w-32 flex-col items-center justify-center rounded-lg border p-2',
+												'relative select-none',
+												'data-selected:bg-accent/50 data-selected:text-accent-foreground',
+												isSelected && 'border-reflect border-none'
+											)}
+										>
+											{#if getModelIcon(model.model_id)}
+												{@const ModelIcon = getModelIcon(model.model_id)}
+												<ModelIcon class="size-6 shrink-0" />
+											{/if}
+											<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
+												{formatted.primary}
+											</p>
+											<p class="mt-0 text-center text-xs leading-tight font-medium">
+												{formatted.secondary}
+											</p>
+
+											{@const openRouterModel = modelsState
+												.from(Provider.OpenRouter)
+												.find((m) => m.id === model.model_id)}
+											{#if openRouterModel && supportsImages(openRouterModel)}
+												<Tooltip>
+													{#snippet trigger(tooltip)}
+														<div
+															class="abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs"
+															{...tooltip.trigger}
+														>
+															<EyeIcon class="size-3" />
+														</div>
+													{/snippet}
+													Supports image anaylsis
+												</Tooltip>
+											{/if}
+										</Command.Item>
+									{/if}
 								{/each}
 							</Command.GroupItems>
 						</Command.Group>
