@@ -14,6 +14,10 @@ export type MessageRole = Infer<typeof messageRoleValidator>;
 export const ruleAttachValidator = v.union(v.literal('always'), v.literal('manual'));
 
 export default defineSchema({
+	user_settings: defineTable({
+		user_id: v.string(),
+		privacy_mode: v.boolean(),
+	}).index('by_user', ['user_id']),
 	user_keys: defineTable({
 		user_id: v.string(),
 		provider: providerValidator,
