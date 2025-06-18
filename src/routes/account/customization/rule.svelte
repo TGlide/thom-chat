@@ -11,14 +11,16 @@
 	import { ResultAsync } from 'neverthrow';
 	import TrashIcon from '~icons/lucide/trash';
 	import { callModal } from '$lib/components/ui/modal/global-modal.svelte';
+	import { Input } from '$lib/components/ui/input';
 
 	type Props = {
 		rule: Doc<'user_rules'>;
+		allRules: Doc<'user_rules'>[];
 	};
 
 	const id = $props.id();
 
-	let { rule }: Props = $props();
+	let { rule, allRules }: Props = $props();
 
 	const client = useConvexClient();
 
@@ -76,14 +78,52 @@
 
 		deleting = false;
 	}
+
+	let ruleName = $derived(rule.name);
+
+	let renaming = $state(false);
+
+	async function renameRule() {
+		renaming = true;
+
+		await ResultAsync.fromPromise(
+			client.mutation(api.user_rules.rename, {
+				ruleId: rule._id,
+				name: ruleName,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		renaming = false;
+	}
+
+	const ruleNameExists = $derived.by(() => {
+		for (const r of allRules) {
+			if (r._id === rule._id) continue;
+			if (r.name === ruleName) return true;
+		}
+
+		return false;
+	});
 </script>
 
 <Card.Root>
 	<Card.Header>
 		<div class="flex items-center justify-between">
-			<Card.Title>{rule.name}</Card.Title>
+			<div class="flex items-center gap-2">
+				<Input bind:value={ruleName} aria-invalid={ruleNameExists} />
+				<Button
+					variant="outline"
+					onClickPromise={renameRule}
+					disabled={ruleNameExists || ruleName === rule.name}
+				>
+					Rename
+				</Button>
+			</div>
 			<Button variant="destructive" size="icon" onclick={deleteRule} disabled={deleting}>
 				<TrashIcon class="size-4" />
+				<span class="sr-only">Delete Rule</span>
 			</Button>
 		</div>
 	</Card.Header>
