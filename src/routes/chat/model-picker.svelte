@@ -24,6 +24,7 @@
 	import LogosClaudeIcon from '~icons/logos/claude-icon';
 	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
 	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
+	import { capitalize } from '$lib/utils/strings';
 
 	type Props = {
 		class?: string;
@@ -152,14 +153,30 @@
 		},
 	});
 
+	// Term replacements for proper formatting
+	const termReplacements = [
+		{ from: 'gpt', to: 'GPT' },
+		{ from: 'claude', to: 'Claude' },
+		{ from: 'deepseek', to: 'DeepSeek' },
+		{ from: 'o3', to: 'o3' },
+	];
+
 	// Name splitter. splits -,_,:
 	function splitName(name: string) {
-		return name.split(/[-_,:]/);
+		return name.split(/[-_,:]/).map((s) => formatTerms(s));
+	}
+
+	function formatTerms(text: string): string {
+		return termReplacements.reduce((result, { from, to }) => {
+			const capitalized = capitalize(result);
+			return capitalized.replace(new RegExp(`\\b${from}\\b`, 'gi'), to);
+		}, text);
 	}
 
 	function getModelTitle(modelId: string) {
 		const sn = splitName(modelId.replace(/^[^/]+\//, ''));
-		return sn[0] + (sn.length > 1 ? ' ' + sn.slice(1).join(' ') : '');
+		const title = sn[0] + (sn.length > 1 ? ' ' + sn.slice(1).join(' ') : '');
+		return formatTerms(title);
 	}
 </script>
 
@@ -247,9 +264,7 @@
 											{@const CompanyIcon = companyIcons[getCompanyFromModelId(model.model_id)]}
 											<CompanyIcon class="size-6 shrink-0" />
 										{/if}
-										<p
-											class="font-fake-proxima mt-2 text-center leading-tight font-bold capitalize"
-										>
+										<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
 											{sn[0]}
 										</p>
 										<p class="mt-0 text-center text-xs leading-tight font-medium">

@@ -6,3 +6,7 @@ export function getFirstSentence(text: string): [string | null, string] {
 
 	return [text.slice(0, index + 1), text];
 }
+
+export function capitalize(text: string): string {
+	return text.charAt(0).toUpperCase() + text.slice(1);
+}
