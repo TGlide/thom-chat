@@ -1,11 +1,12 @@
 import { v } from 'convex/values';
-import { api } from './_generated/api';
-import { query } from './_generated/server';
-import { type Id } from './_generated/dataModel';
-import { type SessionObj } from './betterAuth';
-import { messageRoleValidator } from './schema';
-import { mutation } from './functions';
+import enhancedSearch, { type SearchResult } from '../../utils/fuzzy-search';
 import { getFirstSentence } from '../../utils/strings';
+import { api } from './_generated/api';
+import { type Doc, type Id } from './_generated/dataModel';
+import { query } from './_generated/server';
+import { type SessionObj } from './betterAuth';
+import { mutation } from './functions';
+import { messageRoleValidator } from './schema';
 
 export const get = query({
 	args: {
@@ -299,5 +300,83 @@ export const remove = mutation({
 		}
 
 		await ctx.db.delete(args.conversation_id);
+	},
+});
+
+export const search = query({
+	args: {
+		session_token: v.string(),
+		search_term: v.string(),
+		search_mode: v.optional(v.union(v.literal('exact'), v.literal('words'), v.literal('fuzzy'))),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		type ConversationSearchResult = {
+			conversation: Doc<'conversations'>;
+			messages: Doc<'messages'>[];
+			score: number;
+			titleMatch: boolean;
+		};
+
+		if (!args.search_term.trim()) return [];
+
+		const searchMode = args.search_mode || 'words';
+		const results: ConversationSearchResult[] = [];
+
+		// Get all conversations for the user
+		const conversations = await ctx.db
+			.query('conversations')
+			.withIndex('by_user', (q) => q.eq('user_id', session.userId))
+			.collect();
+
+		// Search through conversations and messages
+		for (const conversation of conversations) {
+			// Get messages for this conversation
+			const conversationMessages = await ctx.db
+				.query('messages')
+				.withIndex('by_conversation', (q) => q.eq('conversation_id', conversation._id))
+				.collect();
+			
+			// Search title
+			const titleResults = enhancedSearch({
+				needle: args.search_term,
+				haystack: [conversation],
+				property: 'title',
+				mode: searchMode,
+				minScore: 0.3,
+			});
+
+			// Search messages
+			const messageResults = enhancedSearch({
+				needle: args.search_term,
+				haystack: conversationMessages,
+				property: 'content',
+				mode: searchMode,
+				minScore: 0.3,
+			});
+
+			// If we have matches in title or messages, add to results
+			if (titleResults.length > 0 || messageResults.length > 0) {
+				const titleScore = titleResults.length > 0 ? titleResults[0]?.score ?? 0 : 0;
+				const messageScore = messageResults.length > 0 ? Math.max(...messageResults.map(r => r.score)) : 0;
+				
+				results.push({
+					conversation,
+					messages: messageResults.map(r => r.item),
+					score: Math.max(titleScore, messageScore),
+					titleMatch: titleResults.length > 0,
+				});
+			}
+		}
+
+		// Sort by score (highest first)
+		return results.sort((a, b) => b.score - a.score);
 	},
 });

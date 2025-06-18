@@ -1,6 +1,6 @@
 import { internal } from './_generated/api';
 import { query } from './_generated/server';
-import { SessionObj } from './betterAuth';
+import { type SessionObj } from './betterAuth';
 import { mutation } from './functions';
 import { v } from 'convex/values';
 
