@@ -5,9 +5,8 @@
 	import { settings } from '$lib/state/settings.svelte';
 	import { cn } from '$lib/utils/utils';
 	import { Command } from 'bits-ui';
-	import CheckIcon from '~icons/lucide/check';
-	import SearchIcon from '~icons/lucide/search';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import SearchIcon from '~icons/lucide/search';
 	// Company icons from simple-icons
 	import GoogleIcon from '~icons/simple-icons/google';
 	import MetaIcon from '~icons/simple-icons/meta';
@@ -20,10 +19,10 @@
 	import CpuIcon from '~icons/lucide/cpu';
 	import ZapIcon from '~icons/lucide/zap';
 	// Model-specific icons
+	import { Popover } from 'melt/builders';
 	import LogosClaudeIcon from '~icons/logos/claude-icon';
 	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
 	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
-	import { Popover } from 'melt/builders';
 
 	type Props = {
 		class?: string;
@@ -156,7 +155,7 @@
 		popover.open = false;
 	}
 
-	let open = $state(true);
+	let open = $state(false);
 	const popover = new Popover({
 		open: () => open,
 		onOpenChange: (v) => {
