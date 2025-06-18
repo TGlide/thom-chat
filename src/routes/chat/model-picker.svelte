@@ -300,8 +300,6 @@
 										disabled && 'opacity-50'
 									)}
 								>
-									{onlyImageModels}
-									{disabled}
 									<div class={cn('flex items-center', isMobile.current ? 'gap-2' : 'flex-col')}>
 										{#if getModelIcon(model.model_id)}
 											{@const ModelIcon = getModelIcon(model.model_id)}

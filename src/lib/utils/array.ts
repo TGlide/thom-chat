@@ -218,13 +218,43 @@ export function getNextMatrixItem<T>(options: GetNextMatrixItemOptions<T>): T | 
 
 	// --- 3. Validate and Adjust Next Coordinates Against Matrix Bounds ---
 
-	if (nextRow < 0 || nextRow >= matrix.length) {
-		return undefined; // Out of vertical bounds
+	// For vertical movements, skip empty rows and rows where all items are unavailable
+	if (direction === 'up' || direction === 'down') {
+		while (nextRow >= 0 && nextRow < matrix.length) {
+			const nextRowArray = matrix[nextRow];
+			if (nextRowArray && Array.isArray(nextRowArray) && nextRowArray.length > 0) {
+				// Check if there's at least one available item in this row
+				const hasAvailableItem = nextRowArray.some(item => 
+					item !== undefined && item !== null && isAvailable(item)
+				);
+				if (hasAvailableItem) {
+					break; // Found a row with at least one available item
+				}
+			}
+			// Skip empty row or row with all unavailable items
+			nextRow += direction === 'down' ? 1 : -1;
+		}
+
+		if (nextRow < 0 || nextRow >= matrix.length) {
+			return undefined; // Out of vertical bounds after skipping empty/unavailable rows
+		}
+	}
+
+	// For horizontal movements, validate row bounds and get the row array
+	if (direction === 'left' || direction === 'right') {
+		if (nextRow < 0 || nextRow >= matrix.length) {
+			return undefined; // Out of vertical bounds
+		}
 	}
 
 	const nextRowArray = matrix[nextRow];
 	if (!nextRowArray || !Array.isArray(nextRowArray)) {
 		return undefined; // The row itself is malformed or non-existent
+	}
+
+	// For horizontal movements, check if the row is empty
+	if ((direction === 'left' || direction === 'right') && nextRowArray.length === 0) {
+		return undefined; // Can't move horizontally in an empty row
 	}
 
 	// --- NEW LOGIC: Adjust nextCol for vertical movements if it's out of bounds ---
@@ -235,41 +265,47 @@ export function getNextMatrixItem<T>(options: GetNextMatrixItemOptions<T>): T | 
 
 	// --- 4. Find the Next Available Item ---
 
+	// For horizontal movements, skip empty columns by finding next valid position
+	if (direction === 'left' || direction === 'right') {
+		let candidateCol = nextCol;
+		const increment = direction === 'right' ? 1 : -1;
+
+		while (candidateCol >= 0 && candidateCol < nextRowArray.length) {
+			const candidateItem = nextRowArray[candidateCol];
+			if (candidateItem !== undefined && candidateItem !== null && isAvailable(candidateItem)) {
+				return candidateItem;
+			}
+			candidateCol += increment;
+		}
+		return undefined; // No available item found in the horizontal direction
+	}
+
 	// Initial check for bounds after clamping/calculation
 	if (nextCol < 0 || nextCol >= nextRowArray.length) {
 		return undefined; // No valid column to start searching from in the target row
 	}
 
-	// Loop to find the next available item
+	// Loop to find the next available item for vertical movements
 	let candidateCol = nextCol;
 
 	if (direction === 'up' || direction === 'down') {
-		// For vertical moves, try the calculated/clamped 'candidateCol', then scan left
+		// For vertical moves, try the calculated/clamped 'candidateCol', then scan left, then scan right
 		while (candidateCol >= 0) {
-			const candidateItem = nextRowArray[candidateCol]!;
-			if (isAvailable(candidateItem)) {
+			const candidateItem = nextRowArray[candidateCol];
+			if (candidateItem !== undefined && candidateItem !== null && isAvailable(candidateItem)) {
 				return candidateItem;
 			}
 			candidateCol--; // Move left to find an available item
 		}
-	} else if (direction === 'left') {
-		// For 'left' moves, keep scanning left from the calculated 'candidateCol'
-		while (candidateCol >= 0) {
-			const candidateItem = nextRowArray[candidateCol]!;
-			if (isAvailable(candidateItem)) {
-				return candidateItem;
-			}
-			candidateCol--; // Continue moving left
-		}
-	} else {
-		// direction === 'right'
-		// For 'right' moves, keep scanning right from the calculated 'candidateCol'
+		
+		// If not found scanning left, try scanning right from the original position
+		candidateCol = nextCol + 1;
 		while (candidateCol < nextRowArray.length) {
-			const candidateItem = nextRowArray[candidateCol]!;
-			if (isAvailable(candidateItem)) {
+			const candidateItem = nextRowArray[candidateCol];
+			if (candidateItem !== undefined && candidateItem !== null && isAvailable(candidateItem)) {
 				return candidateItem;
 			}
-			candidateCol++; // Continue moving right
+			candidateCol++; // Move right to find an available item
 		}
 	}
 

@@ -369,9 +369,9 @@ describe('getNextMatrixItem', () => {
 			expect(result).toEqual({ id: 4, available: true });
 		});
 
-		it('should return undefined if no available item found after vertical scan (all unavailable in target row)', () => {
-			// From (5,0) {id:13, true} -> up. Target row 4 {id:11, false}, {id:12, false}.
-			// Snaps to (4,0) {id:11, false}. Scan left to (4,0) {id:11, false}. No more to left.
+		it('should skip rows with all unavailable items when moving vertically (up)', () => {
+			// From (5,0) {id:13, true} -> up. Target row 4 has all unavailable items {id:11, false}, {id:12, false}.
+			// Should skip row 4 and row 3 (also unavailable), then find available item in row 2.
 			const result = getNextMatrixItem({
 				matrix: matrixWithAvailability,
 				currentRow: 5,
@@ -379,11 +379,12 @@ describe('getNextMatrixItem', () => {
 				direction: 'up',
 				isAvailable: isTestItemAvailable,
 			});
-			expect(result).toBeUndefined();
+			expect(result).toEqual({ id: 6, available: true }); // Found in row 2
 		});
 
-		it('should return undefined if no available item found after vertical scan (empty target row)', () => {
-			// From (3,0) {id:10, false} -> down. Target row 4 is [].
+		it('should skip empty rows when moving vertically (down)', () => {
+			// From (3,0) {id:10, false} -> down. Target row 4 is empty [].
+			// Should skip empty row 4 and find available item in row 5.
 			const result = getNextMatrixItem({
 				matrix: matrixWithAvailability,
 				currentRow: 3,
@@ -391,28 +392,284 @@ describe('getNextMatrixItem', () => {
 				direction: 'down',
 				isAvailable: isTestItemAvailable,
 			});
-			expect(result).toBeUndefined();
+			expect(result).toEqual({ id: 13, available: true }); // Found in row 5
 		});
 
-		it('should return undefined if the initial candidate for vertical move is out of bounds after clamping', () => {
+		it('should skip empty rows and move to the next non-empty row for vertical movement (down)', () => {
 			// From (0,0) which is {id:1, true}
 			// Consider a matrix like:
 			// [ [A] ]
-			// [ [] ]  <- row 1 is empty
+			// [ [] ]  <- row 1 is empty, should be skipped
 			// [ [B] ]
-			// From A down, it goes to row 1. Clamps to col -1. Returns undefined. Then next down to B.
+			// From A down, it should skip the empty row 1 and go to row 2, returning B.
 			const customMatrix = [
 				[{ id: 1, available: true }],
 				[], // Empty row
 				[{ id: 2, available: true }],
 			];
-			// Move from (0,0) down. Target row 1 is empty. nextCol becomes -1 after clamping.
+			// Move from (0,0) down. Should skip empty row 1 and return item from row 2.
 			expect(
 				getNextMatrixItem({
 					matrix: customMatrix,
 					currentRow: 0,
 					currentCol: 0,
 					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 2, available: true });
+		});
+
+		it('should skip empty rows and move to the next non-empty row for vertical movement (up)', () => {
+			// From (2,0) which is {id:2, true}
+			// Consider a matrix like:
+			// [ [A] ]
+			// [ [] ]  <- row 1 is empty, should be skipped
+			// [ [B] ]
+			// From B up, it should skip the empty row 1 and go to row 0, returning A.
+			const customMatrix = [
+				[{ id: 1, available: true }],
+				[], // Empty row
+				[{ id: 2, available: true }],
+			];
+			// Move from (2,0) up. Should skip empty row 1 and return item from row 0.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 2,
+					currentCol: 0,
+					direction: 'up',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 1, available: true });
+		});
+
+		it('should skip rows where its all unavailable (down)', () => {
+			// From (0,0) which is {id:1, true}
+			// Consider a matrix like:
+			// [ [A] ]
+			// [ [unavailable] ]
+			// [ [B] ]
+			// From A down, it should skip the unavailable row 1 and go to row 2, returning B.
+			const customMatrix = [
+				[{ id: 1, available: true }],
+				[{ id: 3, available: false }], // Row with unavailable item
+				[{ id: 2, available: true }],
+			];
+
+			// Move from (0,0) down. Should skip unavailable row 1 and return item from row 2.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 2, available: true });
+		});
+
+		it('should skip rows where its all unavailable (up)', () => {
+			// From (2,0) which is {id:2, true}
+			// Consider a matrix like:
+			// [ [A] ]
+			// [ [unavailable] ]
+			// [ [B] ]
+			// From B up, it should skip the unavailable row 1 and go to row 0, returning A.
+			const customMatrix = [
+				[{ id: 1, available: true }],
+				[{ id: 3, available: false }], // Row with unavailable item
+				[{ id: 2, available: true }],
+			];
+
+			// Move from (2,0) up. Should skip unavailable row 1 and return item from row 0.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 2,
+					currentCol: 0,
+					direction: 'up',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 1, available: true });
+		});
+
+		it('should skip multiple consecutive unavailable rows (down)', () => {
+			// Test skipping multiple rows with all unavailable items
+			const customMatrix = [
+				[{ id: 1, available: true }],
+				[{ id: 2, available: false }], // Unavailable row 1
+				[{ id: 3, available: false }], // Unavailable row 2
+				[{ id: 4, available: false }], // Unavailable row 3
+				[{ id: 5, available: true }], // Available row 4
+			];
+
+			// Move from (0,0) down. Should skip rows 1, 2, 3 and return item from row 4.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 5, available: true });
+		});
+
+		it('should skip multiple consecutive unavailable rows (up)', () => {
+			// Test skipping multiple rows with all unavailable items
+			const customMatrix = [
+				[{ id: 1, available: true }], // Available row 0
+				[{ id: 2, available: false }], // Unavailable row 1
+				[{ id: 3, available: false }], // Unavailable row 2
+				[{ id: 4, available: false }], // Unavailable row 3
+				[{ id: 5, available: true }], // Available row 4
+			];
+
+			// Move from (4,0) up. Should skip rows 3, 2, 1 and return item from row 0.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 4,
+					currentCol: 0,
+					direction: 'up',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 1, available: true });
+		});
+
+		it('should skip unavailable items when moving horizontally (right)', () => {
+			// Test skipping unavailable items in horizontal movement
+			const customMatrix = [
+				[
+					{ id: 1, available: true }, // col 0 - current
+					{ id: 2, available: false }, // col 1 - unavailable, should skip
+					{ id: 3, available: false }, // col 2 - unavailable, should skip
+					{ id: 4, available: true }, // col 3 - available, should find
+				],
+			];
+
+			// Move from (0,0) right. Should skip unavailable cols 1,2 and return item from col 3.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'right',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 4, available: true });
+		});
+
+		it('should skip unavailable items when moving horizontally (left)', () => {
+			// Test skipping unavailable items in horizontal movement
+			const customMatrix = [
+				[
+					{ id: 1, available: true }, // col 0 - available, should find
+					{ id: 2, available: false }, // col 1 - unavailable, should skip
+					{ id: 3, available: false }, // col 2 - unavailable, should skip
+					{ id: 4, available: true }, // col 3 - current
+				],
+			];
+
+			// Move from (0,3) left. Should skip unavailable cols 2,1 and return item from col 0.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 3,
+					direction: 'left',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 1, available: true });
+		});
+
+		it('advanced test case #1', () => {
+			// Test skipping unavailable items and finding available item to the right in target row
+			const customMatrix = [
+				[{ id: 1, available: true }],
+				[{ id: 2, available: false }],
+				[{ id: 3, available: false }],
+				[
+					{ id: 4, available: false },
+					{ id: 5, available: true },
+				],
+			];
+
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 5, available: true });
+		});
+
+		it('should scan both left and right in target row for vertical movement', () => {
+			// Test scanning both directions in target row
+			const customMatrix = [
+				[{ id: 1, available: true }], // Start at (0,0)
+				[{ id: 2, available: false }],
+				[
+					{ id: 3, available: true },   // col 0 - available (left of start)
+					{ id: 4, available: false },  // col 1 - unavailable (would be start col after clamp)
+					{ id: 5, available: true },   // col 2 - available (right of start)
+				],
+			];
+
+			// Move from (0,0) down to row 2. Should find id: 3 (scan left first)
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 3, available: true });
+		});
+
+		it('should find item to the right when left scan fails for vertical movement', () => {
+			// Test finding item to the right when left scan fails
+			const customMatrix = [
+				[{ id: 1, available: true }], // Start at (0,0) 
+				[{ id: 2, available: false }],
+				[
+					{ id: 3, available: false },  // col 0 - unavailable (start col after clamp)
+					{ id: 4, available: true },   // col 1 - available (right of start)
+				],
+			];
+
+			// Move from (0,0) down to row 2. Should find id: 4 (scan right after left fails)
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'down',
+					isAvailable: isTestItemAvailable,
+				})
+			).toEqual({ id: 4, available: true });
+		});
+
+		it('should return undefined when no available items found horizontally', () => {
+			// Test when all items in horizontal direction are unavailable
+			const customMatrix = [
+				[
+					{ id: 1, available: true }, // col 0 - current
+					{ id: 2, available: false }, // col 1 - unavailable
+					{ id: 3, available: false }, // col 2 - unavailable
+				],
+			];
+
+			// Move from (0,0) right. Should skip all unavailable items and return undefined.
+			expect(
+				getNextMatrixItem({
+					matrix: customMatrix,
+					currentRow: 0,
+					currentCol: 0,
+					direction: 'right',
 					isAvailable: isTestItemAvailable,
 				})
 			).toBeUndefined();
@@ -425,10 +682,10 @@ describe('getNextMatrixItem', () => {
 		it('should handle snapping and then scanning for availability correctly (down)', () => {
 			// Matrix:
 			// [ T, F, F ]
-			// [ F, F ]
+			// [ F, F ]  <- all unavailable, should be skipped
 			// [ T, F, T, T ]
-			// From (0,0) (T) down. Target row 1. Initial nextCol is 0. Item (1,0) is F.
-			// Snaps to (1,0) (F). Scan left. No more left. Should return undefined.
+			// From (0,0) (T) down. Row 1 has all unavailable items, so skip to row 2.
+			// Should find available item at (2,0).
 			const matrix = [
 				[
 					{ id: 1, available: true },
@@ -453,7 +710,7 @@ describe('getNextMatrixItem', () => {
 				direction: 'down',
 				isAvailable: isTestItemAvailable,
 			});
-			expect(result).toBeUndefined();
+			expect(result).toEqual({ id: 6, available: true }); // Found in row 2
 		});
 
 		it('should handle snapping and then scanning for availability correctly (up)', () => {

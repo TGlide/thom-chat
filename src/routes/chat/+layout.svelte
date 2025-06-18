@@ -235,7 +235,7 @@
 		const index = message.current.lastIndexOf('@', cursor);
 		if (index === -1) return;
 
-		const ruleFromCursor = message.slice(index + 1, cursor);
+		const ruleFromCursor = message.current.slice(index + 1, cursor);
 
 		const suggestions: Doc<'user_rules'>[] = [];
 
