@@ -2,20 +2,17 @@
 	import { api } from '$lib/backend/convex/_generated/api';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Modal from '$lib/components/ui/modal/modal.svelte';
-	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { session } from '$lib/state/session.svelte';
 	import { useQuery } from 'convex-svelte';
 	import { Debounced } from 'runed';
 	import { tick } from 'svelte';
 	import { goto } from '$app/navigation';
-	import SearchIcon from '~icons/lucide/search';
 	import { shortcut } from '$lib/actions/shortcut.svelte';
-	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte';
 
-	let open = $state(false);
+	let { open = $bindable(false) }: { open: boolean } = $props();
+
 	let input = $state('');
 	let searchMode = $state<'exact' | 'words' | 'fuzzy'>('words');
-	let inputEl = $state<HTMLInputElement>();
 	let selectedIndex = $state(-1);
 
 	const debouncedInput = new Debounced(() => input, 500);
@@ -82,29 +79,12 @@
 
 <svelte:window use:shortcut={{ ctrl: true, key: 'k', callback: () => (open = true) }} />
 
-<Tooltip>
-	{#snippet trigger(tooltip)}
-		<Button
-			onclick={() => (open = true)}
-			variant="ghost"
-			size="icon"
-			class="size-8"
-			{...tooltip.trigger}
-		>
-			<SearchIcon class="!size-4" />
-			<span class="sr-only">Search</span>
-		</Button>
-	{/snippet}
-	Search ({cmdOrCtrl} + K)
-</Tooltip>
-
 <Modal bind:open>
 	<div class="space-y-4">
 		<h2 class="text-lg font-semibold">Search Conversations</h2>
 
 		<div class="space-y-3">
 			<input
-				bind:this={inputEl}
 				bind:value={input}
 				onkeydown={handleKeydown}
 				class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
@@ -112,7 +92,6 @@
 				{@attach (node) => {
 					if (!open) return;
 					setTimeout(() => {
-						console.log('focus', node, open);
 						if (open) node.focus();
 					}, 50);
 				}}

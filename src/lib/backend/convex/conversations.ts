@@ -343,7 +343,7 @@ export const search = query({
 				.query('messages')
 				.withIndex('by_conversation', (q) => q.eq('conversation_id', conversation._id))
 				.collect();
-			
+
 			// Search title
 			const titleResults = enhancedSearch({
 				needle: args.search_term,
@@ -364,12 +364,13 @@ export const search = query({
 
 			// If we have matches in title or messages, add to results
 			if (titleResults.length > 0 || messageResults.length > 0) {
-				const titleScore = titleResults.length > 0 ? titleResults[0]?.score ?? 0 : 0;
-				const messageScore = messageResults.length > 0 ? Math.max(...messageResults.map(r => r.score)) : 0;
-				
+				const titleScore = titleResults.length > 0 ? (titleResults[0]?.score ?? 0) : 0;
+				const messageScore =
+					messageResults.length > 0 ? Math.max(...messageResults.map((r) => r.score)) : 0;
+
 				results.push({
 					conversation,
-					messages: messageResults.map(r => r.item),
+					messages: messageResults.map((r) => r.item),
 					score: Math.max(titleScore, messageScore),
 					titleMatch: titleResults.length > 0,
 				});

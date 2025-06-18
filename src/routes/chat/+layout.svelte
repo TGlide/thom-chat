@@ -394,6 +394,14 @@
 		() => !scrollState.arrived.bottom,
 		() => (mounted.current ? 250 : 0)
 	);
+
+	let searchModalOpen = $state(false);
+
+	function openSearchModal() {
+		searchModalOpen = true;
+	}
+
+	let sidebarOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -401,41 +409,58 @@
 </svelte:head>
 
 <Sidebar.Root
+	bind:open={sidebarOpen}
 	class="h-screen overflow-clip"
 	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
 >
-	<AppSidebar />
+	<AppSidebar bind:searchModalOpen />
 
 	<Sidebar.Inset class="w-full overflow-clip px-2">
-		<Tooltip>
-			{#snippet trigger(tooltip)}
-				<Sidebar.Trigger class="fixed top-3 left-2 z-50" {...tooltip.trigger}>
-					<PanelLeftIcon />
-				</Sidebar.Trigger>
-			{/snippet}
-			{cmdOrCtrl} + B
-		</Tooltip>
-
-		{#if page.params.id}
+		<!-- header - top left -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
+				{
+					'md:left-(--sidebar-width)': sidebarOpen,
+					'hidden md:flex': sidebarOpen,
+				}
+			)}
+		>
 			<Tooltip>
 				{#snippet trigger(tooltip)}
-					<div
-						class="fixed top-3 left-10 z-50 flex size-9 items-center justify-center md:top-1 md:left-auto"
-						{...tooltip.trigger}
-					>
-						{#if currentConversationQuery.data?.public}
-							<LockOpenIcon class="size-4" />
-						{:else}
-							<LockIcon class="size-4" />
-						{/if}
-					</div>
+					<Sidebar.Trigger class="size-8" {...tooltip.trigger}>
+						<PanelLeftIcon />
+					</Sidebar.Trigger>
 				{/snippet}
-				{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+				Toggle Sidebar ({cmdOrCtrl} + B)
 			</Tooltip>
-		{/if}
 
-		<!-- header -->
-		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
+			{#if page.params.id}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<div
+							class="z-50 flex size-8 items-center justify-center md:top-1 md:left-auto"
+							{...tooltip.trigger}
+						>
+							{#if currentConversationQuery.data?.public}
+								<LockOpenIcon class="size-4" />
+							{:else}
+								<LockIcon class="size-4" />
+							{/if}
+						</div>
+					{/snippet}
+					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+				</Tooltip>
+			{/if}
+		</div>
+
+		<!-- header - top right -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 right-2 z-50 flex rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:rounded-none md:rounded-bl-lg',
+				{ 'hidden md:flex': sidebarOpen }
+			)}
+		>
 			{#if page.params.id}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
@@ -464,7 +489,22 @@
 					Share
 				</Tooltip>
 			{/if}
-			<SearchModal />
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button
+						onclick={openSearchModal}
+						variant="ghost"
+						size="icon"
+						class="size-8"
+						{...tooltip.trigger}
+					>
+						<SearchIcon class="!size-4" />
+						<span class="sr-only">Search</span>
+					</Button>
+				{/snippet}
+				Search ({cmdOrCtrl} + K)
+			</Tooltip>
+			<SearchModal bind:open={searchModalOpen} />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
