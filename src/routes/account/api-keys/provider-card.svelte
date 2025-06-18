@@ -7,10 +7,12 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Link } from '$lib/components/ui/link';
 	import { session } from '$lib/state/session.svelte.js';
-	import type { Provider, ProviderMeta } from '$lib/types';
+	import { Provider, type ProviderMeta } from '$lib/types';
 	import KeyIcon from '~icons/lucide/key';
 	import { useConvexClient } from 'convex-svelte';
 	import { ResultAsync } from 'neverthrow';
+	import { resource } from 'runed';
+	import * as providers from '$lib/utils/providers';
 
 	type Props = {
 		provider: Provider;
@@ -57,6 +59,19 @@
 
 		loading = false;
 	}
+
+	const apiKeyInfoResource = resource(
+		() => keyQuery.data,
+		async (key) => {
+			if (!key) return null;
+
+			if (provider === Provider.OpenRouter) {
+				return (await providers.OpenRouter.getApiKey(key)).unwrapOr(null);
+			}
+
+			return null;
+		}
+	);
 </script>
 
 <Card.Root>
@@ -80,12 +95,30 @@
 					value={keyQuery.data!}
 				/>
 			{/if}
-			<span class="text-muted-foreground text-xs">
-				Get your API key from
-				<Link href={meta.link} target="_blank" class="text-blue-500">
-					{meta.title}
-				</Link>
-			</span>
+			{#if keyQuery.data}
+				{#if apiKeyInfoResource.loading}
+					<div class="bg-input h-6 w-[200px] animate-pulse rounded-md"></div>
+				{:else if apiKeyInfoResource.current}
+					<span class="text-muted-foreground flex h-6 place-items-center text-xs">
+						${apiKeyInfoResource.current?.usage.toFixed(3)} used ・ ${apiKeyInfoResource.current?.limit_remaining.toFixed(
+							3
+						)} remaining
+					</span>
+				{:else}
+					<span
+						class="flex h-6 w-fit place-items-center rounded-lg bg-red-500/50 px-2 text-xs text-red-500"
+					>
+						We encountered an error while trying to check your usage. Please try again later.
+					</span>
+				{/if}
+			{:else}
+				<span class="text-muted-foreground text-xs">
+					Get your API key from
+					<Link href={meta.link} target="_blank" class="text-blue-500">
+						{meta.title}
+					</Link>
+				</span>
+			{/if}
 		</div>
 		<div class="flex justify-end">
 			<Button {loading} type="submit" {...toasts.trigger}>Save</Button>
