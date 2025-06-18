@@ -59,7 +59,7 @@ TODO: add instructions
 
 ### Extra
 
-- [ ] Web Search
+- [x] Web Search
 - [ ] Chat branching
 - [ ] Regenerate message
 - [ ] Image generation
