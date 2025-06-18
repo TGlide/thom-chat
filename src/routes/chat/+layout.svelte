@@ -46,6 +46,7 @@
 	import LockOpenIcon from '~icons/lucide/lock-open';
 	import StopIcon from '~icons/lucide/square';
 	import SearchModal from './search-modal.svelte';
+	import { isHtmlElement } from '$lib/utils/is.js';
 
 	const client = useConvexClient();
 
@@ -422,6 +423,21 @@
 	<title>Chat | Thom.chat</title>
 </svelte:head>
 
+<svelte:document
+	onclick={(e) => {
+		const el = e.target as HTMLElement;
+		const closestCopyButton = el.closest('.copy[data-code]');
+		if (!isHtmlElement(closestCopyButton)) return;
+
+		const code = closestCopyButton.dataset.code;
+		if (!code) return;
+
+		navigator.clipboard.writeText(code);
+		closestCopyButton.classList.add('copied');
+		setTimeout(() => closestCopyButton.classList.remove('copied'), 3000);
+	}}
+/>
+
 <Sidebar.Root
 	bind:open={sidebarOpen}
 	class="h-screen overflow-clip"
@@ -571,7 +587,8 @@
 						class={[
 							'bg-background/50 text-foreground dark:bg-secondary/20 relative flex w-full flex-col items-stretch gap-2 rounded-t-xl border border-b-0 border-white/70 pt-3 pb-3 outline-8 dark:border-white/10',
 							'transition duration-200',
-							'outline-primary/1 group-focus-within:outline-primary/10',
+							'outline-primary/10 group-focus-within:outline-primary/20',
+							'dark:outline-primary/1 dark:group-focus-within:outline-primary/10',
 						]}
 						style="box-shadow: rgba(0, 0, 0, 0.1) 0px 80px 50px 0px, rgba(0, 0, 0, 0.07) 0px 50px 30px 0px, rgba(0, 0, 0, 0.06) 0px 30px 15px 0px, rgba(0, 0, 0, 0.04) 0px 15px 8px, rgba(0, 0, 0, 0.04) 0px 6px 4px, rgba(0, 0, 0, 0.02) 0px 2px 2px;"
 						onsubmit={(e) => {
