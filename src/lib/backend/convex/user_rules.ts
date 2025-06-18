@@ -101,3 +101,34 @@ export const all = query({
 		return allRules;
 	},
 });
+
+export const rename = mutation({
+	args: {
+		ruleId: v.id('user_rules'),
+		name: v.string(),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) throw new Error('Invalid session token');
+
+		const existing = await ctx.db.get(args.ruleId);
+
+		if (!existing) throw new Error('Rule not found');
+		if (existing.user_id !== session.userId) throw new Error('You are not the owner of this rule');
+
+		const existingWithName = await ctx.db
+			.query('user_rules')
+			.withIndex('by_user_name', (q) => q.eq('user_id', session.userId).eq('name', args.name))
+			.first();
+
+		if (existingWithName) throw new Error('Rule with this name already exists');
+
+		await ctx.db.patch(args.ruleId, {
+			name: args.name,
+		});
+	},
+});
