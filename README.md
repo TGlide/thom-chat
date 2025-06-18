@@ -13,6 +13,7 @@ Clone of [T3 Chat](https://t3.chat/)
 - Privacy mode for streams and screen-sharing
 - Markdown rendered messages with syntax highlighting
 - Chat sharing
+- Keyboard shortcuts
 
 ## 🛠️ Tech Stack
 
@@ -51,7 +52,7 @@ Clone of [T3 Chat](https://t3.chat/)
 - [x] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
 - [x] Cascade deletes
-- [ ] Google Auth
+- [x] Google Auth
 - [ ] Fix light mode (urgh)
 - [x] Privacy mode
 
