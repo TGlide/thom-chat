@@ -38,9 +38,9 @@
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { cn } from '$lib/utils/utils.js';
 	import ShareIcon from '~icons/lucide/share';
-	import { Result, ResultAsync } from 'neverthrow';
+	import { ResultAsync } from 'neverthrow';
 	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
-	import { scale } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import CheckIcon from '~icons/lucide/check';
 	import LockIcon from '~icons/lucide/lock';
 	import LockOpenIcon from '~icons/lucide/lock-open';
@@ -49,7 +49,6 @@
 
 	let { children } = $props();
 
-	let form = $state<HTMLFormElement>();
 	let textarea = $state<HTMLTextAreaElement>();
 	let abortController = $state<AbortController | null>(null);
 
@@ -88,10 +87,19 @@
 
 	let loading = $state(false);
 
-	const textareaDisabled = $derived(isGenerating || loading);
+	const textareaDisabled = $derived(
+		isGenerating ||
+			loading ||
+			(currentConversationQuery.data &&
+				currentConversationQuery.data.user_id !== session.current?.user.id)
+	);
+
+	let error = $state<string | null>(null);
 
 	async function handleSubmit() {
 		if (isGenerating) return;
+
+		error = null;
 
 		// TODO: Re-use zod here from server endpoint for better error messages?
 		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
@@ -112,7 +120,8 @@
 			});
 
 			if (res.isErr()) {
-				return; // TODO: Handle error
+				error = res._unsafeUnwrapErr() ?? 'An unknown error occurred';
+				return;
 			}
 
 			const cid = res.value.conversation_id;
@@ -509,8 +518,17 @@
 							e.preventDefault();
 							handleSubmit();
 						}}
-						bind:this={form}
 					>
+						{#if error}
+							<div
+								in:fade={{ duration: 150 }}
+								class="bg-background absolute top-0 left-0 -translate-y-10 rounded-lg"
+							>
+								<div class="rounded-lg bg-red-500/50 px-2 py-0.5 text-sm text-red-400">
+									{error}
+								</div>
+							</div>
+						{/if}
 						{#if suggestedRules}
 							<div
 								{...popover.content}

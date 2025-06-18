@@ -62,6 +62,9 @@ export const create = mutation({
 			throw new Error('Unauthorized');
 		}
 
+		const conversation = await ctx.db.get(args.conversation_id as Id<'conversations'>);
+		if (conversation?.user_id !== session.userId) throw new Error('Unauthorized');
+
 		// I think this just slows us down
 
 		// const messages = await ctx.runQuery(api.messages.getAllFromConversation, {
