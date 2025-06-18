@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import enhancedSearch, { type SearchResult } from '../../utils/fuzzy-search';
+import enhancedSearch from '../../utils/fuzzy-search';
 import { getFirstSentence } from '../../utils/strings';
 import { api } from './_generated/api';
 import { type Doc, type Id } from './_generated/dataModel';
@@ -54,7 +54,7 @@ export const getById = query({
 
 		const conversation = await ctx.db.get(args.conversation_id);
 
-		if (!conversation || (conversation.user_id !== session.userId && !conversation.public)) {
+		if (!conversation || (!conversation.public && conversation.user_id !== session.userId)) {
 			throw new Error('Conversation not found or unauthorized');
 		}
 
@@ -227,9 +227,10 @@ export const updateCostUsd = mutation({
 	},
 });
 
-export const makePublic = mutation({
+export const setPublic = mutation({
 	args: {
 		conversation_id: v.id('conversations'),
+		public: v.boolean(),
 		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
@@ -245,7 +246,7 @@ export const makePublic = mutation({
 		}
 
 		await ctx.db.patch(args.conversation_id, {
-			public: true,
+			public: args.public,
 		});
 	},
 });

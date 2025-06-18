@@ -362,8 +362,9 @@
 		if (!page.params.id || !session.current?.session.token) return;
 
 		const result = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.makePublic, {
+			client.mutation(api.conversations.setPublic, {
 				conversation_id: page.params.id as Id<'conversations'>,
+				public: true,
 				session_token: session.current?.session.token ?? '',
 			}),
 			(e) => e
@@ -377,6 +378,19 @@
 		}
 
 		clipboard.copy(page.url.toString());
+	}
+
+	async function togglePublic() {
+		if (!page.params.id || !session.current?.session.token) return;
+
+		await ResultAsync.fromPromise(
+			client.mutation(api.conversations.setPublic, {
+				conversation_id: page.params.id as Id<'conversations'>,
+				public: !currentConversationQuery.data?.public,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
 	}
 
 	const textareaSize = new ElementSize(() => textarea);
@@ -451,11 +465,14 @@
 				Toggle Sidebar ({cmdOrCtrl} + B)
 			</Tooltip>
 
-			{#if page.params.id}
+			{#if page.params.id && currentConversationQuery.data}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
-						<div
-							class="z-50 flex size-8 items-center justify-center md:top-1 md:left-auto"
+						<Button
+							class="bg-sidebar size-8"
+							size="icon"
+							variant="ghost"
+							onClickPromise={togglePublic}
 							{...tooltip.trigger}
 						>
 							{#if currentConversationQuery.data?.public}
@@ -463,7 +480,7 @@
 							{:else}
 								<LockIcon class="size-4" />
 							{/if}
-						</div>
+						</Button>
 					{/snippet}
 					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
 				</Tooltip>
@@ -477,7 +494,7 @@
 				{ 'hidden md:flex': sidebarOpen }
 			)}
 		>
-			{#if page.params.id}
+			{#if page.params.id && currentConversationQuery.data}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
 						<Button
@@ -761,7 +778,7 @@
 			</div>
 
 			<!-- Credits in bottom-right, only on large screens -->
-			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 xl:flex">
+			<div class="fixed right-4 bottom-4 hidden flex-col items-end gap-1 2xl:flex">
 				<a
 					href="https://github.com/TGlide/thom-chat"
 					class="text-muted-foreground flex place-items-center gap-1 text-xs"
