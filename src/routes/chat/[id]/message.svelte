@@ -40,7 +40,12 @@
 </script>
 
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0)}
-	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
+	<div
+		class={cn('group flex flex-col gap-1', {
+			'self-end': message.role === 'user',
+			'max-w-[80%]': message.role === 'user',
+		})}
+	>
 		{#if message.images && message.images.length > 0}
 			<div class="mb-2 flex flex-wrap gap-2">
 				{#each message.images as image (image.storage_id)}

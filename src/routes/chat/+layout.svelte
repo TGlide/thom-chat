@@ -237,7 +237,7 @@
 		const index = message.current.lastIndexOf('@', cursor);
 		if (index === -1) return;
 
-		const ruleFromCursor = message.slice(index + 1, cursor);
+		const ruleFromCursor = message.current.slice(index + 1, cursor);
 
 		const suggestions: Doc<'user_rules'>[] = [];
 
@@ -560,7 +560,7 @@
 									</Tooltip>
 								</div>
 								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
-									<ModelPicker />
+									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									<button
 										type="button"
 										class={cn(
