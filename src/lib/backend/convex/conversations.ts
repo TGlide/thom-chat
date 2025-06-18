@@ -89,6 +89,7 @@ export const create = mutation({
 export const createAndAddMessage = mutation({
 	args: {
 		content: v.string(),
+		content_html: v.optional(v.string()),
 		role: messageRoleValidator,
 		session_token: v.string(),
 		images: v.optional(
@@ -126,6 +127,7 @@ export const createAndAddMessage = mutation({
 
 		const messageId = await ctx.runMutation(api.messages.create, {
 			content: args.content,
+			content_html: args.content_html,
 			role: args.role,
 			conversation_id: conversationId,
 			session_token: args.session_token,
