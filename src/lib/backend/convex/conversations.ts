@@ -92,6 +92,7 @@ export const createAndAddMessage = mutation({
 		content_html: v.optional(v.string()),
 		role: messageRoleValidator,
 		session_token: v.string(),
+		web_search_enabled: v.optional(v.boolean()),
 		images: v.optional(
 			v.array(
 				v.object({
