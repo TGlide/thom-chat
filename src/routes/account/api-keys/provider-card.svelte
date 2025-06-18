@@ -9,8 +9,8 @@
 	import { session } from '$lib/state/session.svelte.js';
 	import type { Provider, ProviderMeta } from '$lib/types';
 	import KeyIcon from '~icons/lucide/key';
-	import { useConvexClient } from 'convex-svelte';
 	import { ResultAsync } from 'neverthrow';
+	import { callApiKeys } from '../../api/api-keys/call';
 
 	type Props = {
 		provider: Provider;
@@ -25,8 +25,6 @@
 		session_token: session.current?.session.token ?? '',
 	});
 
-	const client = useConvexClient();
-
 	let loading = $state(false);
 	const toasts = new LocalToasts({ id });
 
@@ -40,10 +38,9 @@
 		if (key === null || !session.current?.user.id) return;
 
 		const res = await ResultAsync.fromPromise(
-			client.mutation(api.user_keys.set, {
+			callApiKeys({
 				provider,
 				key: `${key}`,
-				session_token: session.current?.session.token,
 			}),
 			(e) => e
 		);

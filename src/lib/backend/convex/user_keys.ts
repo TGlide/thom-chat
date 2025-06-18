@@ -1,49 +1,10 @@
 import { v } from 'convex/values';
-import { Provider } from '../../types';
-import { api, internal } from './_generated/api';
+import { api } from './_generated/api';
 import { query } from './_generated/server';
-import { mutation } from './functions';
 import { providerValidator } from './schema';
 import { type SessionObj } from './betterAuth';
-import { CryptoService } from '../../utils/encrypt';
-
-const crypto = new CryptoService();
-
-export const all = query({
-	args: {
-		session_token: v.string(),
-	},
-	handler: async (ctx, args) => {
-		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
-			session_token: args.session_token,
-		});
-
-		if (!session) {
-			throw new Error('Unauthorized');
-		}
-
-		const s = session as SessionObj;
-
-		const allKeys = await ctx.db
-			.query('user_keys')
-			.withIndex('by_user', (q) => q.eq('user_id', s.userId))
-			.collect();
-
-		return Object.values(Provider).reduce(
-			(acc, key) => {
-				const encryptedKey = allKeys.find((item) => item.provider === key)?.key;
-				if (!encryptedKey) return acc;
-
-				const decryptedKey = crypto.decrypt(encryptedKey);
-				if (decryptedKey.isErr()) return acc;
-
-				acc[key] = decryptedKey.value;
-				return acc;
-			},
-			{} as Record<Provider, string | undefined>
-		);
-	},
-});
+import { Provider } from '../../types';
+import { mutation } from './functions';
 
 export const get = query({
 	args: {
@@ -66,12 +27,7 @@ export const get = query({
 			.withIndex('by_provider_user', (q) => q.eq('provider', args.provider).eq('user_id', s.userId))
 			.first();
 
-		if (!key) return undefined;
-
-		const decryptedKey = crypto.decrypt(key.key);
-		if (decryptedKey.isErr()) return undefined;
-
-		return decryptedKey.value;
+		return key?.key;
 	},
 });
 
@@ -82,8 +38,8 @@ export const set = mutation({
 		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.session_token,
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
 		});
 
 		if (!session) {
@@ -97,18 +53,11 @@ export const set = mutation({
 			)
 			.first();
 
-		const encryptedKey = crypto.encrypt(args.key);
-
-		console.log('encryptedKey', encryptedKey);
-
 		const userKey = {
 			...args,
-			key: encryptedKey,
 			session_token: undefined,
 			user_id: session.userId,
 		};
-
-		console.log('userKey', userKey);
 
 		if (existing) {
 			await ctx.db.replace(existing._id, userKey);

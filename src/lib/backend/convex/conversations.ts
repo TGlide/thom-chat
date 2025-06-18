@@ -89,11 +89,15 @@ export const createAndAddMessage = mutation({
 		content: v.string(),
 		role: messageRoleValidator,
 		session_token: v.string(),
-		images: v.optional(v.array(v.object({
-			url: v.string(),
-			storage_id: v.string(),
-			fileName: v.optional(v.string()),
-		}))),
+		images: v.optional(
+			v.array(
+				v.object({
+					url: v.string(),
+					storage_id: v.string(),
+					fileName: v.optional(v.string()),
+				})
+			)
+		),
 	},
 	handler: async (
 		ctx,
