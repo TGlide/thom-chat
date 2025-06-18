@@ -4,9 +4,17 @@
 	import { useSidebar } from './sidebar.svelte.js';
 	import { shortcut } from '$lib/actions/shortcut.svelte.js';
 
-	let { children, ...rest }: HTMLAttributes<HTMLDivElement> = $props();
+	let {
+		open = $bindable(false),
+		children,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & { open?: boolean } = $props();
 
 	const sidebar = useSidebar();
+
+	$effect(() => {
+		open = sidebar.showSidebar;
+	});
 </script>
 
 <svelte:window use:shortcut={{ key: 'b', ctrl: true, callback: sidebar.toggle }} />

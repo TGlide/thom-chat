@@ -32,25 +32,25 @@
 	import CheckIcon from '~icons/lucide/check';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
-	import LockIcon from '~icons/lucide/lock';
-	import LockOpenIcon from '~icons/lucide/lock-open';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
-	import SearchIcon from '~icons/lucide/search';
 	import Settings2Icon from '~icons/lucide/settings-2';
-	import ShareIcon from '~icons/lucide/share';
-	import StopIcon from '~icons/lucide/square';
 	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
-	import { callCancelGeneration } from '../api/cancel-generation/call.js';
+	import SearchIcon from '~icons/lucide/search';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
+	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
+	import ShareIcon from '~icons/lucide/share';
+	import { fade } from 'svelte/transition';
+	import LockIcon from '~icons/lucide/lock';
+	import LockOpenIcon from '~icons/lucide/lock-open';
+	import StopIcon from '~icons/lucide/square';
 	import SearchModal from './search-modal.svelte';
 
 	const client = useConvexClient();
 
 	let { children } = $props();
 
-	let form = $state<HTMLFormElement>();
 	let textarea = $state<HTMLTextAreaElement>();
 	let abortController = $state<AbortController | null>(null);
 
@@ -89,10 +89,19 @@
 
 	let loading = $state(false);
 
-	const textareaDisabled = $derived(isGenerating || loading);
+	const textareaDisabled = $derived(
+		isGenerating ||
+			loading ||
+			(currentConversationQuery.data &&
+				currentConversationQuery.data.user_id !== session.current?.user.id)
+	);
+
+	let error = $state<string | null>(null);
 
 	async function handleSubmit() {
 		if (isGenerating) return;
+
+		error = null;
 
 		// TODO: Re-use zod here from server endpoint for better error messages?
 		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
@@ -113,7 +122,8 @@
 			});
 
 			if (res.isErr()) {
-				return; // TODO: Handle error
+				error = res._unsafeUnwrapErr() ?? 'An unknown error occurred';
+				return;
 			}
 
 			const cid = res.value.conversation_id;
@@ -384,6 +394,14 @@
 		() => !scrollState.arrived.bottom,
 		() => (mounted.current ? 250 : 0)
 	);
+
+	let searchModalOpen = $state(false);
+
+	function openSearchModal() {
+		searchModalOpen = true;
+	}
+
+	let sidebarOpen = $state(false);
 </script>
 
 <svelte:head>
@@ -391,41 +409,58 @@
 </svelte:head>
 
 <Sidebar.Root
+	bind:open={sidebarOpen}
 	class="h-screen overflow-clip"
 	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
 >
-	<AppSidebar />
+	<AppSidebar bind:searchModalOpen />
 
 	<Sidebar.Inset class="w-full overflow-clip px-2">
-		<Tooltip>
-			{#snippet trigger(tooltip)}
-				<Sidebar.Trigger class="fixed top-3 left-2 z-50" {...tooltip.trigger}>
-					<PanelLeftIcon />
-				</Sidebar.Trigger>
-			{/snippet}
-			{cmdOrCtrl} + B
-		</Tooltip>
-
-		{#if page.params.id}
+		<!-- header - top left -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
+				{
+					'md:left-(--sidebar-width)': sidebarOpen,
+					'hidden md:flex': sidebarOpen,
+				}
+			)}
+		>
 			<Tooltip>
 				{#snippet trigger(tooltip)}
-					<div
-						class="fixed top-3 left-10 z-50 flex size-9 items-center justify-center md:top-1 md:left-auto"
-						{...tooltip.trigger}
-					>
-						{#if currentConversationQuery.data?.public}
-							<LockOpenIcon class="size-4" />
-						{:else}
-							<LockIcon class="size-4" />
-						{/if}
-					</div>
+					<Sidebar.Trigger class="size-8" {...tooltip.trigger}>
+						<PanelLeftIcon />
+					</Sidebar.Trigger>
 				{/snippet}
-				{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+				Toggle Sidebar ({cmdOrCtrl} + B)
 			</Tooltip>
-		{/if}
 
-		<!-- header -->
-		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
+			{#if page.params.id}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<div
+							class="z-50 flex size-8 items-center justify-center md:top-1 md:left-auto"
+							{...tooltip.trigger}
+						>
+							{#if currentConversationQuery.data?.public}
+								<LockOpenIcon class="size-4" />
+							{:else}
+								<LockIcon class="size-4" />
+							{/if}
+						</div>
+					{/snippet}
+					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+				</Tooltip>
+			{/if}
+		</div>
+
+		<!-- header - top right -->
+		<div
+			class={cn(
+				'bg-sidebar/50 fixed top-2 right-2 z-50 flex rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:rounded-none md:rounded-bl-lg',
+				{ 'hidden md:flex': sidebarOpen }
+			)}
+		>
 			{#if page.params.id}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
@@ -454,7 +489,22 @@
 					Share
 				</Tooltip>
 			{/if}
-			<SearchModal />
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button
+						onclick={openSearchModal}
+						variant="ghost"
+						size="icon"
+						class="size-8"
+						{...tooltip.trigger}
+					>
+						<SearchIcon class="!size-4" />
+						<span class="sr-only">Search</span>
+					</Button>
+				{/snippet}
+				Search ({cmdOrCtrl} + K)
+			</Tooltip>
+			<SearchModal bind:open={searchModalOpen} />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
@@ -511,8 +561,17 @@
 							e.preventDefault();
 							handleSubmit();
 						}}
-						bind:this={form}
 					>
+						{#if error}
+							<div
+								in:fade={{ duration: 150 }}
+								class="bg-background absolute top-0 left-0 -translate-y-10 rounded-lg"
+							>
+								<div class="rounded-lg bg-red-500/50 px-2 py-0.5 text-sm text-red-400">
+									{error}
+								</div>
+							</div>
+						{/if}
 						{#if suggestedRules}
 							<div
 								{...popover.content}

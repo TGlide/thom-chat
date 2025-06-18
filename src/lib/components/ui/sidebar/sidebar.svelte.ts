@@ -44,10 +44,15 @@ export class SidebarSidebarState {
 export class SidebarControlState {
 	constructor(readonly root: SidebarRootState) {
 		this.closeMobile = this.closeMobile.bind(this);
+		this.toggle = this.toggle.bind(this);
 	}
 
 	closeMobile() {
 		this.root.closeMobile();
+	}
+
+	toggle() {
+		this.root.toggle();
 	}
 }
 
