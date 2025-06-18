@@ -23,7 +23,7 @@
 	import { omit, pick } from '$lib/utils/object.js';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
-	import { Debounced, ElementSize, IsMounted, ScrollState } from 'runed';
+	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
 	import SendIcon from '~icons/lucide/arrow-up';
 	import StopIcon from '~icons/lucide/square';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
@@ -124,7 +124,7 @@
 
 	const autosize = new TextareaAutosize();
 
-	let message = $state('');
+	const message = new PersistedState('prompt', '');
 	let selectedImages = $state<{ url: string; storage_id: string; fileName?: string }[]>([]);
 	let isUploading = $state(false);
 	let fileInput = $state<HTMLInputElement>();
@@ -135,8 +135,8 @@
 	});
 
 	usePrompt(
-		() => message,
-		(v) => (message = v)
+		() => message.current,
+		(v) => (message.current = v)
 	);
 
 	models.init();
@@ -232,7 +232,7 @@
 
 		const cursor = textarea.selectionStart;
 
-		const index = message.lastIndexOf('@', cursor);
+		const index = message.current.lastIndexOf('@', cursor);
 		if (index === -1) return;
 
 		const ruleFromCursor = message.slice(index + 1, cursor);
@@ -262,10 +262,11 @@
 
 		const cursor = textarea.selectionStart;
 
-		const index = message.lastIndexOf('@', cursor);
+		const index = message.current.lastIndexOf('@', cursor);
 		if (index === -1) return;
 
-		message = message.slice(0, index) + `@${rule.name}` + message.slice(cursor);
+		message.current =
+			message.current.slice(0, index) + `@${rule.name}` + message.current.slice(cursor);
 		textarea.selectionStart = index + rule.name.length + 1;
 		textarea.selectionEnd = index + rule.name.length + 1;
 
@@ -529,7 +530,7 @@
 											popover.open = true;
 										}
 									}}
-									bind:value={message}
+									bind:value={message.current}
 									autofocus
 									autocomplete="off"
 									{@attach autosize.attachment}
@@ -542,7 +543,7 @@
 											<button
 												type={isGenerating ? 'button' : 'submit'}
 												onclick={isGenerating ? stopGeneration : undefined}
-												disabled={isGenerating ? false : !message.trim()}
+												disabled={isGenerating ? false : !message.current.trim()}
 												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
 												{...tooltip.trigger}
 											>
