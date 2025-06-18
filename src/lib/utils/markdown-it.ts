@@ -22,4 +22,4 @@ function sanitizeHtml(html: string) {
 	return DOMPurify.sanitize(html);
 }
 
-export { md, sanitizeHtml }
+export { md, sanitizeHtml };

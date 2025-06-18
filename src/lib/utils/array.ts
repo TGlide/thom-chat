@@ -224,8 +224,8 @@ export function getNextMatrixItem<T>(options: GetNextMatrixItemOptions<T>): T | 
 			const nextRowArray = matrix[nextRow];
 			if (nextRowArray && Array.isArray(nextRowArray) && nextRowArray.length > 0) {
 				// Check if there's at least one available item in this row
-				const hasAvailableItem = nextRowArray.some(item => 
-					item !== undefined && item !== null && isAvailable(item)
+				const hasAvailableItem = nextRowArray.some(
+					(item) => item !== undefined && item !== null && isAvailable(item)
 				);
 				if (hasAvailableItem) {
 					break; // Found a row with at least one available item
@@ -297,7 +297,7 @@ export function getNextMatrixItem<T>(options: GetNextMatrixItemOptions<T>): T | 
 			}
 			candidateCol--; // Move left to find an available item
 		}
-		
+
 		// If not found scanning left, try scanning right from the original position
 		candidateCol = nextCol + 1;
 		while (candidateCol < nextRowArray.length) {
