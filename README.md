@@ -55,6 +55,7 @@ TODO: add instructions
 - [x] kbd powered popover model picker
 - [x] autosize
 - [x] AbortController for message generation
+- [ ] Per route msg persistance
 
 ### Extra
 
