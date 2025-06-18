@@ -160,3 +160,36 @@ export const updateMessage = mutation({
 		});
 	},
 });
+
+export const updateError = mutation({
+	args: {
+		session_token: v.string(),
+		// optional in case the message hasn't been created yet
+		message_id: v.optional(v.string()),
+		conversation_id: v.string(),
+		error: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		await Promise.all([
+			args.message_id
+				? ctx.db.patch(args.message_id as Id<'messages'>, {
+						error: args.error,
+					})
+				: Promise.resolve(),
+
+			// reset loading state
+			ctx.db.patch(args.conversation_id as Id<'conversations'>, {
+				generating: false,
+				updated_at: Date.now(),
+			}),
+		]);
+	},
+});

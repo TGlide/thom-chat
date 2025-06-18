@@ -18,7 +18,6 @@
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
 	import { compressImage } from '$lib/utils/image-compression';
-	import { isString } from '$lib/utils/is.js';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { useConvexClient } from 'convex-svelte';
@@ -52,7 +51,9 @@
 		session_token: session.current?.session.token ?? '',
 	}));
 
-	const isGenerating = $derived(Boolean(currentConversationQuery.data?.generating));
+	const isGenerating = $derived(
+		Boolean(currentConversationQuery.data?.generating) || currentConversationQuery.isLoading
+	);
 
 	async function stopGeneration() {
 		if (!page.params.id || !session.current?.session.token) return;
@@ -78,23 +79,24 @@
 		}
 	}
 
+	let loading = $state(false);
+
+	const textareaDisabled = $derived(isGenerating || loading);
+
 	async function handleSubmit() {
 		if (isGenerating) return;
 
-		const formData = new FormData(form);
-		const message = formData.get('message');
-
 		// TODO: Re-use zod here from server endpoint for better error messages?
-		if (!isString(message) || !session.current?.user.id || !settings.modelId) return;
+		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
 
-		if (textarea) textarea.value = '';
-		const messageCopy = message;
+		loading = true;
+
 		const imagesCopy = [...selectedImages];
 		selectedImages = [];
 
 		try {
 			const res = await callGenerateMessage({
-				message: messageCopy,
+				message: message.current,
 				session_token: session.current?.session.token,
 				conversation_id: page.params.id ?? undefined,
 				model_id: settings.modelId,
@@ -113,13 +115,11 @@
 			}
 		} catch (error) {
 			console.error('Error generating message:', error);
+		} finally {
+			loading = false;
+			message.current = '';
 		}
 	}
-
-	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
-		provider: Provider.OpenRouter,
-		session_token: session.current?.session.token ?? '',
-	});
 
 	const rulesQuery = useCachedQuery(api.user_rules.all, {
 		session_token: session.current?.session.token ?? '',
@@ -383,8 +383,10 @@
 		<div class="relative">
 			<div bind:this={conversationList} class="h-screen overflow-y-auto">
 				<div
-					class="mx-auto flex max-w-3xl flex-col"
-					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px"
+					class={cn('mx-auto flex max-w-3xl flex-col', {
+						'pt-10': page.url.pathname !== '/chat',
+					})}
+					style="padding-bottom: {page.url.pathname !== '/chat' ? wrapperSize.height : 0}px;"
 				>
 					{@render children()}
 				</div>
@@ -497,7 +499,7 @@
 								<textarea
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
-									disabled={!openRouterKeyQuery.data || isGenerating}
+									disabled={textareaDisabled}
 									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[80px] w-full resize-none !overflow-y-auto bg-transparent px-3 text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									placeholder={isGenerating
 										? 'Generating response...'
@@ -547,7 +549,7 @@
 												type={isGenerating ? 'button' : 'submit'}
 												onclick={isGenerating ? stopGeneration : undefined}
 												disabled={isGenerating ? false : !message.current.trim()}
-												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
+												class="border-reflect button-reflect hover:bg-primary/90 active:bg-primary text-foreground dark:text-primary-foreground relative h-9 w-9 rounded-lg p-2 font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-50"
 												{...tooltip.trigger}
 											>
 												{#if isGenerating}
