@@ -1,22 +1,5 @@
-import { fromAsyncCodeToHtml } from '@shikijs/markdown-it/async';
-import MarkdownItAsync from 'markdown-it-async';
 import type { Getter } from 'runed';
-import { codeToHtml } from 'shiki';
-
-const md = MarkdownItAsync();
-
-md.use(
-	fromAsyncCodeToHtml(
-		// Pass the codeToHtml function
-		codeToHtml,
-		{
-			themes: {
-				light: 'github-light-default',
-				dark: 'github-dark-default',
-			},
-		}
-	)
-);
+import { md } from './markdown-it';
 
 export class Markdown {
 	highlighted = $state<string | null>(null);
