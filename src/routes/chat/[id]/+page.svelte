@@ -56,6 +56,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{conversation.data?.title} | Thom.chat</title>
+</svelte:head>
+
 <div class="flex h-full flex-1 flex-col py-4">
 	{#each messages.data ?? [] as message (message._id)}
 		<Message {message} />
