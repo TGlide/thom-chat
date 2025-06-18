@@ -361,8 +361,9 @@
 		if (!page.params.id || !session.current?.session.token) return;
 
 		const result = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.makePublic, {
+			client.mutation(api.conversations.setPublic, {
 				conversation_id: page.params.id as Id<'conversations'>,
+				public: true,
 				session_token: session.current?.session.token ?? '',
 			}),
 			(e) => e
@@ -376,6 +377,19 @@
 		}
 
 		clipboard.copy(page.url.toString());
+	}
+
+	async function togglePublic() {
+		if (!page.params.id || !session.current?.session.token) return;
+
+		await ResultAsync.fromPromise(
+			client.mutation(api.conversations.setPublic, {
+				conversation_id: page.params.id as Id<'conversations'>,
+				public: !currentConversationQuery.data?.public,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
 	}
 
 	const textareaSize = new ElementSize(() => textarea);
@@ -438,8 +452,11 @@
 			{#if page.params.id}
 				<Tooltip>
 					{#snippet trigger(tooltip)}
-						<div
-							class="z-50 flex size-8 items-center justify-center md:top-1 md:left-auto"
+						<Button
+							class="size-8 bg-sidebar"
+							size="icon"
+							variant="ghost"
+							onClickPromise={togglePublic}
 							{...tooltip.trigger}
 						>
 							{#if currentConversationQuery.data?.public}
@@ -447,7 +464,7 @@
 							{:else}
 								<LockIcon class="size-4" />
 							{/if}
-						</div>
+						</Button>
 					{/snippet}
 					{currentConversationQuery.data?.public ? 'Public' : 'Private'}
 				</Tooltip>
