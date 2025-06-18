@@ -4,28 +4,26 @@
 	import { session } from '$lib/state/session.svelte';
 	import { settings } from '$lib/state/settings.svelte';
 	import { cn } from '$lib/utils/utils';
-	import { Command, Popover } from 'bits-ui';
-	import { Button } from '$lib/components/ui/button';
-	import ChevronDownIcon from '~icons/lucide/chevron-down';
+	import { Command } from 'bits-ui';
 	import CheckIcon from '~icons/lucide/check';
-
+	import SearchIcon from '~icons/lucide/search';
+	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	// Company icons from simple-icons
-	import OpenaiIcon from '~icons/simple-icons/openai';
 	import GoogleIcon from '~icons/simple-icons/google';
 	import MetaIcon from '~icons/simple-icons/meta';
 	import MicrosoftIcon from '~icons/simple-icons/microsoft';
+	import OpenaiIcon from '~icons/simple-icons/openai';
 	import XIcon from '~icons/simple-icons/x';
-
 	// Fallback to lucide icons for companies without simple-icons
-	import BrainIcon from '~icons/lucide/brain';
-	import ZapIcon from '~icons/lucide/zap';
-	import CpuIcon from '~icons/lucide/cpu';
 	import RobotIcon from '~icons/lucide/bot';
-
+	import BrainIcon from '~icons/lucide/brain';
+	import CpuIcon from '~icons/lucide/cpu';
+	import ZapIcon from '~icons/lucide/zap';
 	// Model-specific icons
 	import LogosClaudeIcon from '~icons/logos/claude-icon';
-	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
 	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
+	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
+	import { Popover } from 'melt/builders';
 
 	type Props = {
 		class?: string;
@@ -56,11 +54,11 @@
 	// Function to get model-specific icon
 	function getModelIcon(modelId: string): typeof LogosClaudeIcon | null {
 		const id = modelId.toLowerCase();
-		
+
 		if (id.includes('claude') || id.includes('anthropic')) return LogosClaudeIcon;
 		if (id.includes('gemini') || id.includes('gemma')) return MaterialIconThemeGeminiAi;
 		if (id.includes('mistral') || id.includes('mixtral')) return LogosMistralAiIcon;
-		
+
 		return null;
 	}
 
@@ -141,8 +139,6 @@
 		return result;
 	});
 
-	let open = $state(false);
-
 	// Find current model details
 	const currentModel = $derived(enabledArr.find((m) => m.model_id === settings.modelId));
 	const currentCompany = $derived(
@@ -157,7 +153,34 @@
 
 	function selectModel(modelId: string) {
 		settings.modelId = modelId;
-		open = false;
+		popover.open = false;
+	}
+
+	let open = $state(true);
+	const popover = new Popover({
+		open: () => open,
+		onOpenChange: (v) => {
+			console.log('📋 popover open:', v);
+			if (v === open) return;
+			open = v;
+			console.log('assigned', v);
+			if (v) return;
+			console.log('attempting to focus');
+			document.getElementById(popover.trigger.id)?.focus();
+		},
+		floatingConfig: {
+			computePosition: { placement: 'top-start' },
+		},
+	});
+
+	// Name splitter. splits -,_,:
+	function splitName(name: string) {
+		return name.split(/[-_,:]/);
+	}
+
+	function getModelTitle(modelId: string) {
+		const sn = splitName(modelId.replace(/^[^/]+\//, ''));
+		return sn[0] + (sn.length > 1 ? ' ' + sn.slice(1).join(' ') : '');
 	}
 </script>
 
@@ -167,80 +190,99 @@
 		<option value="">Loading models...</option>
 	</select>
 {:else}
-	<Popover.Root bind:open>
-		<Popover.Trigger
-			class={cn('flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50', className)}
-			aria-expanded={open}
-		>
-			<div class="flex items-center gap-2">
-				{#if companyIcons[currentCompany]}
-					{@const IconComponent = companyIcons[currentCompany]}
-					<IconComponent class="size-4" />
-				{/if}
-				<span class="truncate">
-					{currentModel?.model_id.replace(/^[^/]+\//, '') || 'Select model'}
-				</span>
-			</div>
-			<ChevronDownIcon class="size-4 opacity-50" />
-		</Popover.Trigger>
+	<button
+		{...popover.trigger}
+		class={cn(
+			'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			className
+		)}
+		aria-expanded={open}
+	>
+		<div class="flex items-center gap-2">
+			{#if companyIcons[currentCompany]}
+				{@const IconComponent = companyIcons[currentCompany]}
+				<IconComponent class="size-4" />
+			{/if}
+			<span class="truncate capitalize">
+				{currentModel ? getModelTitle(currentModel.model_id) : 'Select model'}
+			</span>
+		</div>
+		<ChevronDownIcon class="size-4 opacity-50" />
+	</button>
 
-		<Popover.Content
-			class="z-50 mt-1 max-h-96 w-full min-w-80 overflow-hidden rounded-md border bg-white/95 p-0 shadow-lg backdrop-blur-sm dark:bg-gray-950/95"
-		>
-			<Command.Root columns={3}>
+	<div
+		{...popover.content}
+		class="border-border bg-popover mt-1 max-h-200 min-w-80 flex-col overflow-hidden rounded-xl border p-0 backdrop-blur-sm data-[open]:flex"
+	>
+		<Command.Root class="flex h-full flex-col overflow-hidden" columns={4}>
+			<label class="group/label relative flex items-center gap-2 px-4 py-3 text-sm">
+				<SearchIcon class="text-muted-foreground" />
 				<Command.Input
-					class="flex h-10 w-full rounded-md border-0 border-b bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+					class="w-full outline-none"
 					placeholder="Search models..."
+					{@attach (node) => {
+						if (popover.open) {
+							node.focus();
+						}
+						return () => {
+							node.value = '';
+						};
+					}}
 				/>
-				<Command.List class="max-h-80 overflow-y-auto">
-					<Command.Viewport>
-						<Command.Empty>
-							No models available. Enable some models in the account settings.
-						</Command.Empty>
-						{#each groupedModels as [company, models]}
-							<Command.Group class="space-y-2">
-								<Command.GroupHeading
-									class="text-muted-foreground flex items-center gap-2 border-b border-gray-200 pb-1 pt-3 px-3 text-xs font-semibold tracking-wide uppercase dark:border-gray-700"
-								>
-									{#if companyIcons[company]}
-										{@const IconComponent = companyIcons[company]}
-										<IconComponent class="size-4" />
-									{/if}
-									{company} ({models.length})
-								</Command.GroupHeading>
-								<Command.GroupItems class="grid grid-cols-3 gap-3 px-3 pb-3">
-									{#each models as model (model._id)}
-										<Command.Item
-											value={model.model_id}
-											onSelect={() => selectModel(model.model_id)}
-											class={cn(
-												'data-selected:bg-accent data-selected:text-accent-foreground relative flex cursor-pointer select-none flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-4 text-sm outline-none transition-all hover:border-gray-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600',
-												settings.modelId === model.model_id && 'bg-primary border-primary text-primary-foreground shadow-md'
-											)}
+				<div
+					class="border-border/50 group-focus-within/label:border-foreground/30 absolute inset-x-2 bottom-0 h-1 border-b"
+					aria-hidden="true"
+				></div>
+			</label>
+			<Command.List class="overflow-y-auto">
+				<Command.Viewport>
+					<Command.Empty class="text-muted-foreground p-4 text-sm">
+						No models available. Enable some models in the account settings.
+					</Command.Empty>
+					{#each groupedModels as [company, models] (company)}
+						<Command.Group class="space-y-2">
+							<Command.GroupHeading
+								class="text-heading/75 flex items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize"
+							>
+								{company}
+							</Command.GroupHeading>
+							<Command.GroupItems class="grid grid-cols-4 gap-3 px-3 pb-3">
+								{#each models as model (model._id)}
+									{@const isSelected = settings.modelId === model.model_id}
+									{@const sn = splitName(model.model_id.replace(/^[^/]+\//, ''))}
+									<Command.Item
+										value={model.model_id}
+										onSelect={() => selectModel(model.model_id)}
+										class={cn(
+											'border-border flex h-40 w-32 flex-col items-center justify-center rounded-lg border p-2',
+											'select-none',
+											'data-selected:bg-accent/50 data-selected:text-accent-foreground',
+											isSelected && 'border-reflect border-none',
+											'scroll-m-10'
+										)}
+									>
+										{#if getModelIcon(model.model_id)}
+											{@const ModelIcon = getModelIcon(model.model_id)}
+											<ModelIcon class="size-6 shrink-0" />
+										{:else if companyIcons[getCompanyFromModelId(model.model_id)]}
+											{@const CompanyIcon = companyIcons[getCompanyFromModelId(model.model_id)]}
+											<CompanyIcon class="size-6 shrink-0" />
+										{/if}
+										<p
+											class="font-fake-proxima mt-2 text-center leading-tight font-bold capitalize"
 										>
-											<div class="flex min-h-16 flex-col items-center justify-center gap-2">
-												{#if getModelIcon(model.model_id)}
-													{@const ModelIcon = getModelIcon(model.model_id)}
-													<ModelIcon class="size-6 shrink-0" />
-												{:else if companyIcons[getCompanyFromModelId(model.model_id)]}
-													{@const CompanyIcon = companyIcons[getCompanyFromModelId(model.model_id)]}
-													<CompanyIcon class="size-6 shrink-0" />
-												{/if}
-												<span class="text-center text-xs font-medium leading-tight">
-													{model.model_id.replace(/^[^/]+\//, '')}
-												</span>
-												{#if settings.modelId === model.model_id}
-													<CheckIcon class="absolute right-1 top-1 size-3 shrink-0" />
-												{/if}
-											</div>
-										</Command.Item>
-									{/each}
-								</Command.GroupItems>
-							</Command.Group>
-						{/each}
-					</Command.Viewport>
-				</Command.List>
-			</Command.Root>
-		</Popover.Content>
-	</Popover.Root>
+											{sn[0]}
+										</p>
+										<p class="mt-0 text-center text-xs leading-tight font-medium">
+											{sn.slice(1).join(' ')}
+										</p>
+									</Command.Item>
+								{/each}
+							</Command.GroupItems>
+						</Command.Group>
+					{/each}
+				</Command.Viewport>
+			</Command.List>
+		</Command.Root>
+	</div>
 {/if}

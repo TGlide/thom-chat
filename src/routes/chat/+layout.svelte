@@ -802,7 +802,7 @@
 											{:else}
 												<ImageIcon class="!size-3" />
 											{/if}
-											<span>Attach image</span>
+											<span class="whitespace-nowrap">Attach image</span>
 										</button>
 									{/if}
 								</div>
