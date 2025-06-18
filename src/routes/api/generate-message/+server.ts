@@ -21,6 +21,7 @@ const reqBodySchema = z.object({
 
 	session_token: z.string(),
 	conversation_id: z.string().optional(),
+	web_search_enabled: z.boolean().optional(),
 	images: z
 		.array(
 			z.object({
@@ -367,10 +368,16 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		return;
 	}
 
+	// Check if web search is enabled for the last user message
+	const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
+
+	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
+
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create(
 			{
-				model: model.model_id,
+				model: modelId,
 				messages: messagesToSend,
 				temperature: 0.7,
 				stream: true,
@@ -603,6 +610,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				content_html: '',
 				role: 'user',
 				images: args.images,
+				web_search_enabled: args.web_search_enabled,
 				session_token: sessionToken,
 			}),
 			(e) => `Failed to create conversation: ${e}`
@@ -638,6 +646,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				model_id: args.model_id,
 				role: 'user',
 				images: args.images,
+				web_search_enabled: args.web_search_enabled,
 			}),
 			(e) => `Failed to create user message: ${e}`
 		);

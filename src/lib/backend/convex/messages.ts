@@ -41,6 +41,7 @@ export const create = mutation({
 		model_id: v.optional(v.string()),
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
+		web_search_enabled: v.optional(v.boolean()),
 		// Optional image attachments
 		images: v.optional(
 			v.array(
@@ -84,6 +85,7 @@ export const create = mutation({
 				model_id: args.model_id,
 				provider: args.provider,
 				token_count: args.token_count,
+				web_search_enabled: args.web_search_enabled,
 				// Optional image attachments
 				images: args.images,
 			}),

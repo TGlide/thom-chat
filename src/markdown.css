@@ -19,7 +19,7 @@ html.dark .shiki span {
 }
 
 .prose {
-	@apply text-foreground max-w-[65ch];
+	@apply text-foreground;
 
 	& h1:not(.not-prose h1) {
 		@apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
