@@ -1,11 +1,12 @@
 import { v } from 'convex/values';
-import { api } from './_generated/api';
-import { query } from './_generated/server';
-import { type Id } from './_generated/dataModel';
-import { type SessionObj } from './betterAuth';
-import { messageRoleValidator } from './schema';
-import { mutation } from './functions';
+import { fuzzyMatchString } from '../../utils/fuzzy-search';
 import { getFirstSentence } from '../../utils/strings';
+import { api } from './_generated/api';
+import { Doc, type Id } from './_generated/dataModel';
+import { query } from './_generated/server';
+import { type SessionObj } from './betterAuth';
+import { mutation } from './functions';
+import { messageRoleValidator } from './schema';
 
 export const get = query({
 	args: {
@@ -276,5 +277,61 @@ export const remove = mutation({
 		}
 
 		await ctx.db.delete(args.conversation_id);
+	},
+});
+
+export const search = query({
+	args: {
+		session_token: v.string(),
+		search_term: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		type SearchResult = {
+			conversation: Doc<'conversations'>;
+			messages: Doc<'messages'>[];
+		};
+		const res: SearchResult[] = [];
+
+		if (!args.search_term.trim()) return res;
+
+		const convQuery = ctx.db
+			.query('conversations')
+			.withIndex('by_user', (q) => q.eq('user_id', session.userId));
+
+		for await (const conversation of convQuery) {
+			const searchResult: SearchResult = {
+				conversation,
+				messages: [],
+			};
+
+			const msgQuery = ctx.db
+				.query('messages')
+				.withIndex('by_conversation', (q) => q.eq('conversation_id', conversation._id))
+				.order('asc');
+
+			for await (const message of msgQuery) {
+				if (fuzzyMatchString(args.search_term, message.content)) {
+					console.log('Found message for search');
+					searchResult.messages.push(message);
+				}
+			}
+
+			if (
+				searchResult.messages.length > 0 ||
+				fuzzyMatchString(args.search_term, conversation.title)
+			) {
+				res.push(searchResult);
+			}
+		}
+
+		return res;
 	},
 });

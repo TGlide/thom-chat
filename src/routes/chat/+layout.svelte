@@ -37,6 +37,7 @@
 	import ModelPicker from './model-picker.svelte';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { cn } from '$lib/utils/utils.js';
+	import SearchModal from './search-modal.svelte';
 
 	const client = useConvexClient();
 
@@ -370,6 +371,7 @@
 
 		<!-- header -->
 		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
+			<SearchModal />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>

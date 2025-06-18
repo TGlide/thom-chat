@@ -38,7 +38,7 @@ export default function fuzzysearch<T>(options: {
 /**
  * Internal helper function that performs the actual fuzzy string matching
  */
-function fuzzyMatchString(needle: string, haystack: string): boolean {
+export function fuzzyMatchString(needle: string, haystack: string): boolean {
 	const hlen = haystack.length;
 	const nlen = needle.length;
 
