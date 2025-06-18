@@ -612,9 +612,9 @@ describe('getNextMatrixItem', () => {
 				[{ id: 1, available: true }], // Start at (0,0)
 				[{ id: 2, available: false }],
 				[
-					{ id: 3, available: true },   // col 0 - available (left of start)
-					{ id: 4, available: false },  // col 1 - unavailable (would be start col after clamp)
-					{ id: 5, available: true },   // col 2 - available (right of start)
+					{ id: 3, available: true }, // col 0 - available (left of start)
+					{ id: 4, available: false }, // col 1 - unavailable (would be start col after clamp)
+					{ id: 5, available: true }, // col 2 - available (right of start)
 				],
 			];
 
@@ -633,11 +633,11 @@ describe('getNextMatrixItem', () => {
 		it('should find item to the right when left scan fails for vertical movement', () => {
 			// Test finding item to the right when left scan fails
 			const customMatrix = [
-				[{ id: 1, available: true }], // Start at (0,0) 
+				[{ id: 1, available: true }], // Start at (0,0)
 				[{ id: 2, available: false }],
 				[
-					{ id: 3, available: false },  // col 0 - unavailable (start col after clamp)
-					{ id: 4, available: true },   // col 1 - available (right of start)
+					{ id: 3, available: false }, // col 0 - unavailable (start col after clamp)
+					{ id: 4, available: true }, // col 1 - available (right of start)
 				],
 			];
 
