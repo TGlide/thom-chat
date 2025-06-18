@@ -153,7 +153,7 @@
 		},
 	});
 
-	// Term replacements for proper formatting
+	// Model name formatting utility
 	const termReplacements = [
 		{ from: 'gpt', to: 'GPT' },
 		{ from: 'claude', to: 'Claude' },
@@ -161,22 +161,23 @@
 		{ from: 'o3', to: 'o3' },
 	];
 
-	// Name splitter. splits -,_,:
-	function splitName(name: string) {
-		return name.split(/[-_,:]/).map((s) => formatTerms(s));
-	}
+	function formatModelName(modelId: string) {
+		const cleanId = modelId.replace(/^[^/]+\//, '');
+		const parts = cleanId.split(/[-_,:]/);
+		
+		const formattedParts = parts.map(part => {
+			let formatted = capitalize(part);
+			termReplacements.forEach(({ from, to }) => {
+				formatted = formatted.replace(new RegExp(`\\b${from}\\b`, 'gi'), to);
+			});
+			return formatted;
+		});
 
-	function formatTerms(text: string): string {
-		return termReplacements.reduce((result, { from, to }) => {
-			const capitalized = capitalize(result);
-			return capitalized.replace(new RegExp(`\\b${from}\\b`, 'gi'), to);
-		}, text);
-	}
-
-	function getModelTitle(modelId: string) {
-		const sn = splitName(modelId.replace(/^[^/]+\//, ''));
-		const title = sn[0] + (sn.length > 1 ? ' ' + sn.slice(1).join(' ') : '');
-		return formatTerms(title);
+		return {
+			full: formattedParts.join(' '),
+			primary: formattedParts[0] || '',
+			secondary: formattedParts.slice(1).join(' ')
+		};
 	}
 </script>
 
@@ -199,8 +200,8 @@
 				{@const IconComponent = companyIcons[currentCompany]}
 				<IconComponent class="size-4" />
 			{/if}
-			<span class="truncate capitalize">
-				{currentModel ? getModelTitle(currentModel.model_id) : 'Select model'}
+			<span class="truncate">
+				{currentModel ? formatModelName(currentModel.model_id).full : 'Select model'}
 			</span>
 		</div>
 		<ChevronDownIcon class="size-4 opacity-50" />
@@ -245,7 +246,7 @@
 							<Command.GroupItems class="grid grid-cols-4 gap-3 px-3 pb-3">
 								{#each models as model (model._id)}
 									{@const isSelected = settings.modelId === model.model_id}
-									{@const sn = splitName(model.model_id.replace(/^[^/]+\//, ''))}
+									{@const formatted = formatModelName(model.model_id)}
 									<Command.Item
 										value={model.model_id}
 										onSelect={() => selectModel(model.model_id)}
@@ -265,10 +266,10 @@
 											<CompanyIcon class="size-6 shrink-0" />
 										{/if}
 										<p class="font-fake-proxima mt-2 text-center leading-tight font-bold">
-											{sn[0]}
+											{formatted.primary}
 										</p>
 										<p class="mt-0 text-center text-xs leading-tight font-medium">
-											{sn.slice(1).join(' ')}
+											{formatted.secondary}
 										</p>
 									</Command.Item>
 								{/each}

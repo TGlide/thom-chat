@@ -35,7 +35,7 @@ TODO: add instructions
   - [x] Openrouter
   - ~[ ] HuggingFace~
   - ~[ ] OpenAI~
-- [ ] File upload
+- [x] File upload
 - [x] Ensure responsiveness
 - [x] Streams on the server (Resumable streams)
 - [x] Syntax highlighting with Shiki/markdown renderer
@@ -52,14 +52,13 @@ TODO: add instructions
 - [ ] deal with error states, both on creation attempt and message generation failure
 - [x] delete conversations option
 - [x] conversation title generation
-- [ ] kbd powered popover model picker
+- [x] kbd powered popover model picker
 - [x] autosize
 - [x] AbortController for message generation
 
 ### Extra
 
 - [ ] Web Search
-- [ ] MCPs
 - [ ] Chat branching
 - [ ] Regenerate message
 - [ ] Image generation
