@@ -52,6 +52,10 @@
 			name: 'New Chat',
 			keys: [cmdOrCtrl, 'Shift', 'O'],
 		},
+		{
+			name: 'Search Messages',
+			keys: [cmdOrCtrl, 'K'],
+		},
 	];
 
 	async function signOut() {
