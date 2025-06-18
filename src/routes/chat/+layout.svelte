@@ -562,7 +562,7 @@
 										{isGenerating ? 'Stop generation' : 'Send message'}
 									</Tooltip>
 								</div>
-								<div class="flex flex-col gap-2 pr-2 sm:flex-row sm:items-center">
+								<div class="flex flex-col items-start gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									<button
 										type="button"
