@@ -49,6 +49,10 @@
 		await goto(`/chat`);
 	}
 
+	const settings = useCachedQuery(api.user_settings.get, {
+		session_token: session.current?.session.token ?? '',
+	});
+
 	const conversationsQuery = useCachedQuery(api.conversations.get, {
 		session_token: session.current?.session.token ?? '',
 	});
@@ -232,7 +236,13 @@
 			<Button href="/account" variant="ghost" class="h-auto w-full justify-start">
 				<Avatar src={page.data.session?.user.image ?? undefined}>
 					{#snippet children(avatar)}
-						<img {...avatar.image} alt="Your avatar" class="size-10 rounded-full" />
+						<img
+							{...avatar.image}
+							alt="Your avatar"
+							class={cn('size-10 rounded-full', {
+								'blur-[6px]': settings.data?.privacy_mode,
+							})}
+						/>
 						<span {...avatar.fallback} class="size-10 rounded-full">
 							{page.data.session?.user.name
 								.split(' ')
@@ -242,8 +252,16 @@
 					{/snippet}
 				</Avatar>
 				<div class="flex flex-col">
-					<span class="text-sm">{page.data.session?.user.name}</span>
-					<span class="text-muted-foreground text-xs">{page.data.session?.user.email}</span>
+					<span class={cn('text-sm', { 'blur-[6px]': settings.data?.privacy_mode })}>
+						{page.data.session?.user.name}
+					</span>
+					<span
+						class={cn('text-muted-foreground text-xs', {
+							'blur-[6px]': settings.data?.privacy_mode,
+						})}
+					>
+						{page.data.session?.user.email}
+					</span>
 				</div>
 			</Button>
 		{:else}

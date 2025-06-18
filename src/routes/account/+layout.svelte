@@ -8,8 +8,16 @@
 	import { Avatar } from 'melt/components';
 	import { Kbd } from '$lib/components/ui/kbd/index.js';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
+	import { session } from '$lib/state/session.svelte.js';
+	import { api } from '$lib/backend/convex/_generated/api.js';
+	import { cn } from '$lib/utils/utils.js';
 
 	let { data, children } = $props();
+
+	const settings = useCachedQuery(api.user_settings.get, {
+		session_token: session.current?.session.token ?? '',
+	});
 
 	const navigation: { title: string; href: string }[] = [
 		{
@@ -69,7 +77,13 @@
 			<div class="flex flex-col place-items-center gap-2">
 				<Avatar src={data.session.user.image ?? undefined}>
 					{#snippet children(avatar)}
-						<img {...avatar.image} alt="Your avatar" class="size-40 rounded-full" />
+						<img
+							{...avatar.image}
+							alt="Your avatar"
+							class={cn('size-40 rounded-full', {
+								'blur-[20px]': settings.data?.privacy_mode,
+							})}
+						/>
 						<span {...avatar.fallback}>
 							{data.session.user.name
 								.split(' ')
@@ -79,8 +93,20 @@
 					{/snippet}
 				</Avatar>
 				<div class="flex flex-col gap-1">
-					<p class="text-center text-2xl font-bold">{data.session.user.name}</p>
-					<span class="text-muted-foreground text-center text-sm">{data.session.user.email}</span>
+					<p
+						class={cn('text-center text-2xl font-bold', {
+							'blur-[6px]': settings.data?.privacy_mode,
+						})}
+					>
+						{data.session.user.name}
+					</p>
+					<span
+						class={cn('text-muted-foreground text-center text-sm', {
+							'blur-[6px]': settings.data?.privacy_mode,
+						})}
+					>
+						{data.session.user.email}
+					</span>
 				</div>
 				<div class="mt-4 flex w-full flex-col gap-2">
 					<span class="text-sm font-medium">Keyboard Shortcuts</span>
