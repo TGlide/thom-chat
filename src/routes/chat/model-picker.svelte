@@ -7,7 +7,7 @@
 	import { Command } from 'bits-ui';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import SearchIcon from '~icons/lucide/search';
-	// Company icons from simple-icons
+	import EyeIcon from '~icons/lucide/eye';
 	import GoogleIcon from '~icons/simple-icons/google';
 	import MetaIcon from '~icons/simple-icons/meta';
 	import MicrosoftIcon from '~icons/simple-icons/microsoft';
@@ -16,7 +16,6 @@
 	import BrainIcon from '~icons/lucide/brain';
 	import CpuIcon from '~icons/lucide/cpu';
 	import ZapIcon from '~icons/lucide/zap';
-	// Model-specific icons
 	import Cohere from '$lib/components/icons/cohere.svelte';
 	import Deepseek from '$lib/components/icons/deepseek.svelte';
 	import { Popover } from 'melt/builders';
@@ -25,6 +24,10 @@
 	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
 	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
 	import { capitalize } from '$lib/utils/strings';
+	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { models as modelsState } from '$lib/state/models.svelte';
+	import { Provider } from '$lib/types';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
 
 	type Props = {
 		class?: string;
@@ -37,6 +40,8 @@
 	});
 
 	const enabledArr = $derived(Object.values(enabledModelsQuery.data ?? {}));
+
+	modelsState.init();
 
 	// Company icon mapping
 	const companyIcons: Record<string, Component> = {
@@ -252,7 +257,7 @@
 										onSelect={() => selectModel(model.model_id)}
 										class={cn(
 											'border-border flex h-40 w-32 flex-col items-center justify-center rounded-lg border p-2',
-											'select-none',
+											'relative select-none',
 											'data-selected:bg-accent/50 data-selected:text-accent-foreground',
 											isSelected && 'border-reflect border-none',
 											'scroll-m-10'
@@ -268,6 +273,23 @@
 										<p class="mt-0 text-center text-xs leading-tight font-medium">
 											{formatted.secondary}
 										</p>
+
+										{@const openRouterModel = modelsState
+											.from(Provider.OpenRouter)
+											.find((m) => m.id === model.model_id)}
+										{#if openRouterModel && supportsImages(openRouterModel)}
+											<Tooltip>
+												{#snippet trigger(tooltip)}
+													<div
+														class="abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs"
+														{...tooltip.trigger}
+													>
+														<EyeIcon class="size-3" />
+													</div>
+												{/snippet}
+												Supports image anaylsis
+											</Tooltip>
+										{/if}
 									</Command.Item>
 								{/each}
 							</Command.GroupItems>
