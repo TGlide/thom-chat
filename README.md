@@ -50,10 +50,10 @@ Clone of [T3 Chat](https://t3.chat/)
 - [x] Ensure responsiveness
 - [x] Streams on the server (Resumable streams)
 - [x] Syntax highlighting with Shiki/markdown renderer
-- [ ] Eliminate FOUC
+- [x] Eliminate FOUC (kinda)
 - [x] Cascade deletes
 - [x] Google Auth
-- [ ] Fix light mode (urgh)
+- [x] Fix light mode (urgh)
 - [x] Privacy mode
 
 ### Chat
@@ -65,7 +65,7 @@ Clone of [T3 Chat](https://t3.chat/)
 - [x] kbd powered popover model picker
 - [x] autosize
 - [x] AbortController for message generation
-- [ ] Per route msg persistance
+- [x] Per route msg persistance
 
 ### Extra
 
