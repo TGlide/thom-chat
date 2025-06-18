@@ -124,6 +124,6 @@
 		</div>
 	{/if}
 	{#each userRulesQuery.data ?? [] as rule (rule._id)}
-		<Rule {rule} />
+		<Rule {rule} allRules={userRulesQuery.data ?? []} />
 	{/each}
 </div>
