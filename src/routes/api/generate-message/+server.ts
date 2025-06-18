@@ -11,6 +11,10 @@ import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { generationAbortControllers } from './cache.js';
 import { md } from '$lib/utils/markdown-it.js';
+import { API_KEY_ENCRYPTION_SECRET } from '$env/static/private';
+import { CryptoService } from '$lib/utils/encrypt.js';
+
+const crypto = new CryptoService(API_KEY_ENCRYPTION_SECRET);
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -219,13 +223,24 @@ async function generateAIResponse({
 		return;
 	}
 
-	const key = keyResult.value;
-	if (!key) {
+	const encryptedKey = keyResult.value;
+	if (!encryptedKey) {
 		log('Background: No API key found', startTime);
 		return;
 	}
 
 	log('Background: API key retrieved successfully', startTime);
+
+	const keyDecryptionResult = crypto.decrypt(encryptedKey);
+
+	if (keyDecryptionResult.isErr()) {
+		log(`Background: Failed to decrypt API key: ${keyDecryptionResult.error}`, startTime);
+		return;
+	}
+
+	const key = keyDecryptionResult.value;
+
+	log('Background: Decrypted API key successfully', startTime);
 
 	if (rulesResult.isErr()) {
 		log(`Background rules query failed: ${rulesResult.error}`, startTime);
@@ -253,6 +268,8 @@ async function generateAIResponse({
 		baseURL: 'https://openrouter.ai/api/v1',
 		apiKey: key,
 	});
+
+	console.log('key', key);
 
 	const formattedMessages = messages.map((m) => {
 		if (m.images && m.images.length > 0 && m.role === 'user') {
@@ -385,12 +402,15 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			(e) => `Failed to render HTML: ${e}`
 		);
 
-		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, key), {
-			delay: 500,
-			retries: 2,
-			startTime,
-			fnName: 'getGenerationStats',
-		});
+		const generationStatsResult = await retryResult(
+			() => getGenerationStats(generationId!, encryptedKey),
+			{
+				delay: 500,
+				retries: 2,
+				startTime,
+				fnName: 'getGenerationStats',
+			}
+		);
 
 		if (generationStatsResult.isErr()) {
 			log(`Background: Failed to get generation stats: ${generationStatsResult.error}`, startTime);
