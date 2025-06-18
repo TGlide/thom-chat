@@ -20,6 +20,7 @@
 		variant = 'ghost',
 		size = 'icon',
 		onCopy,
+		onclick,
 		class: className,
 		tabindex = -1,
 		children,
@@ -43,7 +44,9 @@
 	class={cn('flex items-center gap-2', className)}
 	type="button"
 	name="copy"
-	onclick={async () => {
+	onclick={async (e) => {
+		onclick?.(e);
+
 		const status = await clipboard.copy(text);
 
 		onCopy?.(status);

@@ -62,7 +62,7 @@ TODO: add instructions
 - [ ] Chat branching
 - [ ] Regenerate message
 - ~[ ] Image generation~
-- [ ] Chat sharing
+- [x] Chat sharing
 - [ ] 404 page/redirect
 - ~[ ] Test link with free credits~
 - [x] Cursor-like Rules (@ieedan's idea!)

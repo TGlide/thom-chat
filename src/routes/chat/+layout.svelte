@@ -37,6 +37,13 @@
 	import ModelPicker from './model-picker.svelte';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { cn } from '$lib/utils/utils.js';
+	import ShareIcon from '~icons/lucide/share';
+	import { Result, ResultAsync } from 'neverthrow';
+	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
+	import { scale } from 'svelte/transition';
+	import CheckIcon from '~icons/lucide/check';
+	import LockIcon from '~icons/lucide/lock';
+	import LockOpenIcon from '~icons/lucide/lock-open';
 
 	const client = useConvexClient();
 
@@ -330,6 +337,36 @@
 		}
 	}
 
+	const clipboard = new UseClipboard();
+
+	let sharingStatus = $derived(clipboard.status);
+
+	async function shareConversation() {
+		if (currentConversationQuery.data?.public) {
+			clipboard.copy(page.url.toString());
+			return;
+		}
+
+		if (!page.params.id || !session.current?.session.token) return;
+
+		const result = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.makePublic, {
+				conversation_id: page.params.id as Id<'conversations'>,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (result.isErr()) {
+			sharingStatus = 'failure';
+			setTimeout(() => {
+				sharingStatus = undefined;
+			}, 1000);
+		}
+
+		clipboard.copy(page.url.toString());
+	}
+
 	const textareaSize = new ElementSize(() => textarea);
 
 	let textareaWrapper = $state<HTMLDivElement>();
@@ -368,8 +405,52 @@
 			{cmdOrCtrl} + B
 		</Tooltip>
 
+		<Tooltip>
+			{#snippet trigger(tooltip)}
+				<div
+					class="fixed top-3 left-10 z-50 flex size-9 items-center justify-center md:top-1 md:left-auto"
+					{...tooltip.trigger}
+				>
+					{#if currentConversationQuery.data?.public}
+						<LockOpenIcon class="size-4" />
+					{:else}
+						<LockIcon class="size-4" />
+					{/if}
+				</div>
+			{/snippet}
+			{currentConversationQuery.data?.public ? 'Public' : 'Private'}
+		</Tooltip>
+
 		<!-- header -->
 		<div class="md:bg-sidebar fixed top-2 right-2 z-50 flex rounded-bl-lg p-1 md:top-0 md:right-0">
+			{#if page.params.id}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button
+							onClickPromise={shareConversation}
+							variant="ghost"
+							size="icon"
+							class="bg-sidebar size-8"
+							{...tooltip.trigger}
+						>
+							{#if sharingStatus === 'success'}
+								<div in:scale={{ duration: 1000, start: 0.85 }}>
+									<CheckIcon tabindex={-1} />
+									<span class="sr-only">Copied</span>
+								</div>
+							{:else if sharingStatus === 'failure'}
+								<div in:scale={{ duration: 1000, start: 0.85 }}>
+									<XIcon tabindex={-1} />
+									<span class="sr-only">Failed to copy</span>
+								</div>
+							{:else}
+								<ShareIcon />
+							{/if}
+						</Button>
+					{/snippet}
+					Share
+				</Tooltip>
+			{/if}
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
