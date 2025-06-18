@@ -584,7 +584,7 @@
 		</div>
 	</Sidebar.Sidebar>
 
-	<Sidebar.Inset class="w-full overflow-clip ">
+	<Sidebar.Inset class="w-full overflow-clip px-2">
 		<Tooltip>
 			{#snippet trigger(tooltip)}
 				<Sidebar.Trigger class="fixed top-3 left-2 z-50" {...tooltip.trigger}>

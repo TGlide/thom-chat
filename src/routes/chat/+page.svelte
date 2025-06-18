@@ -78,7 +78,7 @@
 					Be sure to login first.
 				{/if}
 			</p>
-			<div class="mt-4 flex items-center gap-1">
+			<div class="mt-4 flex flex-wrap items-center gap-1">
 				{#each Object.entries(suggestionCategories) as [category, opts] (category)}
 					<button
 						type="button"
@@ -105,7 +105,7 @@
 							<Button
 								onclick={() => (prompt.current = suggestion)}
 								variant="ghost"
-								class="w-full cursor-pointer justify-start py-2 text-start"
+								class="w-full px-2 cursor-pointer justify-start py-2 text-start"
 							>
 								{suggestion}
 							</Button>
@@ -117,7 +117,7 @@
 							<Button
 								onclick={() => (prompt.current = suggestion)}
 								variant="ghost"
-								class="w-full cursor-pointer justify-start py-2 text-start group-last:line-through"
+								class="w-full px-2 cursor-pointer justify-start py-2 text-start group-last:line-through"
 							>
 								{suggestion}
 							</Button>
