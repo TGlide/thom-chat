@@ -42,11 +42,15 @@ export const create = mutation({
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
 		// Optional image attachments
-		images: v.optional(v.array(v.object({
-			url: v.string(),
-			storage_id: v.string(),
-			fileName: v.optional(v.string()),
-		}))),
+		images: v.optional(
+			v.array(
+				v.object({
+					url: v.string(),
+					storage_id: v.string(),
+					fileName: v.optional(v.string()),
+				})
+			)
+		),
 	},
 	handler: async (ctx, args): Promise<Id<'messages'>> => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {

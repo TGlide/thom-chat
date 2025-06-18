@@ -27,6 +27,16 @@ export function fromMap<K, V, T>(map: Map<K, V>, fn: (key: K, value: V) => T): T
 	return items;
 }
 
+export function fromRecord<V, T>(map: Record<string, V>, fn: (key: string, value: V) => T): T[] {
+	const items: T[] = [];
+
+	for (const [key, value] of Object.entries(map)) {
+		items.push(fn(key, value));
+	}
+
+	return items;
+}
+
 /** Calculates the sum of all elements in the array based on the provided function.
  *
  * @param arr Array of items to be summed.
