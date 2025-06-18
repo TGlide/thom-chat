@@ -8,42 +8,41 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-	--background: oklch(0.9754 0.0084 325.6414);
-	--foreground: oklch(0.3257 0.1161 325.0372);
-	--card: oklch(0.9754 0.0084 325.6414);
-	--card-foreground: oklch(0.3257 0.1161 325.0372);
+	/* Improved light theme with better harmony */
+	--background: oklch(0.99 0.005 280);
+	--foreground: oklch(0.15 0.02 280);
+	--card: oklch(0.98 0.008 280);
+	--card-foreground: oklch(0.15 0.02 280);
 	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.3257 0.1161 325.0372);
+	--popover-foreground: oklch(0.15 0.02 280);
 	--primary: oklch(0.5797 0.1194 237.7893);
 	--heading: oklch(0.5797 0.1194 237.7893);
 	--primary-foreground: oklch(1 0 0);
-	--secondary: oklch(0.8696 0.0675 334.8991);
-	--secondary-foreground: oklch(0.4448 0.1341 324.7991);
-	--muted: oklch(0.9395 0.026 331.5454);
-	--muted-foreground: oklch(0.4924 0.1244 324.4523);
-	--accent: oklch(0.8696 0.0675 334.8991);
-	--accent-foreground: oklch(0.4448 0.1341 324.7991);
+	--secondary: oklch(0.92 0.015 280);
+	--secondary-foreground: oklch(0.25 0.03 280);
+	--muted: oklch(0.94 0.012 280);
+	--muted-foreground: oklch(0.45 0.025 280);
+	--accent: oklch(0.92 0.015 280);
+	--accent-foreground: oklch(0.25 0.03 280);
 	--destructive: oklch(0.5248 0.1368 20.8317);
 	--destructive-foreground: oklch(1 0 0);
-	--border: oklch(0.8568 0.0829 328.911);
-	--input: oklch(0.8517 0.0558 336.6002);
-	--ring: oklch(0.5916 0.218 0.5844);
+	--border: oklch(0.88 0.02 280);
+	--input: oklch(0.96 0.01 280);
+	--ring: oklch(0.5797 0.1194 237.7893);
 	--chart-1: oklch(0.6038 0.2363 344.4657);
 	--chart-2: oklch(0.4445 0.2251 300.6246);
 	--chart-3: oklch(0.379 0.0438 226.1538);
 	--chart-4: oklch(0.833 0.1185 88.3461);
 	--chart-5: oklch(0.7843 0.1256 58.9964);
-	/* Subtle blue shift for sidebar colors in light mode */
-	--sidebar: oklch(0.936 0.0288 280); /* Original hue 320.5788 -> 280 (more blue) */
-	--sidebar-foreground: oklch(0.4948 0.1909 285); /* Original hue 354.5435 -> 285 */
-	--sidebar-primary: oklch(0.3963 0.0251 270); /* Original hue 285.1962 -> 270 */
-	--sidebar-primary-foreground: oklch(
-		0.9668 0.0124 337.5228
-	); /* No change, keep white/near white */
-	--sidebar-accent: oklch(0.9789 0.0013 280); /* Original hue 106.4235 -> 280 */
-	--sidebar-accent-foreground: oklch(0.3963 0.0251 270); /* Original hue 285.1962 -> 270 */
-	--sidebar-border: oklch(0.9383 0.0026 280); /* Original hue 48.7178 -> 280 */
-	--sidebar-ring: oklch(0.5916 0.218 0.5844);
+	/* Harmonized sidebar colors for light mode */
+	--sidebar: oklch(0.97 0.008 280);
+	--sidebar-foreground: oklch(0.2 0.025 280);
+	--sidebar-primary: oklch(0.5797 0.1194 237.7893);
+	--sidebar-primary-foreground: oklch(1 0 0);
+	--sidebar-accent: oklch(0.94 0.012 280);
+	--sidebar-accent-foreground: oklch(0.25 0.03 280);
+	--sidebar-border: oklch(0.9 0.015 280);
+	--sidebar-ring: oklch(0.5797 0.1194 237.7893);
 	--radius: 0.5rem;
 	--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 	--shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -82,13 +81,13 @@
 	--chart-4: oklch(0.6193 0.2029 312.7422);
 	--chart-5: oklch(0.6118 0.2093 6.1387);
 	/* Subtle blue shift for sidebar colors in dark mode */
-	--sidebar: oklch(0.1693 0.0143 280); /* Original hue 331.0475 -> 260 */
-	--sidebar-foreground: oklch(0.8607 0.0293 265); /* Original hue 343.6612 -> 265 */
-	--sidebar-primary: oklch(0.4882 0.2172 250); /* Original hue 264.3763 -> 250 */
-	--sidebar-primary-foreground: oklch(1 0 0); /* No change, keep white */
-	--sidebar-accent: oklch(0.2337 0.0261 260); /* Original hue 338.1961 -> 260 */
-	--sidebar-accent-foreground: oklch(0.9674 0.0013 250); /* Original hue 286.3752 -> 250 */
-	--sidebar-border: oklch(0 0 0); /* No change, keep black */
+	--sidebar: oklch(0.1693 0.0143 280);
+	--sidebar-foreground: oklch(0.8607 0.0293 265);
+	--sidebar-primary: oklch(0.4882 0.2172 250);
+	--sidebar-primary-foreground: oklch(1 0 0);
+	--sidebar-accent: oklch(0.2337 0.0261 260);
+	--sidebar-accent-foreground: oklch(0.9674 0.0013 250);
+	--sidebar-border: oklch(0 0 0);
 	--sidebar-ring: oklch(0.5797 0.1194 237.7893);
 	--radius: 0.5rem;
 	--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -475,4 +474,113 @@
 @utility abs-x-center {
 	left: 50%;
 	transform: translateX(-50%);
+}
+
+/* Copy button */
+pre:has(code) {
+	position: relative;
+}
+
+pre button.copy {
+	position: absolute;
+	right: 12px;
+	top: 12px;
+	height: 32px;
+	width: 32px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+
+	@apply bg-background/80 hover:bg-background border-border hover:border-border/60 rounded-md border shadow-sm hover:shadow-md; /* Text color removed from here */
+
+	/* Improved hover and focus states */
+	&:hover {
+		transform: translateY(-1px);
+		@apply bg-background;
+	}
+
+	&:active {
+		transform: translateY(0px);
+		transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	&:focus-visible {
+		@apply ring-ring ring-offset-background ring-2 ring-offset-2 outline-none;
+	}
+
+	& span {
+		width: 16px;
+		height: 16px;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: contain;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		/* Default filter for light mode (assuming black/dark SVGs) */
+		filter: brightness(0.2) sepia(1) saturate(5) hue-rotate(240deg); /* Adjust hue-rotate to match your muted-foreground */
+	}
+
+	& .ready {
+		background-color: transparent;
+		background-image: url(/icons/copy.svg);
+	}
+
+	& .success {
+		display: none;
+		background-image: url(/icons/copy-success.svg);
+		transform: scale(1.1);
+	}
+
+	&.copied {
+		/* Light mode success state colors */
+		@apply bg-primary/10 border-primary/30;
+		/* Filter for success icon in light mode (e.g., primary color) */
+		& span {
+			filter: brightness(0.5) sepia(1) saturate(5) hue-rotate(240deg); /* Adjust to primary color */
+		}
+
+		& .success {
+			display: block;
+			animation: copySuccess 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+
+		& .ready {
+			display: none;
+		}
+	}
+}
+
+/* Dark mode adjustments for copy button */
+.dark pre button.copy {
+	& span {
+		/* Filter for dark mode (turn icons white/light) */
+		filter: invert(1) brightness(1.2); /* Invert and brighten for white/light icons */
+	}
+
+	&.copied {
+		/* Dark mode success state colors */
+		@apply bg-primary/20 border-primary/40;
+		/* Filter for success icon in dark mode (e.g., primary-foreground color) */
+		& span {
+			filter: invert(1) brightness(1.2); /* Keep them white/light for dark mode success */
+		}
+	}
+}
+
+/* Copy success animation */
+@keyframes copySuccess {
+	0% {
+		transform: scale(0.8);
+		opacity: 0;
+	}
+	50% {
+		transform: scale(1.2);
+	}
+	100% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
 }
