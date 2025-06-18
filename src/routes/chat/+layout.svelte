@@ -18,7 +18,6 @@
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
 	import { compressImage } from '$lib/utils/image-compression';
-	import { isString } from '$lib/utils/is.js';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { useConvexClient } from 'convex-svelte';
@@ -52,7 +51,9 @@
 		session_token: session.current?.session.token ?? '',
 	}));
 
-	const isGenerating = $derived(Boolean(currentConversationQuery.data?.generating));
+	const isGenerating = $derived(
+		Boolean(currentConversationQuery.data?.generating) || currentConversationQuery.isLoading
+	);
 
 	async function stopGeneration() {
 		if (!page.params.id || !session.current?.session.token) return;
@@ -78,11 +79,17 @@
 		}
 	}
 
+	let loading = $state(false);
+
+	const textareaDisabled = $derived(isGenerating || loading);
+
 	async function handleSubmit() {
 		if (isGenerating) return;
 
 		// TODO: Re-use zod here from server endpoint for better error messages?
 		if (message.current === '' || !session.current?.user.id || !settings.modelId) return;
+
+		loading = true;
 
 		const imagesCopy = [...selectedImages];
 		selectedImages = [];
@@ -109,14 +116,10 @@
 		} catch (error) {
 			console.error('Error generating message:', error);
 		} finally {
+			loading = false;
 			message.current = '';
 		}
 	}
-
-	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
-		provider: Provider.OpenRouter,
-		session_token: session.current?.session.token ?? '',
-	});
 
 	const rulesQuery = useCachedQuery(api.user_rules.all, {
 		session_token: session.current?.session.token ?? '',
@@ -496,7 +499,7 @@
 								<textarea
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
-									disabled={!openRouterKeyQuery.data || isGenerating}
+									disabled={textareaDisabled}
 									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[80px] w-full resize-none !overflow-y-auto bg-transparent px-3 text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									placeholder={isGenerating
 										? 'Generating response...'
