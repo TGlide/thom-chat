@@ -4,8 +4,11 @@
 	import type { Id } from '$lib/backend/convex/_generated/dataModel';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
 	import { session } from '$lib/state/session.svelte';
+	import { watch } from 'runed';
 	import LoadingDots from './loading-dots.svelte';
 	import Message from './message.svelte';
+	import { last } from '$lib/utils/array';
+	import { settings } from '$lib/state/settings.svelte';
 
 	const messages = useCachedQuery(api.messages.getAllFromConversation, () => ({
 		conversation_id: page.params.id ?? '',
@@ -26,6 +29,24 @@
 		if (lastMessage.role !== 'assistant') return false;
 
 		return lastMessage.content.length > 0;
+	});
+
+	let changedRoute = $state(false);
+	watch(
+		() => page.params.id,
+		() => {
+			changedRoute = true;
+		}
+	);
+
+	$effect(() => {
+		if (!changedRoute || !messages.data) return;
+		const lastMessage = last(messages.data)!;
+		if (lastMessage.model_id && lastMessage.model_id !== settings.modelId) {
+			settings.modelId = lastMessage.model_id;
+		}
+
+		changedRoute = false;
 	});
 </script>
 

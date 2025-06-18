@@ -41,6 +41,7 @@ export default ts.config(
 					],
 				},
 			],
+			'svelte/require-each-key': 'off',
 		},
 	},
 	{

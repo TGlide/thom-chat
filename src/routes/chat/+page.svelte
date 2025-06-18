@@ -79,7 +79,7 @@
 				{/if}
 			</p>
 			<div class="mt-4 flex items-center gap-1">
-				{#each Object.entries(suggestionCategories) as [category, opts]}
+				{#each Object.entries(suggestionCategories) as [category, opts] (category)}
 					<button
 						type="button"
 						class="data-[active=true]:bg-primary focus-visible:border-ring focus-visible:ring-ring/50 bg-muted relative inline-flex h-9 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap outline-hidden transition-all select-none hover:cursor-pointer focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 has-[>svg]:px-3 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
@@ -100,7 +100,7 @@
 
 			<div class="mt-2 flex flex-col gap-2 p-2">
 				{#if selectedCategory && suggestionCategories[selectedCategory]}
-					{#each suggestionCategories[selectedCategory]?.suggestions ?? [] as suggestion}
+					{#each suggestionCategories[selectedCategory]?.suggestions ?? [] as suggestion (suggestion)}
 						<div class="border-border not-last:border-b not-last:pb-2">
 							<Button
 								onclick={() => (prompt.current = suggestion)}

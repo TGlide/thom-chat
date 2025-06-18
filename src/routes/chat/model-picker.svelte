@@ -13,13 +13,14 @@
 	import MicrosoftIcon from '~icons/simple-icons/microsoft';
 	import OpenaiIcon from '~icons/simple-icons/openai';
 	import XIcon from '~icons/simple-icons/x';
-	// Fallback to lucide icons for companies without simple-icons
-	import RobotIcon from '~icons/lucide/bot';
 	import BrainIcon from '~icons/lucide/brain';
 	import CpuIcon from '~icons/lucide/cpu';
 	import ZapIcon from '~icons/lucide/zap';
 	// Model-specific icons
+	import Cohere from '$lib/components/icons/cohere.svelte';
+	import Deepseek from '$lib/components/icons/deepseek.svelte';
 	import { Popover } from 'melt/builders';
+	import type { Component } from 'svelte';
 	import LogosClaudeIcon from '~icons/logos/claude-icon';
 	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
 	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
@@ -37,7 +38,7 @@
 	const enabledArr = $derived(Object.values(enabledModelsQuery.data ?? {}));
 
 	// Company icon mapping
-	const companyIcons: Record<string, typeof OpenaiIcon> = {
+	const companyIcons: Record<string, Component> = {
 		openai: OpenaiIcon,
 		anthropic: BrainIcon,
 		google: GoogleIcon,
@@ -46,11 +47,10 @@
 		'x-ai': XIcon,
 		microsoft: MicrosoftIcon,
 		qwen: CpuIcon,
-		deepseek: RobotIcon,
-		cohere: CpuIcon,
+		deepseek: Deepseek,
+		cohere: Cohere,
 	};
 
-	// Function to get model-specific icon
 	function getModelIcon(modelId: string): typeof LogosClaudeIcon | null {
 		const id = modelId.toLowerCase();
 
@@ -61,17 +61,13 @@
 		return null;
 	}
 
-	// Function to extract company from model ID
 	function getCompanyFromModelId(modelId: string): string {
 		const id = modelId.toLowerCase();
 
-		// OpenAI models
 		if (id.includes('gpt') || id.includes('o1') || id.includes('openai')) return 'openai';
 
-		// Anthropic models
 		if (id.includes('claude') || id.includes('anthropic')) return 'anthropic';
 
-		// Google models
 		if (
 			id.includes('gemini') ||
 			id.includes('gemma') ||
@@ -80,25 +76,18 @@
 		)
 			return 'google';
 
-		// Meta models
 		if (id.includes('llama') || id.includes('meta')) return 'meta';
 
-		// Mistral models
 		if (id.includes('mistral') || id.includes('mixtral')) return 'mistral';
 
-		// xAI models
 		if (id.includes('grok') || id.includes('x-ai')) return 'x-ai';
 
-		// Microsoft models
 		if (id.includes('phi') || id.includes('microsoft')) return 'microsoft';
 
-		// Qwen models
 		if (id.includes('qwen') || id.includes('alibaba')) return 'qwen';
 
-		// DeepSeek models
 		if (id.includes('deepseek')) return 'deepseek';
 
-		// Cohere models
 		if (id.includes('command') || id.includes('cohere')) return 'cohere';
 
 		// Try to extract from model path (e.g., "anthropic/claude-3")
@@ -113,19 +102,15 @@
 
 	// Group models by company
 	const groupedModels = $derived.by(() => {
-		console.log('📊 enabledArr:', enabledArr);
 		const groups: Record<string, typeof enabledArr> = {};
 
 		enabledArr.forEach((model) => {
 			const company = getCompanyFromModelId(model.model_id);
-			console.log(`🏢 Model ${model.model_id} -> Company: ${company}`);
 			if (!groups[company]) {
 				groups[company] = [];
 			}
 			groups[company].push(model);
 		});
-
-		console.log('📋 Groups:', groups);
 
 		// Sort companies with known icons first
 		const result = Object.entries(groups).sort(([a], [b]) => {
@@ -134,11 +119,9 @@
 			return aHasIcon - bHasIcon || a.localeCompare(b);
 		});
 
-		console.log('🎯 Final grouped models:', result);
 		return result;
 	});
 
-	// Find current model details
 	const currentModel = $derived(enabledArr.find((m) => m.model_id === settings.modelId));
 	const currentCompany = $derived(
 		currentModel ? getCompanyFromModelId(currentModel.model_id) : 'other'
@@ -159,12 +142,9 @@
 	const popover = new Popover({
 		open: () => open,
 		onOpenChange: (v) => {
-			console.log('📋 popover open:', v);
 			if (v === open) return;
 			open = v;
-			console.log('assigned', v);
 			if (v) return;
-			console.log('attempting to focus');
 			document.getElementById(popover.trigger.id)?.focus();
 		},
 		floatingConfig: {

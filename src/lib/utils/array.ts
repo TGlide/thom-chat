@@ -112,3 +112,7 @@ export function* iterate<T>(array: T[]): Generator<IterateReturn<T>> {
 		];
 	}
 }
+
+export function last<T>(arr: T[]): T | undefined {
+	return arr[arr.length - 1];
+}
