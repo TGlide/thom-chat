@@ -53,7 +53,7 @@ export const getById = query({
 
 		const conversation = await ctx.db.get(args.conversation_id);
 
-		if (!conversation || conversation.user_id !== session.userId) {
+		if (!conversation || (conversation.user_id !== session.userId && !conversation.public)) {
 			throw new Error('Conversation not found or unauthorized');
 		}
 
