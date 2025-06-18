@@ -41,7 +41,6 @@ TODO: add instructions
 - [x] Syntax highlighting with Shiki/markdown renderer
 - [ ] Eliminate FOUC
 - [x] Cascade deletes
-- [ ] Error notification central, specially for BYOK models like o3
 - [ ] Google Auth
 - [ ] Fix light mode (urgh)
 - [x] Privacy mode
