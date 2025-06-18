@@ -31,7 +31,7 @@ TODO: add instructions
 - [x] useCachedQuery
 - [x] Convex schemas for chats
 - [x] Actual fucking UI for chat
-- [ ] Providers (BYOK)
+- [x] Providers (BYOK)
   - [x] Openrouter
   - ~[ ] HuggingFace~
   - ~[ ] OpenAI~
@@ -62,8 +62,8 @@ TODO: add instructions
 - [x] Web Search
 - [ ] Chat branching
 - [ ] Regenerate message
-- [ ] Image generation
+- ~[ ] Image generation~
 - [ ] Chat sharing
 - [ ] 404 page/redirect
-- [ ] Test link with free credits
+- ~[ ] Test link with free credits~
 - [x] Cursor-like Rules (@ieedan's idea!)
