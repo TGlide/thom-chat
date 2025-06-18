@@ -294,7 +294,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	}
 
 	// Check if web search is enabled for the last user message
-	const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+	const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
 	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
 
 	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
@@ -331,6 +331,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			content: '',
 			role: 'assistant',
 			session_token: sessionToken,
+			web_search_enabled: webSearchEnabled,
 		}),
 		(e) => `Failed to create assistant message: ${e}`
 	);

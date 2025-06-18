@@ -93,6 +93,10 @@
 			{#if message.model_id !== undefined}
 				<span class="text-muted-foreground text-xs">{message.model_id}</span>
 			{/if}
+			{#if message.web_search_enabled}
+				<span class="text-muted-foreground text-xs"> Web search enabled </span>
+			{/if}
+
 			{#if message.cost_usd !== undefined}
 				<span class="text-muted-foreground text-xs">
 					${message.cost_usd.toFixed(6)}
