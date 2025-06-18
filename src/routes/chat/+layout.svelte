@@ -4,6 +4,7 @@
 	import { api } from '$lib/backend/convex/_generated/api.js';
 	import { type Doc, type Id } from '$lib/backend/convex/_generated/dataModel.js';
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte.js';
+	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import * as Icons from '$lib/components/icons';
 	import { Button } from '$lib/components/ui/button';
 	import { ImageModal } from '$lib/components/ui/image-modal';
@@ -11,6 +12,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
+	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
@@ -20,11 +22,14 @@
 	import { compressImage } from '$lib/utils/image-compression';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
+	import { cn } from '$lib/utils/utils.js';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
+	import { ResultAsync } from 'neverthrow';
 	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
+	import { scale } from 'svelte/transition';
 	import SendIcon from '~icons/lucide/arrow-up';
-	import StopIcon from '~icons/lucide/square';
+	import CheckIcon from '~icons/lucide/check';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
@@ -35,15 +40,12 @@
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import ModelPicker from './model-picker.svelte';
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
-	import { cn } from '$lib/utils/utils.js';
 	import ShareIcon from '~icons/lucide/share';
-	import { ResultAsync } from 'neverthrow';
-	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
-	import { fade, scale } from 'svelte/transition';
-	import CheckIcon from '~icons/lucide/check';
+	import { fade } from 'svelte/transition';
 	import LockIcon from '~icons/lucide/lock';
 	import LockOpenIcon from '~icons/lucide/lock-open';
+	import StopIcon from '~icons/lucide/square';
+	import SearchModal from './search-modal.svelte';
 
 	const client = useConvexClient();
 
@@ -462,6 +464,7 @@
 					Share
 				</Tooltip>
 			{/if}
+			<SearchModal />
 			<Tooltip>
 				{#snippet trigger(tooltip)}
 					<Button variant="ghost" size="icon" class="size-8" href="/account" {...tooltip.trigger}>
