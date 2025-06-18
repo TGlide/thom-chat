@@ -22,6 +22,11 @@
 	import CpuIcon from '~icons/lucide/cpu';
 	import RobotIcon from '~icons/lucide/bot';
 
+	// Model-specific icons
+	import LogosClaudeIcon from '~icons/logos/claude-icon';
+	import MaterialIconThemeGeminiAi from '~icons/material-icon-theme/gemini-ai';
+	import LogosMistralAiIcon from '~icons/logos/mistral-ai-icon';
+
 	type Props = {
 		class?: string;
 	};
@@ -47,6 +52,17 @@
 		deepseek: RobotIcon,
 		cohere: CpuIcon,
 	};
+
+	// Function to get model-specific icon
+	function getModelIcon(modelId: string): typeof LogosClaudeIcon | null {
+		const id = modelId.toLowerCase();
+		
+		if (id.includes('claude') || id.includes('anthropic')) return LogosClaudeIcon;
+		if (id.includes('gemini') || id.includes('gemma')) return MaterialIconThemeGeminiAi;
+		if (id.includes('mistral') || id.includes('mixtral')) return LogosMistralAiIcon;
+		
+		return null;
+	}
 
 	// Function to extract company from model ID
 	function getCompanyFromModelId(modelId: string): string {
@@ -176,7 +192,7 @@
 					class="flex h-10 w-full rounded-md border-0 border-b bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
 					placeholder="Search models..."
 				/>
-				<Command.List>
+				<Command.List class="max-h-80 overflow-y-auto">
 					<Command.Viewport>
 						<Command.Empty>
 							No models available. Enable some models in the account settings.
@@ -192,22 +208,29 @@
 									{/if}
 									{company} ({models.length})
 								</Command.GroupHeading>
-								<Command.GroupItems class="grid grid-cols-3 gap-2 px-3 pb-3">
+								<Command.GroupItems class="grid grid-cols-3 gap-3 px-3 pb-3">
 									{#each models as model (model._id)}
 										<Command.Item
 											value={model.model_id}
 											onSelect={() => selectModel(model.model_id)}
 											class={cn(
-												'data-selected:bg-accent data-selected:text-accent-foreground relative flex cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm outline-none transition-colors',
-												settings.modelId === model.model_id && 'bg-primary text-primary-foreground'
+												'data-selected:bg-accent data-selected:text-accent-foreground relative flex cursor-pointer select-none flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-4 text-sm outline-none transition-all hover:border-gray-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600',
+												settings.modelId === model.model_id && 'bg-primary border-primary text-primary-foreground shadow-md'
 											)}
 										>
-											<div class="flex flex-1 items-center justify-between gap-2">
-												<span class="truncate text-left font-medium">
+											<div class="flex min-h-16 flex-col items-center justify-center gap-2">
+												{#if getModelIcon(model.model_id)}
+													{@const ModelIcon = getModelIcon(model.model_id)}
+													<ModelIcon class="size-6 shrink-0" />
+												{:else if companyIcons[getCompanyFromModelId(model.model_id)]}
+													{@const CompanyIcon = companyIcons[getCompanyFromModelId(model.model_id)]}
+													<CompanyIcon class="size-6 shrink-0" />
+												{/if}
+												<span class="text-center text-xs font-medium leading-tight">
 													{model.model_id.replace(/^[^/]+\//, '')}
 												</span>
 												{#if settings.modelId === model.model_id}
-													<CheckIcon class="size-4 shrink-0" />
+													<CheckIcon class="absolute right-1 top-1 size-3 shrink-0" />
 												{/if}
 											</div>
 										</Command.Item>
