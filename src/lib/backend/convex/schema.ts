@@ -53,6 +53,7 @@ export default defineSchema({
 		conversation_id: v.string(),
 		role: v.union(v.literal('user'), v.literal('assistant'), v.literal('system')),
 		content: v.string(),
+		content_html: v.optional(v.string()),
 		// Optional, coming from SK API route
 		model_id: v.optional(v.string()),
 		provider: v.optional(providerValidator),

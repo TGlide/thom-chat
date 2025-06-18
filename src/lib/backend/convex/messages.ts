@@ -33,6 +33,7 @@ export const create = mutation({
 	args: {
 		conversation_id: v.string(),
 		content: v.string(),
+		content_html: v.optional(v.string()),
 		role: messageRoleValidator,
 		session_token: v.string(),
 
@@ -42,11 +43,15 @@ export const create = mutation({
 		token_count: v.optional(v.number()),
 		web_search_enabled: v.optional(v.boolean()),
 		// Optional image attachments
-		images: v.optional(v.array(v.object({
-			url: v.string(),
-			storage_id: v.string(),
-			fileName: v.optional(v.string()),
-		}))),
+		images: v.optional(
+			v.array(
+				v.object({
+					url: v.string(),
+					storage_id: v.string(),
+					fileName: v.optional(v.string()),
+				})
+			)
+		),
 	},
 	handler: async (ctx, args): Promise<Id<'messages'>> => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -74,6 +79,7 @@ export const create = mutation({
 			ctx.db.insert('messages', {
 				conversation_id: args.conversation_id,
 				content: args.content,
+				content_html: args.content_html,
 				role: args.role,
 				// Optional, coming from SK API route
 				model_id: args.model_id,
@@ -98,6 +104,7 @@ export const updateContent = mutation({
 		session_token: v.string(),
 		message_id: v.string(),
 		content: v.string(),
+		content_html: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -116,6 +123,7 @@ export const updateContent = mutation({
 
 		await ctx.db.patch(message._id, {
 			content: args.content,
+			content_html: args.content_html,
 		});
 	},
 });
@@ -127,6 +135,7 @@ export const updateMessage = mutation({
 		token_count: v.optional(v.number()),
 		cost_usd: v.optional(v.number()),
 		generation_id: v.optional(v.string()),
+		content_html: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -147,6 +156,7 @@ export const updateMessage = mutation({
 			token_count: args.token_count,
 			cost_usd: args.cost_usd,
 			generation_id: args.generation_id,
+			content_html: args.content_html,
 		});
 	},
 });

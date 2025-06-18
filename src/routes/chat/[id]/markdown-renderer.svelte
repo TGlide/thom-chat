@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { sanitizeHtml } from '$lib/utils/markdown-it';
 	import { Markdown } from '$lib/utils/markdown.svelte';
 
 	type Props = {
@@ -10,4 +11,4 @@
 	const markdown = new Markdown(() => content);
 </script>
 
-{@html markdown.current}
+{@html sanitizeHtml(markdown.current ?? '')}

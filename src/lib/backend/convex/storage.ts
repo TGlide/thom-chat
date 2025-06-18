@@ -55,4 +55,3 @@ export const deleteFile = mutation({
 		await ctx.storage.delete(args.storage_id);
 	},
 });
-

@@ -10,6 +10,7 @@ import { err, ok, Result, ResultAsync } from 'neverthrow';
 import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { generationAbortControllers } from './cache.js';
+import { md } from '$lib/utils/markdown-it.js';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -386,6 +387,11 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			return;
 		}
 
+		const contentHtmlResultPromise = ResultAsync.fromPromise(
+			md.renderAsync(content),
+			(e) => `Failed to render HTML: ${e}`
+		);
+
 		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, key), {
 			delay: 500,
 			retries: 2,
@@ -405,6 +411,12 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 
 		log('Background: Got generation stats', startTime);
 
+		const contentHtmlResult = await contentHtmlResultPromise;
+
+		if (contentHtmlResult.isErr()) {
+			log(`Background: Failed to render HTML: ${contentHtmlResult.error}`, startTime);
+		}
+
 		const [updateMessageResult, updateGeneratingResult, updateCostUsdResult] = await Promise.all([
 			ResultAsync.fromPromise(
 				client.mutation(api.messages.updateMessage, {
@@ -413,6 +425,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 					cost_usd: generationStats.total_cost,
 					generation_id: generationId,
 					session_token: sessionToken,
+					content_html: contentHtmlResult.unwrapOr(undefined),
 				}),
 				(e) => `Failed to update message: ${e}`
 			),
@@ -528,6 +541,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const convMessageResult = await ResultAsync.fromPromise(
 			client.mutation(api.conversations.createAndAddMessage, {
 				content: args.message,
+				content_html: '',
 				role: 'user',
 				images: args.images,
 				web_search_enabled: args.web_search_enabled,
