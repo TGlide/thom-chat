@@ -89,6 +89,7 @@ export const createAndAddMessage = mutation({
 		content: v.string(),
 		role: messageRoleValidator,
 		session_token: v.string(),
+		web_search_enabled: v.optional(v.boolean()),
 		images: v.optional(v.array(v.object({
 			url: v.string(),
 			storage_id: v.string(),
@@ -123,6 +124,7 @@ export const createAndAddMessage = mutation({
 			role: args.role,
 			conversation_id: conversationId,
 			session_token: args.session_token,
+			web_search_enabled: args.web_search_enabled,
 			images: args.images,
 		});
 
