@@ -102,6 +102,7 @@ export const createAndAddMessage = mutation({
 				})
 			)
 		),
+		web_search_enabled: v.optional(v.boolean()),
 	},
 	handler: async (
 		ctx,

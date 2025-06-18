@@ -233,6 +233,12 @@ async function generateAIResponse({
 	const messages = messagesQueryResult.value;
 	log(`Background: Retrieved ${messages.length} messages from conversation`, startTime);
 
+	// Check if web search is enabled for the last user message
+	const lastUserMessage = messages.filter((m) => m.role === 'user').pop();
+	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
+
+	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
+
 	// Create assistant message
 	const messageCreationResult = await ResultAsync.fromPromise(
 		client.mutation(api.messages.create, {
@@ -242,6 +248,7 @@ async function generateAIResponse({
 			content: '',
 			role: 'assistant',
 			session_token: sessionToken,
+			web_search_enabled: webSearchEnabled,
 		}),
 		(e) => `Failed to create assistant message: ${e}`
 	);
@@ -367,12 +374,6 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 		});
 		return;
 	}
-
-	// Check if web search is enabled for the last user message
-	const lastUserMessage = messages.filter(m => m.role === 'user').pop();
-	const webSearchEnabled = lastUserMessage?.web_search_enabled ?? false;
-
-	const modelId = webSearchEnabled ? `${model.model_id}:online` : model.model_id;
 
 	const streamResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create(
