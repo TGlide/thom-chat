@@ -44,12 +44,12 @@ TODO: add instructions
 - [ ] Error notification central, specially for BYOK models like o3
 - [ ] Google Auth
 - [ ] Fix light mode (urgh)
-- [ ] Privacy mode
+- [x] Privacy mode
 
 ### Chat
 
 - [x] loading state
-- [ ] deal with error states, both on creation attempt and message generation failure
+- [x] deal with error states, both on creation attempt and message generation failure
 - [x] delete conversations option
 - [x] conversation title generation
 - [x] kbd powered popover model picker
