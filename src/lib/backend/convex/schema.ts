@@ -77,5 +77,14 @@ export default defineSchema({
 		cost_usd: v.optional(v.number()),
 		generation_id: v.optional(v.string()),
 		web_search_enabled: v.optional(v.boolean()),
+		version: v.optional(v.id('message_versions')),
 	}).index('by_conversation', ['conversation_id']),
+	message_versions: defineTable({
+		conversation_id: v.id('conversations'),
+		head_version: v.optional(v.id('message_versions')),
+		head_message: v.id('messages'),
+	})
+		.index('by_conversation', ['conversation_id'])
+		.index('by_head_message', ['head_message'])
+		.index('by_head_version', ['head_version']),
 });

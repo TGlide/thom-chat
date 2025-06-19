@@ -9,6 +9,9 @@
 	import { sanitizeHtml } from '$lib/utils/markdown-it';
 	import { on } from 'svelte/events';
 	import { isHtmlElement } from '$lib/utils/is';
+	import { Button } from '$lib/components/ui/button';
+	import RefreshCwIcon from '~icons/lucide/refresh-cw';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -107,6 +110,16 @@
 				}
 			)}
 		>
+			{#if message.role === 'user'}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button size="icon" class="size-7" variant="ghost" {...tooltip.trigger}>
+							<RefreshCwIcon />
+						</Button>
+					{/snippet}
+					Generate a new version
+				</Tooltip>
+			{/if}
 			{#if message.content.length > 0}
 				<CopyButton class="size-7" text={message.content} />
 			{/if}

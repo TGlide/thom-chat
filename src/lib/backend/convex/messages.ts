@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { api } from './_generated/api';
-import { type Id } from './_generated/dataModel';
+import { Doc, type Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 import { messageRoleValidator, providerValidator } from './schema';
 import { mutation } from './functions';
@@ -41,6 +41,7 @@ export const create = mutation({
 		content_html: v.optional(v.string()),
 		role: messageRoleValidator,
 		session_token: v.string(),
+		version: v.optional(v.id('message_versions')),
 
 		// Optional, coming from SK API route
 		model_id: v.optional(v.string()),
@@ -96,6 +97,7 @@ export const create = mutation({
 				web_search_enabled: args.web_search_enabled,
 				// Optional image attachments
 				images: args.images,
+				version: args.version,
 			}),
 			ctx.db.patch(args.conversation_id as Id<'conversations'>, {
 				generating: true,
@@ -106,6 +108,83 @@ export const create = mutation({
 		return id;
 	},
 });
+
+export const createNewVersion = mutation({
+	args: {
+		conversation_id: v.id('conversations'),
+		head_message: v.id('messages'),
+	},
+	handler: async (ctx, args) => {
+		const [messages, versions] = await Promise.all([
+			ctx.db
+				.query('messages')
+				.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
+				.collect(),
+			ctx.db
+				.query('message_versions')
+				.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
+				.collect(),
+		]);
+
+		const headMessageIndex = messages.findIndex((m) => m._id === args.head_message);
+
+		const headMessage = messages[headMessageIndex];
+
+		if (!headMessage) throw new Error('Head message not found');
+
+		const tree = createTree(headMessage, messages, versions);
+
+		
+	},
+});
+
+type MessageNode = {
+	message: Doc<'messages'>;
+	versions?: VersionNode[];
+};
+
+type VersionNode = {
+	version: Doc<'message_versions'> | null;
+	messages: (MessageNode | null)[];
+};
+
+function createTree(
+	message: Doc<'messages'>,
+	messages: Doc<'messages'>[],
+	versions: Doc<'message_versions'>[]
+): MessageNode {
+	// if the message has no versions then it's just a message
+	const versionsForFirstMessage = versions.filter((v) => v.head_message === message._id);
+	if (versionsForFirstMessage.length === 0) {
+		return {
+			message,
+		};
+	}
+
+	const subVersions: VersionNode[] = [];
+
+	for (const version of versionsForFirstMessage) {
+		const messagesForVersion = messages.filter((m) => m.version === version._id);
+
+		const nodes: (MessageNode | null)[] = [];
+
+		for (const message of messagesForVersion) {
+			const node = createTree(message, messages, versions);
+
+			nodes.push(node);
+		}
+
+		subVersions.push({
+			version,
+			messages: nodes,
+		});
+	}
+
+	return {
+		message,
+		versions: subVersions,
+	};
+}
 
 export const updateContent = mutation({
 	args: {
@@ -176,7 +255,7 @@ export const getByConversationPublic = query({
 	handler: async (ctx, args) => {
 		// First check if the conversation is public
 		const conversation = await ctx.db.get(args.conversation_id);
-		
+
 		if (!conversation || !conversation.public) {
 			return null;
 		}
