@@ -138,7 +138,11 @@ export const enable_initial = mutation({
 			return;
 		}
 
-		const initialModels = ['google/gemini-2.5-flash', 'deepseek/deepseek-chat-v3-0324:free'];
+		const initialModels = [
+			'google/gemini-2.5-flash',
+			'deepseek/deepseek-chat-v3-0324:free',
+			'microsoft/phi-4:free',
+		];
 
 		await Promise.all(
 			initialModels.map((model) =>

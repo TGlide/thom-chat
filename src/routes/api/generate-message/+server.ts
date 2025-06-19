@@ -301,42 +301,50 @@ async function generateAIResponse({
 		actualKey = userKey;
 		log('Background: Using user API key', startTime);
 	} else {
-		// User doesn't have API key, check free tier limit
-		const freeMessagesUsed = userSettings?.free_messages_used || 0;
+		// User doesn't have API key, check if using a free model
+		const isFreeModel = model.model_id.endsWith(':free');
 		
-		if (freeMessagesUsed >= 10) {
-			handleGenerationError({
-				error: 'Free message limit reached (10/10). Please add your own OpenRouter API key to continue chatting.',
-				conversationId,
-				messageId: mid,
-				sessionToken,
-				startTime,
-			});
-			return;
-		}
-		
-		// Increment free message count before generating
-		const incrementResult = await ResultAsync.fromPromise(
-			client.mutation(api.user_settings.incrementFreeMessageCount, {
-				session_token: sessionToken,
-			}),
-			(e) => `Failed to increment free message count: ${e}`
-		);
-		
-		if (incrementResult.isErr()) {
-			handleGenerationError({
-				error: `Failed to track free message usage: ${incrementResult.error}`,
-				conversationId,
-				messageId: mid,
-				sessionToken,
-				startTime,
-			});
-			return;
+		if (!isFreeModel) {
+			// For non-free models, check the 10 message limit
+			const freeMessagesUsed = userSettings?.free_messages_used || 0;
+			
+			if (freeMessagesUsed >= 10) {
+				handleGenerationError({
+					error: 'Free message limit reached (10/10). Please add your own OpenRouter API key to continue chatting, or use a free model ending in ":free".',
+					conversationId,
+					messageId: mid,
+					sessionToken,
+					startTime,
+				});
+				return;
+			}
+			
+			// Increment free message count before generating (only for non-free models)
+			const incrementResult = await ResultAsync.fromPromise(
+				client.mutation(api.user_settings.incrementFreeMessageCount, {
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to increment free message count: ${e}`
+			);
+			
+			if (incrementResult.isErr()) {
+				handleGenerationError({
+					error: `Failed to track free message usage: ${incrementResult.error}`,
+					conversationId,
+					messageId: mid,
+					sessionToken,
+					startTime,
+				});
+				return;
+			}
+			
+			log(`Background: Using free tier (${freeMessagesUsed + 1}/10 messages)`, startTime);
+		} else {
+			log(`Background: Using free model (${model.model_id}) - no message count`, startTime);
 		}
 		
 		// Use environment OpenRouter key
 		actualKey = OPENROUTER_FREE_KEY;
-		log(`Background: Using free tier (${freeMessagesUsed + 1}/10 messages)`, startTime);
 	}
 
 	if (rulesResult.isErr()) {
