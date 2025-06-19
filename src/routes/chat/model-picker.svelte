@@ -210,12 +210,7 @@
 	const isMobile = new IsMobile();
 </script>
 
-{#if enabledArr.length === 0}
-	<!-- Fallback to original select if no models are loaded -->
-	<select bind:value={settings.modelId} class={cn('border-border border', className)}>
-		<option value="">Loading models...</option>
-	</select>
-{:else}
+{#if enabledArr.length}
 	<button
 		{...popover.trigger}
 		class={cn(

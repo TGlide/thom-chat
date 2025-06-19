@@ -426,10 +426,7 @@
 			)}
 		>
 			{#if page.params.id && currentConversationQuery.data}
-				<ShareButton
-					conversationId={page.params.id as Id<'conversations'>}
-					isPublic={currentConversationQuery.data.public}
-				/>
+				<ShareButton conversationId={page.params.id as Id<'conversations'>} />
 			{/if}
 			<Tooltip>
 				{#snippet trigger(tooltip)}

@@ -7,9 +7,11 @@
 	import MarkdownRenderer from './markdown-renderer.svelte';
 	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { sanitizeHtml } from '$lib/utils/markdown-it';
+	import { on } from 'svelte/events';
+	import { isHtmlElement } from '$lib/utils/is';
 
 	const style = tv({
-		base: 'prose rounded-xl p-2',
+		base: 'prose rounded-xl p-2 max-w-full',
 		variants: {
 			role: {
 				user: 'bg-secondary/50 border border-secondary/70 px-3 py-2 !text-black/80 dark:!text-primary-foreground self-end',
@@ -40,7 +42,23 @@
 </script>
 
 {#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0 && !message.error)}
-	<div class={cn('group flex max-w-[80%] flex-col gap-1', { 'self-end': message.role === 'user' })}>
+	<div
+		class={cn('group flex flex-col gap-1', { 'max-w-[80%] self-end ': message.role === 'user' })}
+		{@attach (node) => {
+			return on(node, 'click', (e) => {
+				const el = e.target as HTMLElement;
+				const closestCopyButton = el.closest('.copy[data-code]');
+				if (!isHtmlElement(closestCopyButton)) return;
+
+				const code = closestCopyButton.dataset.code;
+				if (!code) return;
+
+				navigator.clipboard.writeText(code);
+				closestCopyButton.classList.add('copied');
+				setTimeout(() => closestCopyButton.classList.remove('copied'), 3000);
+			});
+		}}
+	>
 		{#if message.images && message.images.length > 0}
 			<div class="mb-2 flex flex-wrap gap-2">
 				{#each message.images as image (image.storage_id)}
@@ -64,6 +82,7 @@
 					<pre class="!bg-sidebar"><code>{message.error}</code></pre>
 				</div>
 			{:else if message.content_html}
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html sanitizeHtml(message.content_html)}
 			{:else}
 				<svelte:boundary>
@@ -106,9 +125,11 @@
 		</div>
 	</div>
 
-	<ImageModal
-		bind:open={imageModal.open}
-		imageUrl={imageModal.imageUrl}
-		fileName={imageModal.fileName}
-	/>
+	{#if message.images && message.images.length > 0}
+		<ImageModal
+			bind:open={imageModal.open}
+			imageUrl={imageModal.imageUrl}
+			fileName={imageModal.fileName}
+		/>
+	{/if}
 {/if}
