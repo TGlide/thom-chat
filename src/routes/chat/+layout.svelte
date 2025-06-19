@@ -20,7 +20,6 @@
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
 	import { compressImage } from '$lib/utils/image-compression';
-	import { isHtmlElement } from '$lib/utils/is.js';
 	import { supportsImages } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
@@ -372,21 +371,6 @@
 <svelte:head>
 	<title>Chat | Thom.chat</title>
 </svelte:head>
-
-<svelte:document
-	onclick={(e) => {
-		const el = e.target as HTMLElement;
-		const closestCopyButton = el.closest('.copy[data-code]');
-		if (!isHtmlElement(closestCopyButton)) return;
-
-		const code = closestCopyButton.dataset.code;
-		if (!code) return;
-
-		navigator.clipboard.writeText(code);
-		closestCopyButton.classList.add('copied');
-		setTimeout(() => closestCopyButton.classList.remove('copied'), 3000);
-	}}
-/>
 
 <Sidebar.Root
 	bind:open={sidebarOpen}
