@@ -61,7 +61,7 @@
 	<title>{conversation.data?.title} | thom.chat</title>
 </svelte:head>
 
-<div class="flex h-full flex-1 flex-col py-4">
+<div class="flex h-full flex-1 flex-col py-4 pt-6">
 	{#if !conversation.data && !conversation.isLoading}
 		<div class="flex flex-1 flex-col items-center justify-center gap-4 pt-[25svh]">
 			<div>

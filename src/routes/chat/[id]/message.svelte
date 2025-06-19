@@ -17,6 +17,8 @@
 	import { session } from '$lib/state/session.svelte';
 	import { ResultAsync } from 'neverthrow';
 	import { goto } from '$app/navigation';
+	import { callGenerateMessage } from '../../api/generate-message/call';
+	import RefreshCwIcon from '~icons/lucide/refresh-cw';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -66,6 +68,39 @@
 		}
 
 		await goto(`/chat/${res.value}`);
+	}
+
+	async function branchAndGenerate() {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.createBranched, {
+				conversation_id: message.conversation_id as Id<'conversations'>,
+				from_message_id: message._id,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (res.isErr()) {
+			console.error(res.error);
+			return;
+		}
+
+		const cid = res.value;
+
+		const generateRes = await callGenerateMessage({
+			session_token: session.current?.session.token ?? '',
+			conversation_id: cid,
+			model_id: message.model_id!,
+			images: message.images,
+			web_search_enabled: message.web_search_enabled,
+		});
+
+		if (generateRes.isErr()) {
+			// TODO: add error toast
+			return;
+		}
+
+		await goto(`/chat/${cid}`);
 	}
 </script>
 
@@ -149,23 +184,47 @@
 				{/snippet}
 				Branch off this message
 			</Tooltip>
+			{#if message.role === 'user'}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button
+							size="icon"
+							variant="ghost"
+							class={cn('group order-0 size-7')}
+							onClickPromise={branchAndGenerate}
+							{...tooltip.trigger}
+						>
+							<RefreshCwIcon class="group-data-[loading=true]:opacity-0" />
+						</Button>
+					{/snippet}
+					Branch and regenerate
+				</Tooltip>
+			{/if}
 			{#if message.content.length > 0}
-				<CopyButton
-					class={cn('order-1 size-7', { 'order-2': message.role === 'user' })}
-					text={message.content}
-				/>
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<CopyButton
+							class={cn('order-1 size-7', { 'order-2': message.role === 'user' })}
+							text={message.content}
+							{...tooltip.trigger}
+						/>
+					{/snippet}
+					Copy
+				</Tooltip>
 			{/if}
-			{#if message.model_id !== undefined}
-				<span class="text-muted-foreground text-xs">{message.model_id}</span>
-			{/if}
-			{#if message.web_search_enabled}
-				<span class="text-muted-foreground text-xs"> Web search enabled </span>
-			{/if}
+			{#if message.role === 'assistant'}
+				{#if message.model_id !== undefined}
+					<span class="text-muted-foreground text-xs">{message.model_id}</span>
+				{/if}
+				{#if message.web_search_enabled}
+					<span class="text-muted-foreground text-xs"> Web search enabled </span>
+				{/if}
 
-			{#if message.cost_usd !== undefined}
-				<span class="text-muted-foreground text-xs">
-					${message.cost_usd.toFixed(6)}
-				</span>
+				{#if message.cost_usd !== undefined}
+					<span class="text-muted-foreground text-xs">
+						${message.cost_usd.toFixed(6)}
+					</span>
+				{/if}
 			{/if}
 		</div>
 	</div>

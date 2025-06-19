@@ -17,23 +17,34 @@ import * as array from '$lib/utils/array';
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
 
-const reqBodySchema = z.object({
-	message: z.string(),
-	model_id: z.string(),
+const reqBodySchema = z
+	.object({
+		message: z.string().optional(),
+		model_id: z.string(),
 
-	session_token: z.string(),
-	conversation_id: z.string().optional(),
-	web_search_enabled: z.boolean().optional(),
-	images: z
-		.array(
-			z.object({
-				url: z.string(),
-				storage_id: z.string(),
-				fileName: z.string().optional(),
-			})
-		)
-		.optional(),
-});
+		session_token: z.string(),
+		conversation_id: z.string().optional(),
+		web_search_enabled: z.boolean().optional(),
+		images: z
+			.array(
+				z.object({
+					url: z.string(),
+					storage_id: z.string(),
+					fileName: z.string().optional(),
+				})
+			)
+			.optional(),
+	})
+	.refine(
+		(data) => {
+			if (data.conversation_id === undefined && data.message === undefined) return false;
+
+			return true;
+		},
+		{
+			message: 'You must provide a message when creating a new conversation',
+		}
+	);
 
 export type GenerateMessageRequestBody = z.infer<typeof reqBodySchema>;
 
@@ -687,6 +698,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	let conversationId = args.conversation_id;
 	if (!conversationId) {
+		// technically zod should catch this but just in case
+		if (args.message === undefined) {
+			return error(400, 'You must provide a message when creating a new conversation');
+		}
+
 		const convMessageResult = await ResultAsync.fromPromise(
 			client.mutation(api.conversations.createAndAddMessage, {
 				content: args.message,
@@ -721,25 +737,28 @@ export const POST: RequestHandler = async ({ request }) => {
 		);
 	} else {
 		log('Using existing conversation', startTime);
-		const userMessageResult = await ResultAsync.fromPromise(
-			client.mutation(api.messages.create, {
-				conversation_id: conversationId as Id<'conversations'>,
-				content: args.message,
-				session_token: args.session_token,
-				model_id: args.model_id,
-				role: 'user',
-				images: args.images,
-				web_search_enabled: args.web_search_enabled,
-			}),
-			(e) => `Failed to create user message: ${e}`
-		);
 
-		if (userMessageResult.isErr()) {
-			log(`User message creation failed: ${userMessageResult.error}`, startTime);
-			return error(500, 'Failed to create user message');
+		if (args.message) {
+			const userMessageResult = await ResultAsync.fromPromise(
+				client.mutation(api.messages.create, {
+					conversation_id: conversationId as Id<'conversations'>,
+					content: args.message,
+					session_token: args.session_token,
+					model_id: args.model_id,
+					role: 'user',
+					images: args.images,
+					web_search_enabled: args.web_search_enabled,
+				}),
+				(e) => `Failed to create user message: ${e}`
+			);
+
+			if (userMessageResult.isErr()) {
+				log(`User message creation failed: ${userMessageResult.error}`, startTime);
+				return error(500, 'Failed to create user message');
+			}
+
+			log('User message created', startTime);
 		}
-
-		log('User message created', startTime);
 	}
 
 	// Set generating status to true before starting background generation
