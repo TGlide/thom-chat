@@ -14,6 +14,9 @@ export default defineConfig({
 			compiler: 'svelte',
 		}),
 	],
+	server: {
+		allowedHosts: isDev ? true : undefined,
+	},
 	test: {
 		projects: [
 			{
@@ -38,8 +41,5 @@ export default defineConfig({
 				},
 			},
 		],
-	},
-	server: {
-		allowedHosts: isDev ? true : undefined,
 	},
 });

@@ -77,7 +77,7 @@
 	}
 </script>
 
-<svelte:window use:shortcut={[{ ctrl: true, key: 'k', callback: () => (open = true) }]} />
+<svelte:window use:shortcut={{ ctrl: true, key: 'k', callback: () => (open = true) }} />
 
 <Modal bind:open>
 	<div class="space-y-4">
