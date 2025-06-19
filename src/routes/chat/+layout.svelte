@@ -26,7 +26,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
 	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
-	import { fade } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import SendIcon from '~icons/lucide/arrow-up';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
@@ -40,6 +40,8 @@
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
 	import SearchModal from './search-modal.svelte';
+	import SparkleIcon from '~icons/lucide/sparkle';
+	import { callEnhancePrompt } from '../api/enhance-prompt/call.js';
 
 	const client = useConvexClient();
 
@@ -89,11 +91,14 @@
 
 	let loading = $state(false);
 
+	let enhancingPrompt = $state(false);
+
 	const textareaDisabled = $derived(
 		isGenerating ||
 			loading ||
 			(currentConversationQuery.data &&
-				currentConversationQuery.data.user_id !== session.current?.user.id)
+				currentConversationQuery.data.user_id !== session.current?.user.id) ||
+			enhancingPrompt
 	);
 
 	let error = $state<string | null>(null);
@@ -137,6 +142,26 @@
 			loading = false;
 			message.current = '';
 		}
+	}
+
+	async function enhancePrompt() {
+		if (!session.current?.session.token) return;
+
+		enhancingPrompt = true;
+
+		const res = await callEnhancePrompt({
+			prompt: message.current,
+		});
+
+		if (res.isErr()) {
+			error = res._unsafeUnwrapErr() ?? 'An unknown error occurred while enhancing the prompt';
+			enhancingPrompt = false;
+			return;
+		}
+
+		message.current = res.value.enhanced_prompt;
+
+		enhancingPrompt = false;
 	}
 
 	const rulesQuery = useCachedQuery(api.user_rules.all, {
@@ -636,34 +661,50 @@
 								</div>
 								<div class="flex flex-col items-start gap-2 pr-2 sm:flex-row sm:items-center">
 									<ModelPicker onlyImageModels={selectedImages.length > 0} />
-									<button
-										type="button"
-										class={cn(
-											'border-border flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors',
-											settings.webSearchEnabled ? 'bg-accent/50' : 'hover:bg-accent/20'
-										)}
-										onclick={() => (settings.webSearchEnabled = !settings.webSearchEnabled)}
-									>
-										<SearchIcon class="!size-3" />
-										<span class="whitespace-nowrap">Web search</span>
-									</button>
-									{#if currentModelSupportsImages}
+									<div class="flex items-center gap-2">
 										<button
 											type="button"
-											class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
-											onclick={() => fileInput?.click()}
-											disabled={isUploading}
+											class={cn(
+												'border-border flex items-center gap-1 rounded-full border p-2 text-xs transition-colors lg:px-2 lg:py-1',
+												settings.webSearchEnabled ? 'bg-accent/50' : 'hover:bg-accent/20'
+											)}
+											onclick={() => (settings.webSearchEnabled = !settings.webSearchEnabled)}
 										>
-											{#if isUploading}
-												<div
-													class="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
-												></div>
-											{:else}
-												<ImageIcon class="!size-3" />
-											{/if}
-											<span class="whitespace-nowrap">Attach image</span>
+											<SearchIcon class="!size-3" />
+											<span class="hidden whitespace-nowrap lg:block">Web search</span>
 										</button>
-									{/if}
+										{#if currentModelSupportsImages}
+											<button
+												type="button"
+												class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border p-2 text-xs transition-colors disabled:opacity-50 lg:px-2 lg:py-1"
+												onclick={() => fileInput?.click()}
+												disabled={isUploading}
+											>
+												{#if isUploading}
+													<div
+														class="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
+													></div>
+												{:else}
+													<ImageIcon class="!size-3" />
+												{/if}
+												<span class="hidden whitespace-nowrap lg:block">Attach image</span>
+											</button>
+										{/if}
+										{#if session.current !== null && message.current.trim() !== ''}
+											<button
+												type="button"
+												class={cn(
+													'border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border p-2 text-xs transition-colors lg:px-2 lg:py-1'
+												)}
+												onclick={enhancePrompt}
+												disabled={enhancingPrompt || isGenerating}
+												in:scale={{ duration: 150, start: 0.95 }}
+											>
+												<SparkleIcon class="text-primary !size-3" />
+												<span class="hidden whitespace-nowrap lg:block">Enhance prompt</span>
+											</button>
+										{/if}
+									</div>
 								</div>
 							</div>
 						</div>
