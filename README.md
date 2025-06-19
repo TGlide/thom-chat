@@ -85,7 +85,7 @@ Clone of [T3 Chat](https://t3.chat/)
 ### Final push
 
 - [x] Private mode for greeting
-- [ ] Free mode
+- [x] Free mode
 - [ ] make things prettier
 - [ ] mobile adjustments
 - [ ] cloud per chat persistance

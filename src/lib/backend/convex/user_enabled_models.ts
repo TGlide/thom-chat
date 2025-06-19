@@ -4,7 +4,7 @@ import { v } from 'convex/values';
 import { providerValidator } from './schema';
 import * as array from '../../utils/array';
 import * as object from '../../utils/object';
-import { internal } from './_generated/api';
+import { api, internal } from './_generated/api';
 import { Provider } from '../../types';
 import type { Doc } from './_generated/dataModel';
 
@@ -88,9 +88,10 @@ export const set = mutation({
 		session_token: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const session = await ctx.runQuery(internal.betterAuth.getSession, {
-			sessionToken: args.session_token,
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
 		});
+		console.log('Session', session);
 
 		if (!session) throw new Error('Invalid session token');
 
@@ -100,6 +101,9 @@ export const set = mutation({
 				q.eq('model_id', args.model_id).eq('provider', args.provider)
 			)
 			.first();
+
+		console.log('Trying to set', args.model_id, 'for', session.userId);
+		console.log('Existing', !!existing);
 
 		if (args.enabled && existing) return; // nothing to do here
 
