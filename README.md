@@ -1,6 +1,6 @@
 <div align="center">
   <img src="static/favicon.png" alt="thom.chat" width="180" height="180">
-  <h1>thom-chat</h1>
+  <h1>thom.chat</h1>
 </div>
 
 Clone of [T3 Chat](https://t3.chat/)
