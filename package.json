@@ -5,7 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "concurrently -n \"convex,vite\" -c \"blue.bold,green.bold\" \"convex dev\" \"vite dev\"",
-		"dev:host": "concurrently -n \"convex,vite\" -c \"blue.bold,green.bold\" \"convex dev\" \"vite dev --host\"",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",

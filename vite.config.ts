@@ -4,8 +4,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import Icons from 'unplugin-icons/vite';
 import { defineConfig } from 'vite';
 
-const isDev = process.env.NODE_ENV === 'development';
-
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
@@ -38,8 +36,5 @@ export default defineConfig({
 				},
 			},
 		],
-	},
-	server: {
-		allowedHosts: isDev ? true : undefined,
 	},
 });
