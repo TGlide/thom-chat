@@ -19,6 +19,7 @@
 	import XIcon from '~icons/lucide/x';
 	import { Button } from './ui/button';
 	import { callModal } from './ui/modal/global-modal.svelte';
+	import SplitIcon from '~icons/lucide/split';
 
 	let { searchModalOpen = $bindable(false) }: { searchModalOpen: boolean } = $props();
 
@@ -198,6 +199,9 @@
 								)}
 							>
 								<p class="truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap">
+									{#if conversation.branched_from}
+										<SplitIcon class="text-muted-foreground/50 mr-1 inline size-4" />
+									{/if}
 									<span>{conversation.title}</span>
 								</p>
 								<div class="pr-2">

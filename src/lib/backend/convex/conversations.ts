@@ -147,6 +147,65 @@ export const createAndAddMessage = mutation({
 	},
 });
 
+export const createBranched = mutation({
+	args: {
+		conversation_id: v.id('conversations'),
+		from_message_id: v.id('messages'),
+		session_token: v.string(),
+	},
+	handler: async (ctx, args): Promise<Id<'conversations'>> => {
+		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
+			session_token: args.session_token,
+		});
+
+		if (!session) throw new Error('Unauthorized');
+
+		const existingConversation = await ctx.db.get(args.conversation_id);
+
+		console.log(existingConversation);
+
+		if (!existingConversation) throw new Error('Conversation not found');
+		if (existingConversation.user_id !== session.userId && !existingConversation.public)
+			throw new Error('Unauthorized');
+
+		const messages = await ctx.db
+			.query('messages')
+			.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
+			.collect();
+
+		const messageIndex = messages.findIndex((m) => m._id === args.from_message_id);
+
+		const newMessages = messages.slice(0, messageIndex + 1);
+
+		const newConversationId = await ctx.db.insert('conversations', {
+			title: existingConversation.title,
+			branched_from: existingConversation._id,
+			user_id: session.userId,
+			updated_at: Date.now(),
+			generating: false,
+			public: false,
+			cost_usd: newMessages.reduce((acc, m) => acc + (m.cost_usd ?? 0), 0),
+		});
+
+		console.log(newConversationId);
+
+		await Promise.all(
+			newMessages.map((m) => {
+				const newMessage = {
+					...m,
+					_id: undefined,
+					_creationTime: undefined,
+					conversation_id: newConversationId,
+				};
+
+				return ctx.db.insert('messages', newMessage);
+			})
+		);
+
+		return newConversationId;
+	},
+});
+
 export const updateTitle = mutation({
 	args: {
 		conversation_id: v.id('conversations'),

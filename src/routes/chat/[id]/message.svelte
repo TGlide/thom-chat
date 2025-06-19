@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/utils';
 	import { tv } from 'tailwind-variants';
-	import type { Doc } from '$lib/backend/convex/_generated/dataModel';
+	import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import '../../../markdown.css';
 	import MarkdownRenderer from './markdown-renderer.svelte';
@@ -9,6 +9,15 @@
 	import { sanitizeHtml } from '$lib/utils/markdown-it';
 	import { on } from 'svelte/events';
 	import { isHtmlElement } from '$lib/utils/is';
+	import { Button } from '$lib/components/ui/button';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/backend/convex/_generated/api';
+	import { session } from '$lib/state/session.svelte';
+	import { ResultAsync } from 'neverthrow';
+	import { goto } from '$app/navigation';
+	import { callGenerateMessage } from '../../api/generate-message/call';
+	import * as Icons from '$lib/components/icons';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -24,6 +33,8 @@
 		message: Doc<'messages'>;
 	};
 
+	const client = useConvexClient();
+
 	let { message }: Props = $props();
 
 	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
@@ -38,6 +49,57 @@
 			imageUrl,
 			fileName,
 		};
+	}
+
+	async function createBranchedConversation() {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.createBranched, {
+				conversation_id: message.conversation_id as Id<'conversations'>,
+				from_message_id: message._id,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (res.isErr()) {
+			console.error(res.error);
+			return;
+		}
+
+		await goto(`/chat/${res.value}`);
+	}
+
+	async function branchAndGenerate() {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.createBranched, {
+				conversation_id: message.conversation_id as Id<'conversations'>,
+				from_message_id: message._id,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (res.isErr()) {
+			console.error(res.error);
+			return;
+		}
+
+		const cid = res.value;
+
+		const generateRes = await callGenerateMessage({
+			session_token: session.current?.session.token ?? '',
+			conversation_id: cid,
+			model_id: message.model_id!,
+			images: message.images,
+			web_search_enabled: message.web_search_enabled,
+		});
+
+		if (generateRes.isErr()) {
+			// TODO: add error toast
+			return;
+		}
+
+		await goto(`/chat/${cid}`);
 	}
 </script>
 
@@ -101,26 +163,67 @@
 		</div>
 		<div
 			class={cn(
-				'flex place-items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100',
+				'flex place-items-center gap-2 md:opacity-0 transition-opacity group-hover:opacity-100',
 				{
 					'justify-end': message.role === 'user',
 				}
 			)}
 		>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button
+						size="icon"
+						variant="ghost"
+						class={cn('group order-2 size-7', { 'order-1': message.role === 'user' })}
+						onClickPromise={createBranchedConversation}
+						{...tooltip.trigger}
+					>
+						<Icons.Branch class="group-data-[loading=true]:opacity-0" />
+					</Button>
+				{/snippet}
+				Branch off this message
+			</Tooltip>
+			{#if message.role === 'user'}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<Button
+							size="icon"
+							variant="ghost"
+							class={cn('group order-0 size-7')}
+							onClickPromise={branchAndGenerate}
+							{...tooltip.trigger}
+						>
+							<Icons.BranchAndRegen class="group-data-[loading=true]:opacity-0" />
+						</Button>
+					{/snippet}
+					Branch and regenerate
+				</Tooltip>
+			{/if}
 			{#if message.content.length > 0}
-				<CopyButton class="size-7" text={message.content} />
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<CopyButton
+							class={cn('order-1 size-7', { 'order-2': message.role === 'user' })}
+							text={message.content}
+							{...tooltip.trigger}
+						/>
+					{/snippet}
+					Copy
+				</Tooltip>
 			{/if}
-			{#if message.model_id !== undefined}
-				<span class="text-muted-foreground text-xs">{message.model_id}</span>
-			{/if}
-			{#if message.web_search_enabled}
-				<span class="text-muted-foreground text-xs"> Web search enabled </span>
-			{/if}
+			{#if message.role === 'assistant'}
+				{#if message.model_id !== undefined}
+					<span class="text-muted-foreground text-xs">{message.model_id}</span>
+				{/if}
+				{#if message.web_search_enabled}
+					<span class="text-muted-foreground text-xs"> Web search enabled </span>
+				{/if}
 
-			{#if message.cost_usd !== undefined}
-				<span class="text-muted-foreground text-xs">
-					${message.cost_usd.toFixed(6)}
-				</span>
+				{#if message.cost_usd !== undefined}
+					<span class="text-muted-foreground text-xs">
+						${message.cost_usd.toFixed(6)}
+					</span>
+				{/if}
 			{/if}
 		</div>
 	</div>
