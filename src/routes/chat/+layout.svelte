@@ -40,6 +40,8 @@
 	import { callGenerateMessage } from '../api/generate-message/call.js';
 	import ModelPicker from './model-picker.svelte';
 	import SearchModal from './search-modal.svelte';
+	import { shortcut } from '$lib/actions/shortcut.svelte.js';
+	import { mergeAttrs } from 'melt';
 
 	const client = useConvexClient();
 
@@ -378,9 +380,13 @@
 	<title>Chat | thom.chat</title>
 </svelte:head>
 
+<svelte:window
+	use:shortcut={[{ ctrl: true, key: 'd', callback: () => scrollState.scrollToBottom() }]}
+/>
+
 <Sidebar.Root
 	bind:open={sidebarOpen}
-	class="h-screen overflow-clip"
+	class="fill-device-height overflow-clip"
 	{...currentModelSupportsImages ? omit(fileUpload.dropzone, ['onclick']) : {}}
 >
 	<AppSidebar bind:searchModalOpen />
@@ -443,7 +449,7 @@
 			<LightSwitch variant="ghost" class="size-8" />
 		</div>
 		<div class="relative">
-			<div bind:this={conversationList} class="h-screen overflow-y-auto">
+			<div bind:this={conversationList} class="fill-device-height overflow-y-auto">
 				<div
 					class={cn('mx-auto flex max-w-3xl flex-col', {
 						'pt-10': page.url.pathname !== '/chat',
@@ -452,19 +458,26 @@
 				>
 					{@render children()}
 				</div>
-				<Button
-					onclick={() => scrollState.scrollToBottom()}
-					variant="secondary"
-					size="sm"
-					class={[
-						'text-muted-foreground !border-border absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full !border !pl-3 text-xs transition',
-						notAtBottom.current ? 'opacity-100' : 'pointer-events-none scale-95 opacity-0',
-					]}
-					style="bottom: {wrapperSize.height + 5}px;"
-				>
-					Scroll to bottom
-					<ChevronDownIcon class="inline" />
-				</Button>
+				<Tooltip placement="top">
+					{#snippet trigger(tooltip)}
+						<Button
+							onclick={() => scrollState.scrollToBottom()}
+							variant="secondary"
+							size="sm"
+							class={[
+								'text-muted-foreground !border-border absolute bottom-0 left-1/2 z-10 -translate-x-1/2 rounded-full !border !pl-3 text-xs transition',
+								notAtBottom.current ? 'opacity-100' : 'pointer-events-none scale-95 opacity-0',
+							]}
+							{...mergeAttrs(tooltip.trigger, {
+								style: `bottom: ${wrapperSize.height + 5}px;`,
+							})}
+						>
+							Scroll to bottom
+							<ChevronDownIcon class="inline" />
+						</Button>
+					{/snippet}
+					{cmdOrCtrl} + D
+				</Tooltip>
 			</div>
 
 			<div
@@ -572,10 +585,10 @@
 									{...pick(popover.trigger, ['id', 'style', 'onfocusout', 'onfocus'])}
 									bind:this={textarea}
 									disabled={textareaDisabled}
-									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[80px] w-full resize-none !overflow-y-auto bg-transparent px-3 text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+									class="text-foreground placeholder:text-muted-foreground/60 max-h-64 min-h-[60px] w-full resize-none !overflow-y-auto bg-transparent px-3 text-base leading-6 outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-[80px]"
 									placeholder={isGenerating
 										? 'Generating response...'
-										: 'Type your message here... Tag rules with @'}
+										: 'Type your message here, tag rules with @'}
 									name="message"
 									onkeydown={(e) => {
 										if (e.key === 'Enter' && !e.shiftKey && !popover.open) {
@@ -634,23 +647,23 @@
 										{isGenerating ? 'Stop generation' : 'Send message'}
 									</Tooltip>
 								</div>
-								<div class="flex flex-col items-start gap-2 pr-2 sm:flex-row sm:items-center">
+								<div class="flex flex-row flex-wrap items-center gap-2 pr-2">
 									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									<button
 										type="button"
 										class={cn(
-											'border-border flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors',
+											'border-border flex items-center gap-1 rounded-full border px-1 py-1 text-xs transition-colors sm:px-2',
 											settings.webSearchEnabled ? 'bg-accent/50' : 'hover:bg-accent/20'
 										)}
 										onclick={() => (settings.webSearchEnabled = !settings.webSearchEnabled)}
 									>
 										<SearchIcon class="!size-3" />
-										<span class="whitespace-nowrap">Web search</span>
+										<span class="hidden whitespace-nowrap sm:inline">Web search</span>
 									</button>
 									{#if currentModelSupportsImages}
 										<button
 											type="button"
-											class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors disabled:opacity-50"
+											class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border px-1 py-1 text-xs transition-colors disabled:opacity-50 sm:px-2"
 											onclick={() => fileInput?.click()}
 											disabled={isUploading}
 										>
@@ -661,7 +674,7 @@
 											{:else}
 												<ImageIcon class="!size-3" />
 											{/if}
-											<span class="whitespace-nowrap">Attach image</span>
+											<span class="hidden whitespace-nowrap sm:inline">Attach image</span>
 										</button>
 									{/if}
 								</div>
