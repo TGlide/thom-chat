@@ -147,6 +147,9 @@
 	--shadow-lg: var(--shadow-lg);
 	--shadow-xl: var(--shadow-xl);
 	--shadow-2xl: var(--shadow-2xl);
+
+	/* For shiny text */
+	--animate-shimmer: shimmer 1.5s infinite;
 }
 
 @theme inline {
@@ -576,5 +579,15 @@ pre button.copy {
 	100% {
 		transform: scale(1.1);
 		opacity: 1;
+	}
+}
+
+/* For shiny text */
+@keyframes shimmer {
+	0% {
+		background-position: calc(-100% - var(--shimmer-width)) 0;
+	}
+	100% {
+		background-position: calc(100% + var(--shimmer-width)) 0;
 	}
 }

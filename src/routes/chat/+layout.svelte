@@ -42,6 +42,7 @@
 	import SearchModal from './search-modal.svelte';
 	import SparkleIcon from '~icons/lucide/sparkle';
 	import { callEnhancePrompt } from '../api/enhance-prompt/call.js';
+	import ShinyText from '$lib/components/animations/shiny-text.svelte';
 
 	const client = useConvexClient();
 
@@ -721,7 +722,9 @@
 											>
 												{#if enhancingPrompt}
 													<StopIcon class="!size-3" />
-													<span class="hidden whitespace-nowrap lg:block">Enhancing prompt...</span>
+													<ShinyText class="hidden whitespace-nowrap lg:block">
+														Enhancing prompt...
+													</ShinyText>
 												{:else}
 													<SparkleIcon class="text-primary !size-3" />
 													<span class="hidden whitespace-nowrap lg:block">Enhance prompt</span>
