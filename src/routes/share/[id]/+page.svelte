@@ -31,7 +31,7 @@
 
 <svelte:head>
 	<title>{conversationQuery.data?.title || 'Shared Chat'} | Shared Chat</title>
-	<meta name="description" content="A shared conversation from Thom.chat" />
+	<meta name="description" content="A shared conversation from thom.chat" />
 </svelte:head>
 
 <div class="min-h-screen">

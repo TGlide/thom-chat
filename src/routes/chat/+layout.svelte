@@ -369,7 +369,7 @@
 </script>
 
 <svelte:head>
-	<title>Chat | Thom.chat</title>
+	<title>Chat | thom.chat</title>
 </svelte:head>
 
 <Sidebar.Root

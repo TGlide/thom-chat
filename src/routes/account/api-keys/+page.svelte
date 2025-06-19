@@ -43,7 +43,7 @@
 </script>
 
 <svelte:head>
-	<title>API Keys | Thom.chat</title>
+	<title>API Keys | thom.chat</title>
 </svelte:head>
 
 <div>

@@ -56,7 +56,7 @@
 </script>
 
 <svelte:head>
-	<title>Models | Thom.chat</title>
+	<title>Models | thom.chat</title>
 </svelte:head>
 
 <h1 class="text-2xl font-bold">Available Models</h1>

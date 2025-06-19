@@ -55,7 +55,7 @@
 </script>
 
 <svelte:head>
-	<title>Customization | Thom.chat</title>
+	<title>Customization | thom.chat</title>
 </svelte:head>
 
 <h1 class="text-2xl font-bold">Customization</h1>
