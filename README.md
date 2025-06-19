@@ -1,4 +1,7 @@
-# thom-chat
+<div align="center">
+  <img src="static/favicon.png" alt="Thom Chat" width="64" height="64">
+  <h1>thom-chat</h1>
+</div>
 
 Clone of [T3 Chat](https://t3.chat/)
 
