@@ -61,6 +61,34 @@ export function sum<T>(arr: T[], fn: (item: T) => number): number {
 	return total;
 }
 
+/** Maps the provided array into a record
+ *
+ * @param arr Array of items to be entered into a record
+ * @param fn A mapping function to transform each item into a key value pair
+ * @returns
+ *
+ * ## Usage
+ * ```ts
+ * const record = toRecord([5, 4, 3, 2, 1], (item, i) => [i, item]);
+ *
+ * console.log(record); // { "0": 5, "1": 4, "2": 3, "3": 2, "4": 1 }
+ * ```
+ */
+export function toRecord<T, V>(
+	arr: T[],
+	fn: (item: T, index: number) => [key: string, value: V]
+): Record<string, V> {
+	const record: Record<string, V> = {};
+
+	for (let i = 0; i < arr.length; i++) {
+		const [key, value] = fn(arr[i]!, i);
+
+		record[key] = value;
+	}
+
+	return record;
+}
+
 /** Maps the provided array into a map
  *
  * @param arr Array of items to be entered into a map
@@ -74,16 +102,16 @@ export function sum<T>(arr: T[], fn: (item: T) => number): number {
  * console.log(map); // Map(5) { 0 => 5, 1 => 4, 2 => 3, 3 => 2, 4 => 1 }
  * ```
  */
-export function toMap<T, V>(
+export function toMap<T, K, V>(
 	arr: T[],
-	fn: (item: T, index: number) => [key: string, value: V]
-): Record<string, V> {
-	const map: Record<string, V> = {};
+	fn: (item: T, index: number) => [key: K, value: V]
+): Map<K, V> {
+	const map: Map<K, V> = new Map();
 
 	for (let i = 0; i < arr.length; i++) {
 		const [key, value] = fn(arr[i]!, i);
 
-		map[key] = value;
+		map.set(key, value);
 	}
 
 	return map;
