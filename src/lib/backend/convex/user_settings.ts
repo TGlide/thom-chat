@@ -26,6 +26,41 @@ export const get = query({
 	},
 });
 
+export const incrementFreeMessageCount = mutation({
+	args: {
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Invalid session token');
+		}
+
+		const s = session as SessionObj;
+
+		const existing = await ctx.db
+			.query('user_settings')
+			.withIndex('by_user', (q) => q.eq('user_id', s.userId))
+			.first();
+
+		if (!existing) {
+			await ctx.db.insert('user_settings', {
+				user_id: s.userId,
+				privacy_mode: false,
+				free_messages_used: 1,
+			});
+		} else {
+			const currentCount = existing.free_messages_used || 0;
+			await ctx.db.patch(existing._id, {
+				free_messages_used: currentCount + 1,
+			});
+		}
+	},
+});
+
 export const set = mutation({
 	args: {
 		privacy_mode: v.boolean(),
@@ -51,6 +86,7 @@ export const set = mutation({
 			await ctx.db.insert('user_settings', {
 				user_id: s.userId,
 				privacy_mode: args.privacy_mode,
+				free_messages_used: 0,
 			});
 		} else {
 			await ctx.db.patch(existing._id, {
@@ -69,6 +105,7 @@ export const create = mutation({
 		await ctx.db.insert('user_settings', {
 			user_id: args.user_id,
 			privacy_mode: false,
+			free_messages_used: 0,
 		});
 	},
 });

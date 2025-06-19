@@ -1,4 +1,5 @@
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
+import { OPENROUTER_FREE_KEY } from '$env/static/private';
 import { api } from '$lib/backend/convex/_generated/api';
 import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 import { Provider } from '$lib/types';
@@ -74,11 +75,10 @@ async function generateConversationTitle({
 		return;
 	}
 
-	const key = keyResult.value;
-	if (!key) {
-		log('Title generation: No API key found', startTime);
-		return;
-	}
+	const userKey = keyResult.value;
+	const actualKey = userKey || OPENROUTER_FREE_KEY;
+	
+	log(`Title generation: Using ${userKey ? 'user' : 'free tier'} API key`, startTime);
 
 	// Only generate title if conversation currently has default title
 	const conversationResult = await ResultAsync.fromPromise(
@@ -103,7 +103,7 @@ async function generateConversationTitle({
 
 	const openai = new OpenAI({
 		baseURL: 'https://openrouter.ai/api/v1',
-		apiKey: key,
+		apiKey: actualKey,
 	});
 
 	// Create a prompt for title generation using only the first user message
@@ -164,6 +164,7 @@ async function generateAIResponse({
 	modelResultPromise,
 	keyResultPromise,
 	rulesResultPromise,
+	userSettingsPromise,
 	abortSignal,
 }: {
 	conversationId: string;
@@ -172,6 +173,7 @@ async function generateAIResponse({
 	keyResultPromise: ResultAsync<string | null, string>;
 	modelResultPromise: ResultAsync<Doc<'user_enabled_models'> | null, string>;
 	rulesResultPromise: ResultAsync<Doc<'user_rules'>[], string>;
+	userSettingsPromise: ResultAsync<Doc<'user_settings'> | null, string>;
 	abortSignal?: AbortSignal;
 }) {
 	log('Starting AI response generation in background', startTime);
@@ -181,7 +183,7 @@ async function generateAIResponse({
 		return;
 	}
 
-	const [modelResult, keyResult, messagesQueryResult, rulesResult] = await Promise.all([
+	const [modelResult, keyResult, messagesQueryResult, rulesResult, userSettingsResult] = await Promise.all([
 		modelResultPromise,
 		keyResultPromise,
 		ResultAsync.fromPromise(
@@ -192,6 +194,7 @@ async function generateAIResponse({
 			(e) => `Failed to get messages: ${e}`
 		),
 		rulesResultPromise,
+		userSettingsPromise,
 	]);
 
 	if (modelResult.isErr()) {
@@ -278,10 +281,9 @@ async function generateAIResponse({
 		return;
 	}
 
-	const key = keyResult.value;
-	if (!key) {
+	if (userSettingsResult.isErr()) {
 		handleGenerationError({
-			error: 'No API key found',
+			error: `User settings query failed: ${userSettingsResult.error}`,
 			conversationId,
 			messageId: mid,
 			sessionToken,
@@ -290,7 +292,52 @@ async function generateAIResponse({
 		return;
 	}
 
-	log('Background: API key retrieved successfully', startTime);
+	const userKey = keyResult.value;
+	const userSettings = userSettingsResult.value;
+	let actualKey: string;
+	
+	if (userKey) {
+		// User has their own API key
+		actualKey = userKey;
+		log('Background: Using user API key', startTime);
+	} else {
+		// User doesn't have API key, check free tier limit
+		const freeMessagesUsed = userSettings?.free_messages_used || 0;
+		
+		if (freeMessagesUsed >= 10) {
+			handleGenerationError({
+				error: 'Free message limit reached (10/10). Please add your own OpenRouter API key to continue chatting.',
+				conversationId,
+				messageId: mid,
+				sessionToken,
+				startTime,
+			});
+			return;
+		}
+		
+		// Increment free message count before generating
+		const incrementResult = await ResultAsync.fromPromise(
+			client.mutation(api.user_settings.incrementFreeMessageCount, {
+				session_token: sessionToken,
+			}),
+			(e) => `Failed to increment free message count: ${e}`
+		);
+		
+		if (incrementResult.isErr()) {
+			handleGenerationError({
+				error: `Failed to track free message usage: ${incrementResult.error}`,
+				conversationId,
+				messageId: mid,
+				sessionToken,
+				startTime,
+			});
+			return;
+		}
+		
+		// Use environment OpenRouter key
+		actualKey = OPENROUTER_FREE_KEY;
+		log(`Background: Using free tier (${freeMessagesUsed + 1}/10 messages)`, startTime);
+	}
 
 	if (rulesResult.isErr()) {
 		handleGenerationError({
@@ -328,7 +375,7 @@ async function generateAIResponse({
 
 	const openai = new OpenAI({
 		baseURL: 'https://openrouter.ai/api/v1',
-		apiKey: key,
+		apiKey: actualKey,
 	});
 
 	const formattedMessages = messages.map((m) => {
@@ -453,7 +500,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			(e) => `Failed to render HTML: ${e}`
 		);
 
-		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, key), {
+		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, actualKey), {
 			delay: 500,
 			retries: 2,
 			startTime,
@@ -594,6 +641,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		(e) => `Failed to get API key: ${e}`
 	);
 
+	const userSettingsPromise = ResultAsync.fromPromise(
+		client.query(api.user_settings.get, {
+			session_token: sessionToken,
+		}),
+		(e) => `Failed to get user settings: ${e}`
+	);
+
 	const rulesResultPromise = ResultAsync.fromPromise(
 		client.query(api.user_rules.all, {
 			session_token: sessionToken,
@@ -688,6 +742,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			modelResultPromise,
 			keyResultPromise,
 			rulesResultPromise,
+			userSettingsPromise,
 			abortSignal: abortController.signal,
 		})
 			.catch(async (error) => {

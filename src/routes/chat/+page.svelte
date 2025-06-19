@@ -135,7 +135,8 @@
 				>!
 			</h2>
 			<p class="mt-2 text-left text-lg">
-				You need to provide a key to start sending messages.
+				You can send some free messages, or provide a key for limitless access.
+				<br />
 				<a href="/account/api-keys" class="text-primary"> Go to settings </a>
 			</p>
 		</div>
