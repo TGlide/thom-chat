@@ -11,10 +11,10 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/github/license/thomasglachant/thom-chat?style=flat-square" alt="License">
-    <img src="https://img.shields.io/github/stars/thomasglachant/thom-chat?style=flat-square" alt="Stars">
-    <img src="https://img.shields.io/github/forks/thomasglachant/thom-chat?style=flat-square" alt="Forks">
-    <img src="https://img.shields.io/github/issues/thomasglachant/thom-chat?style=flat-square" alt="Issues">
+    <img src="https://img.shields.io/github/license/tglide/thom-chat?style=flat-square" alt="License">
+    <img src="https://img.shields.io/github/stars/tglide/thom-chat?style=flat-square" alt="Stars">
+    <img src="https://img.shields.io/github/forks/tglide/thom-chat?style=flat-square" alt="Forks">
+    <img src="https://img.shields.io/github/issues/tglide/thom-chat?style=flat-square" alt="Issues">
   </p>
 </div>
 
