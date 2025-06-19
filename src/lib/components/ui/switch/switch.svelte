@@ -19,7 +19,7 @@
 <button
 	{...toggle.trigger}
 	class={cn(
-		'bg-muted-foreground/20 relative h-5 w-10 rounded-full transition-all',
+		'bg-muted-foreground/20 relative h-5 w-10 shrink-0 rounded-full transition-all',
 		{ 'bg-primary': toggle.value },
 		className
 	)}

@@ -3,15 +3,15 @@
 	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Search } from '$lib/components/ui/search';
+	import { models } from '$lib/state/models.svelte';
 	import { session } from '$lib/state/session.svelte';
 	import { Provider } from '$lib/types.js';
-	import { cn } from '$lib/utils/utils';
-	import ModelCard from './model-card.svelte';
-	import { Toggle } from 'melt/builders';
-	import XIcon from '~icons/lucide/x';
-	import PlusIcon from '~icons/lucide/plus';
-	import { models } from '$lib/state/models.svelte';
 	import { fuzzysearch } from '$lib/utils/fuzzy-search';
+	import { cn } from '$lib/utils/utils';
+	import { Toggle } from 'melt/builders';
+	import PlusIcon from '~icons/lucide/plus';
+	import XIcon from '~icons/lucide/x';
+	import ModelCard from './model-card.svelte';
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
 		provider: Provider.OpenRouter,
@@ -30,14 +30,26 @@
 		disabled: true,
 	});
 
+	let initiallyEnabled = $state<string[]>([]);
+	$effect(() => {
+		if (Object.keys(models.enabled).length && initiallyEnabled.length === 0) {
+			initiallyEnabled = models
+				.from(Provider.OpenRouter)
+				.filter((m) => m.enabled)
+				.map((m) => m.id);
+		}
+	});
+
 	const openRouterModels = $derived(
 		fuzzysearch({
 			haystack: models.from(Provider.OpenRouter),
 			needle: search,
 			property: 'name',
 		}).sort((a, b) => {
-			if (a.enabled && !b.enabled) return -1;
-			if (!a.enabled && b.enabled) return 1;
+			const aEnabled = initiallyEnabled.includes(a.id);
+			const bEnabled = initiallyEnabled.includes(b.id);
+			if (aEnabled && !bEnabled) return -1;
+			if (!aEnabled && bEnabled) return 1;
 			return 0;
 		})
 	);

@@ -304,6 +304,21 @@ export const remove = mutation({
 	},
 });
 
+export const getPublicById = query({
+	args: {
+		conversation_id: v.id('conversations'),
+	},
+	handler: async (ctx, args) => {
+		const conversation = await ctx.db.get(args.conversation_id);
+
+		if (!conversation || !conversation.public) {
+			return null;
+		}
+
+		return conversation;
+	},
+});
+
 export const search = query({
 	args: {
 		session_token: v.string(),

@@ -9,10 +9,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ImageModal } from '$lib/components/ui/image-modal';
 	import { LightSwitch } from '$lib/components/ui/light-switch/index.js';
+	import { ShareButton } from '$lib/components/ui/share-button';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte.js';
-	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte.js';
 	import { TextareaAutosize } from '$lib/spells/textarea-autosize.svelte.js';
 	import { models } from '$lib/state/models.svelte';
 	import { usePrompt } from '$lib/state/prompt.svelte.js';
@@ -26,17 +26,14 @@
 	import { cn } from '$lib/utils/utils.js';
 	import { useConvexClient } from 'convex-svelte';
 	import { FileUpload, Popover } from 'melt/builders';
-	import { ResultAsync } from 'neverthrow';
 	import { Debounced, ElementSize, IsMounted, PersistedState, ScrollState } from 'runed';
-	import { fade, scale } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import SendIcon from '~icons/lucide/arrow-up';
-	import CheckIcon from '~icons/lucide/check';
 	import ChevronDownIcon from '~icons/lucide/chevron-down';
 	import ImageIcon from '~icons/lucide/image';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
 	import SearchIcon from '~icons/lucide/search';
 	import Settings2Icon from '~icons/lucide/settings-2';
-	import ShareIcon from '~icons/lucide/share';
 	import StopIcon from '~icons/lucide/square';
 	import UploadIcon from '~icons/lucide/upload';
 	import XIcon from '~icons/lucide/x';
@@ -346,50 +343,6 @@
 		}
 	}
 
-	const clipboard = new UseClipboard();
-
-	let sharingStatus = $derived(clipboard.status);
-
-	async function shareConversation() {
-		if (currentConversationQuery.data?.public) {
-			clipboard.copy(page.url.toString());
-			return;
-		}
-
-		if (!page.params.id || !session.current?.session.token) return;
-
-		const result = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.setPublic, {
-				conversation_id: page.params.id as Id<'conversations'>,
-				public: true,
-				session_token: session.current?.session.token ?? '',
-			}),
-			(e) => e
-		);
-
-		if (result.isErr()) {
-			sharingStatus = 'failure';
-			setTimeout(() => {
-				sharingStatus = undefined;
-			}, 1000);
-		}
-
-		clipboard.copy(page.url.toString());
-	}
-
-	// async function togglePublic() {
-	// 	if (!page.params.id || !session.current?.session.token) return;
-	//
-	// 	await ResultAsync.fromPromise(
-	// 		client.mutation(api.conversations.setPublic, {
-	// 			conversation_id: page.params.id as Id<'conversations'>,
-	// 			public: !currentConversationQuery.data?.public,
-	// 			session_token: session.current?.session.token ?? '',
-	// 		}),
-	// 		(e) => e
-	// 	);
-	// }
-
 	const textareaSize = new ElementSize(() => textarea);
 
 	let textareaWrapper = $state<HTMLDivElement>();
@@ -473,32 +426,10 @@
 			)}
 		>
 			{#if page.params.id && currentConversationQuery.data}
-				<Tooltip>
-					{#snippet trigger(tooltip)}
-						<Button
-							onClickPromise={shareConversation}
-							variant="ghost"
-							size="icon"
-							class="bg-sidebar size-8"
-							{...tooltip.trigger}
-						>
-							{#if sharingStatus === 'success'}
-								<div in:scale={{ duration: 1000, start: 0.85 }}>
-									<CheckIcon tabindex={-1} />
-									<span class="sr-only">Copied</span>
-								</div>
-							{:else if sharingStatus === 'failure'}
-								<div in:scale={{ duration: 1000, start: 0.85 }}>
-									<XIcon tabindex={-1} />
-									<span class="sr-only">Failed to copy</span>
-								</div>
-							{:else}
-								<ShareIcon />
-							{/if}
-						</Button>
-					{/snippet}
-					Share
-				</Tooltip>
+				<ShareButton
+					conversationId={page.params.id as Id<'conversations'>}
+					isPublic={currentConversationQuery.data.public}
+				/>
 			{/if}
 			<Tooltip>
 				{#snippet trigger(tooltip)}

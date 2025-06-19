@@ -169,6 +169,28 @@ export const updateMessage = mutation({
 	},
 });
 
+export const getByConversationPublic = query({
+	args: {
+		conversation_id: v.id('conversations'),
+	},
+	handler: async (ctx, args) => {
+		// First check if the conversation is public
+		const conversation = await ctx.db.get(args.conversation_id);
+		
+		if (!conversation || !conversation.public) {
+			return null;
+		}
+
+		const messages = await ctx.db
+			.query('messages')
+			.withIndex('by_conversation', (q) => q.eq('conversation_id', args.conversation_id))
+			.order('asc')
+			.collect();
+
+		return messages;
+	},
+});
+
 export const updateError = mutation({
 	args: {
 		session_token: v.string(),
