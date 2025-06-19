@@ -70,7 +70,7 @@ While thom.chat is a clone, the featureset is not identical to T3 Chat.
 - 🔥 SvelteKit
 - 📝 TypeScript
 - 🎨 Tailwind CSS
-- 🧩 Melt UI Components
+- 🍨 Melt UI Components
 
 </td>
 <td>
@@ -80,6 +80,7 @@ While thom.chat is a clone, the featureset is not identical to T3 Chat.
 - 🔧 Convex Database
 - 🔐 BetterAuth
 - 🤖 OpenRouter API
+- 🦾 Blood, sweat, and tears
 
 </td>
 </tr>
