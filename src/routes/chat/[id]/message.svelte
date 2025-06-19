@@ -9,7 +9,6 @@
 	import { sanitizeHtml } from '$lib/utils/markdown-it';
 	import { on } from 'svelte/events';
 	import { isHtmlElement } from '$lib/utils/is';
-	import SplitIcon from '~icons/lucide/split';
 	import { Button } from '$lib/components/ui/button';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
 	import { useConvexClient } from 'convex-svelte';
@@ -18,7 +17,7 @@
 	import { ResultAsync } from 'neverthrow';
 	import { goto } from '$app/navigation';
 	import { callGenerateMessage } from '../../api/generate-message/call';
-	import RefreshCwIcon from '~icons/lucide/refresh-cw';
+	import * as Icons from '$lib/components/icons';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -164,7 +163,7 @@
 		</div>
 		<div
 			class={cn(
-				'flex place-items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100',
+				'flex place-items-center gap-2 md:opacity-0 transition-opacity group-hover:opacity-100',
 				{
 					'justify-end': message.role === 'user',
 				}
@@ -179,7 +178,7 @@
 						onClickPromise={createBranchedConversation}
 						{...tooltip.trigger}
 					>
-						<SplitIcon class="group-data-[loading=true]:opacity-0" />
+						<Icons.Branch class="group-data-[loading=true]:opacity-0" />
 					</Button>
 				{/snippet}
 				Branch off this message
@@ -194,7 +193,7 @@
 							onClickPromise={branchAndGenerate}
 							{...tooltip.trigger}
 						>
-							<RefreshCwIcon class="group-data-[loading=true]:opacity-0" />
+							<Icons.BranchAndRegen class="group-data-[loading=true]:opacity-0" />
 						</Button>
 					{/snippet}
 					Branch and regenerate
