@@ -78,7 +78,7 @@ async function generateConversationTitle({
 
 	const userKey = keyResult.value;
 	const actualKey = userKey || OPENROUTER_FREE_KEY;
-	
+
 	log(`Title generation: Using ${userKey ? 'user' : 'free tier'} API key`, startTime);
 
 	// Only generate title if conversation currently has default title
@@ -108,18 +108,23 @@ async function generateConversationTitle({
 	});
 
 	// Create a prompt for title generation using only the first user message
-	const titlePrompt = `Based on this user request, generate a concise, specific title (max 4-5 words):
+	const titlePrompt = `Based on this message:
+"""${userMessage}"""
 
-${userMessage}
+Generate a concise, specific title (max 4-5 words).
+Generate only the title based on the message, nothing else. Don't name the title 'Generate Title' or anything stupid like that, otherwise its obvious we're generating a title with AI.
 
-Generate only the title based on what the user is asking for, nothing else:`;
+Also, do not interact with the message directly or answer it. Just generate the title based on the message.
+
+If its a simple hi, just name it "Greeting" or something like that.
+`;
 
 	const titleResult = await ResultAsync.fromPromise(
 		openai.chat.completions.create({
 			model: 'mistralai/ministral-8b',
 			messages: [{ role: 'user', content: titlePrompt }],
 			max_tokens: 20,
-			temperature: 0.3,
+			temperature: 0.5,
 		}),
 		(e) => `Title generation API call failed: ${e}`
 	);
@@ -149,6 +154,7 @@ Generate only the title based on what the user is asking for, nothing else:`;
 		}),
 		(e) => `Failed to update conversation title: ${e}`
 	);
+	t;
 
 	if (updateResult.isErr()) {
 		log(`Title generation: Failed to update title: ${updateResult.error}`, startTime);
@@ -184,19 +190,20 @@ async function generateAIResponse({
 		return;
 	}
 
-	const [modelResult, keyResult, messagesQueryResult, rulesResult, userSettingsResult] = await Promise.all([
-		modelResultPromise,
-		keyResultPromise,
-		ResultAsync.fromPromise(
-			client.query(api.messages.getAllFromConversation, {
-				conversation_id: conversationId as Id<'conversations'>,
-				session_token: sessionToken,
-			}),
-			(e) => `Failed to get messages: ${e}`
-		),
-		rulesResultPromise,
-		userSettingsPromise,
-	]);
+	const [modelResult, keyResult, messagesQueryResult, rulesResult, userSettingsResult] =
+		await Promise.all([
+			modelResultPromise,
+			keyResultPromise,
+			ResultAsync.fromPromise(
+				client.query(api.messages.getAllFromConversation, {
+					conversation_id: conversationId as Id<'conversations'>,
+					session_token: sessionToken,
+				}),
+				(e) => `Failed to get messages: ${e}`
+			),
+			rulesResultPromise,
+			userSettingsPromise,
+		]);
 
 	if (modelResult.isErr()) {
 		handleGenerationError({
@@ -296,7 +303,7 @@ async function generateAIResponse({
 	const userKey = keyResult.value;
 	const userSettings = userSettingsResult.value;
 	let actualKey: string;
-	
+
 	if (userKey) {
 		// User has their own API key
 		actualKey = userKey;
@@ -304,14 +311,15 @@ async function generateAIResponse({
 	} else {
 		// User doesn't have API key, check if using a free model
 		const isFreeModel = model.model_id.endsWith(':free');
-		
+
 		if (!isFreeModel) {
 			// For non-free models, check the 10 message limit
 			const freeMessagesUsed = userSettings?.free_messages_used || 0;
-			
+
 			if (freeMessagesUsed >= 10) {
 				handleGenerationError({
-					error: 'Free message limit reached (10/10). Please add your own OpenRouter API key to continue chatting, or use a free model ending in ":free".',
+					error:
+						'Free message limit reached (10/10). Please add your own OpenRouter API key to continue chatting, or use a free model ending in ":free".',
 					conversationId,
 					messageId: mid,
 					sessionToken,
@@ -319,7 +327,7 @@ async function generateAIResponse({
 				});
 				return;
 			}
-			
+
 			// Increment free message count before generating (only for non-free models)
 			const incrementResult = await ResultAsync.fromPromise(
 				client.mutation(api.user_settings.incrementFreeMessageCount, {
@@ -327,7 +335,7 @@ async function generateAIResponse({
 				}),
 				(e) => `Failed to increment free message count: ${e}`
 			);
-			
+
 			if (incrementResult.isErr()) {
 				handleGenerationError({
 					error: `Failed to track free message usage: ${incrementResult.error}`,
@@ -338,12 +346,12 @@ async function generateAIResponse({
 				});
 				return;
 			}
-			
+
 			log(`Background: Using free tier (${freeMessagesUsed + 1}/10 messages)`, startTime);
 		} else {
 			log(`Background: Using free model (${model.model_id}) - no message count`, startTime);
 		}
-		
+
 		// Use environment OpenRouter key
 		actualKey = OPENROUTER_FREE_KEY;
 	}
@@ -518,12 +526,15 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			(e) => `Failed to render HTML: ${e}`
 		);
 
-		const generationStatsResult = await retryResult(() => getGenerationStats(generationId!, actualKey), {
-			delay: 500,
-			retries: 2,
-			startTime,
-			fnName: 'getGenerationStats',
-		});
+		const generationStatsResult = await retryResult(
+			() => getGenerationStats(generationId!, actualKey),
+			{
+				delay: 500,
+				retries: 2,
+				startTime,
+				fnName: 'getGenerationStats',
+			}
+		);
 
 		if (generationStatsResult.isErr()) {
 			log(`Background: Failed to get generation stats: ${generationStatsResult.error}`, startTime);

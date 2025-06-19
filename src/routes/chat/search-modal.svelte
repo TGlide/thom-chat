@@ -148,9 +148,6 @@
 								<div class={['truncate font-medium', titleMatch && 'text-heading']}>
 									{conversation.title}
 								</div>
-								<div class="text-muted-foreground bg-muted rounded px-1.5 py-0.5 text-xs">
-									{Math.round(score * 100)}%
-								</div>
 							</div>
 							<div class="text-muted-foreground text-xs">
 								{messages.length} matching message{messages.length !== 1 ? 's' : ''}

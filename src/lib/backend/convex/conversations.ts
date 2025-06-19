@@ -28,6 +28,7 @@ export const get = query({
 			.collect();
 
 		return conversations.sort((a, b) => {
+			if (a.generating && b.generating) return 0;
 			const aTime = a.updated_at ?? 0;
 			const bTime = b.updated_at ?? 0;
 
