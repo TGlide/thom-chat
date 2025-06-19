@@ -144,17 +144,34 @@
 		}
 	}
 
+	let abortEnhance: AbortController | null = $state(null);
+
 	async function enhancePrompt() {
 		if (!session.current?.session.token) return;
 
 		enhancingPrompt = true;
 
-		const res = await callEnhancePrompt({
-			prompt: message.current,
-		});
+		abortEnhance = new AbortController();
+
+		const res = await callEnhancePrompt(
+			{
+				prompt: message.current,
+			},
+			{
+				signal: abortEnhance.signal,
+			}
+		);
 
 		if (res.isErr()) {
+			const e = res.error;
+
+			if (e.toLowerCase().includes('aborterror')) {
+				enhancingPrompt = false;
+				return;
+			}
+
 			error = res._unsafeUnwrapErr() ?? 'An unknown error occurred while enhancing the prompt';
+
 			enhancingPrompt = false;
 			return;
 		}
@@ -692,12 +709,23 @@
 												class={cn(
 													'border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border p-2 text-xs transition-colors lg:px-2 lg:py-1'
 												)}
-												onclick={enhancePrompt}
-												disabled={enhancingPrompt || isGenerating}
+												onclick={() => {
+													if (enhancingPrompt) {
+														abortEnhance?.abort();
+													} else {
+														enhancePrompt();
+													}
+												}}
+												disabled={isGenerating}
 												in:scale={{ duration: 150, start: 0.95 }}
 											>
-												<SparkleIcon class="text-primary !size-3" />
-												<span class="hidden whitespace-nowrap lg:block">Enhance prompt</span>
+												{#if enhancingPrompt}
+													<StopIcon class="!size-3" />
+													<span class="hidden whitespace-nowrap lg:block">Enhancing prompt...</span>
+												{:else}
+													<SparkleIcon class="text-primary !size-3" />
+													<span class="hidden whitespace-nowrap lg:block">Enhance prompt</span>
+												{/if}
 											</button>
 										{/if}
 									</div>
