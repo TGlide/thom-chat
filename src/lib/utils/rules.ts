@@ -1,6 +1,9 @@
-import type { Doc } from "$lib/backend/convex/_generated/dataModel";
+import type { Doc } from '$lib/backend/convex/_generated/dataModel';
 
-export function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<'user_rules'>[] {
+export function parseMessageForRules(
+	message: string,
+	rules: Doc<'user_rules'>[]
+): Doc<'user_rules'>[] {
 	const matchedRules: Doc<'user_rules'>[] = [];
 
 	for (const rule of rules) {

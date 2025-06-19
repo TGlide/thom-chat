@@ -12,7 +12,7 @@
 	<div
 		{...rest}
 		class={cn(
-			'bg-sidebar border-sidebar-border col-start-1 fill-device-height w-[--sidebar-width] border-r',
+			'bg-sidebar border-sidebar-border fill-device-height col-start-1 w-[--sidebar-width] border-r',
 			className
 		)}
 	>

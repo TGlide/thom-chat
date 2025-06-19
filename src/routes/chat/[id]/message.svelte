@@ -163,7 +163,7 @@
 		</div>
 		<div
 			class={cn(
-				'flex place-items-center gap-2 md:opacity-0 transition-opacity group-hover:opacity-100',
+				'flex place-items-center gap-2 transition-opacity group-hover:opacity-100 md:opacity-0',
 				{
 					'justify-end': message.role === 'user',
 				}

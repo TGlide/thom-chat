@@ -176,7 +176,7 @@ export const getByConversationPublic = query({
 	handler: async (ctx, args) => {
 		// First check if the conversation is public
 		const conversation = await ctx.db.get(args.conversation_id);
-		
+
 		if (!conversation || !conversation.public) {
 			return null;
 		}
