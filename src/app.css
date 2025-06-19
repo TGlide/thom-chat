@@ -54,7 +54,7 @@
 }
 
 .dark {
-	--background: oklch(0.2409 0.0201 307.5346);
+	--background: oklch(0.2409 0.0201 267.5346);
 	--foreground: oklch(0.8398 0.0387 309.5391);
 	--card: oklch(0.2803 0.0232 307.5413);
 	--card-foreground: oklch(0.8456 0.0302 341.4597);
@@ -214,13 +214,19 @@
 	--shadow-2xl: var(--shadow-2xl);
 }
 
+@utility fill-device-height {
+	height: 100svh;
+
+	/* min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); */
+}
+
 @layer base {
 	* {
 		@apply border-border;
 	}
 
 	body {
-		@apply bg-background text-foreground bg-noise;
+		@apply bg-background text-foreground bg-noise fill-device-height w-full;
 	}
 }
 
