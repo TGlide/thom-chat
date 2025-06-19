@@ -48,6 +48,12 @@
 	let textarea = $state<HTMLTextAreaElement>();
 	let abortController = $state<AbortController | null>(null);
 
+	$effect(() => {
+		client.mutation(api.user_enabled_models.enable_initial, {
+			session_token: session.current?.session.token ?? '',
+		});
+	});
+
 	const currentConversationQuery = useCachedQuery(api.conversations.getById, () => ({
 		conversation_id: page.params.id as Id<'conversations'>,
 		session_token: session.current?.session.token ?? '',

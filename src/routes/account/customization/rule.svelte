@@ -81,11 +81,7 @@
 
 	let ruleName = $derived(rule.name);
 
-	let renaming = $state(false);
-
 	async function renameRule() {
-		renaming = true;
-
 		await ResultAsync.fromPromise(
 			client.mutation(api.user_rules.rename, {
 				ruleId: rule._id,
@@ -94,8 +90,6 @@
 			}),
 			(e) => e
 		);
-
-		renaming = false;
 	}
 
 	const ruleNameExists = $derived.by(() => {
@@ -111,15 +105,23 @@
 <Card.Root>
 	<Card.Header>
 		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-2">
-				<Input bind:value={ruleName} aria-invalid={ruleNameExists} />
-				<Button
-					variant="outline"
-					onClickPromise={renameRule}
-					disabled={ruleNameExists || ruleName === rule.name}
-				>
-					Rename
-				</Button>
+			<div class="flex flex-col gap-2">
+				<Label for="rule-name">Name</Label>
+				<div class="flex items-center gap-2">
+					<Input
+						bind:value={ruleName}
+						aria-invalid={ruleNameExists}
+						id="rule-name"
+						name="rule-name"
+					/>
+					<Button
+						variant="outline"
+						onClickPromise={renameRule}
+						disabled={ruleNameExists || ruleName === rule.name}
+					>
+						Rename
+					</Button>
+				</div>
 			</div>
 			<Button variant="destructive" size="icon" onclick={deleteRule} disabled={deleting}>
 				<TrashIcon class="size-4" />

@@ -114,3 +114,41 @@ export const set = mutation({
 		}
 	},
 });
+
+export const enable_initial = mutation({
+	args: {
+		session_token: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) {
+			throw new Error('Unauthorized');
+		}
+
+		// Check if any models are enabled
+		const enabledModels = await ctx.db
+			.query('user_enabled_models')
+			.withIndex('by_user', (q) => q.eq('user_id', session.userId))
+			.collect();
+
+		if (enabledModels.length > 0) {
+			return;
+		}
+
+		const initialModels = ['google/gemini-2.5-flash', 'deepseek/deepseek-chat-v3-0324:free'];
+
+		await Promise.all(
+			initialModels.map((model) =>
+				ctx.db.insert('user_enabled_models', {
+					user_id: session.userId,
+					provider: Provider.OpenRouter,
+					model_id: model,
+					pinned: null,
+				})
+			)
+		);
+	},
+});
