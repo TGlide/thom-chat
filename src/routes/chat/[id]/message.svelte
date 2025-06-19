@@ -18,6 +18,7 @@
 	import { goto } from '$app/navigation';
 	import { callGenerateMessage } from '../../api/generate-message/call';
 	import * as Icons from '$lib/components/icons';
+	import { settings } from '$lib/state/settings.svelte';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -66,37 +67,21 @@
 			return;
 		}
 
-		await goto(`/chat/${res.value}`);
-	}
-
-	async function branchAndGenerate() {
-		const res = await ResultAsync.fromPromise(
-			client.mutation(api.conversations.createBranched, {
-				conversation_id: message.conversation_id as Id<'conversations'>,
-				from_message_id: message._id,
-				session_token: session.current?.session.token ?? '',
-			}),
-			(e) => e
-		);
-
-		if (res.isErr()) {
-			console.error(res.error);
-			return;
-		}
-
 		const cid = res.value;
 
-		const generateRes = await callGenerateMessage({
-			session_token: session.current?.session.token ?? '',
-			conversation_id: cid,
-			model_id: message.model_id!,
-			images: message.images,
-			web_search_enabled: message.web_search_enabled,
-		});
+		if (message.role === 'user' && settings.modelId) {
+			const generateRes = await callGenerateMessage({
+				session_token: session.current?.session.token ?? '',
+				conversation_id: cid,
+				model_id: settings.modelId,
+				images: message.images,
+				web_search_enabled: message.web_search_enabled,
+			});
 
-		if (generateRes.isErr()) {
-			// TODO: add error toast
-			return;
+			if (generateRes.isErr()) {
+				// TODO: add error toast
+				return;
+			}
 		}
 
 		await goto(`/chat/${cid}`);
@@ -178,27 +163,15 @@
 						onClickPromise={createBranchedConversation}
 						{...tooltip.trigger}
 					>
-						<Icons.Branch class="group-data-[loading=true]:opacity-0" />
+						{#if message.role === 'user'}
+							<Icons.BranchAndRegen class="group-data-[loading=true]:opacity-0" />
+						{:else}
+							<Icons.Branch class="group-data-[loading=true]:opacity-0" />
+						{/if}
 					</Button>
 				{/snippet}
-				Branch off this message
+				{message.role === 'user' ? 'Branch and regenerate message' : 'Branch off this message'}
 			</Tooltip>
-			{#if message.role === 'user'}
-				<Tooltip>
-					{#snippet trigger(tooltip)}
-						<Button
-							size="icon"
-							variant="ghost"
-							class={cn('group order-0 size-7')}
-							onClickPromise={branchAndGenerate}
-							{...tooltip.trigger}
-						>
-							<Icons.BranchAndRegen class="group-data-[loading=true]:opacity-0" />
-						</Button>
-					{/snippet}
-					Branch and regenerate
-				</Tooltip>
-			{/if}
 			{#if message.content.length > 0}
 				<Tooltip>
 					{#snippet trigger(tooltip)}

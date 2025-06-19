@@ -91,7 +91,6 @@ export const set = mutation({
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
 			session_token: args.session_token,
 		});
-		console.log('Session', session);
 
 		if (!session) throw new Error('Invalid session token');
 
@@ -101,9 +100,6 @@ export const set = mutation({
 				q.eq('model_id', args.model_id).eq('provider', args.provider).eq('user_id', session.userId)
 			)
 			.first();
-
-		console.log('Trying to set', args.model_id, 'for', session.userId);
-		console.log('Existing', !!existing);
 
 		if (args.enabled && existing) return; // nothing to do here
 

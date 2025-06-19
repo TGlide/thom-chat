@@ -162,8 +162,6 @@ export const createBranched = mutation({
 
 		const existingConversation = await ctx.db.get(args.conversation_id);
 
-		console.log(existingConversation);
-
 		if (!existingConversation) throw new Error('Conversation not found');
 		if (existingConversation.user_id !== session.userId && !existingConversation.public)
 			throw new Error('Unauthorized');
@@ -186,8 +184,6 @@ export const createBranched = mutation({
 			public: false,
 			cost_usd: newMessages.reduce((acc, m) => acc + (m.cost_usd ?? 0), 0),
 		});
-
-		console.log(newConversationId);
 
 		await Promise.all(
 			newMessages.map((m) => {
