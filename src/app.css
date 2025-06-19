@@ -211,23 +211,6 @@
 	--shadow-2xl: var(--shadow-2xl);
 }
 
-@utility fill-device {
-	height: 100vh;
-	height: 100dvh; /* Dynamic viewport height - newer browsers */
-
-	/* Alternative: Use env() for safe areas */
-	min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-
-	/* Ensure full width */
-	width: 100vw;
-	width: 100dvw; /* Dynamic viewport width */
-
-	/* Remove default margins/padding */
-	margin: 0;
-	padding: 0;
-	overflow-x: hidden;
-}
-
 @utility fill-device-height {
 	height: 100svh;
 
@@ -240,9 +223,7 @@
 	}
 
 	body {
-		@apply bg-background text-foreground bg-noise fill-device;
-		position: fixed;
-		overflow: clip;
+		@apply bg-background text-foreground bg-noise fill-device-height w-full;
 	}
 }
 

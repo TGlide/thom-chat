@@ -378,6 +378,10 @@
 
 <svelte:head>
 	<title>Chat | thom.chat</title>
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+	/>
 </svelte:head>
 
 <svelte:window
