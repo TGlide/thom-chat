@@ -384,7 +384,7 @@
 			<!-- header - top left -->
 			<div
 				class={cn(
-					'bg-sidebar/50 fixed top-2 left-2 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:left-0 md:rounded-none md:rounded-br-lg',
+					'bg-sidebar/50 fixed top-4 left-4 z-50 flex w-fit rounded-lg p-1 backdrop-blur-lg ',
 					{
 						'md:left-(--sidebar-width)': sidebarOpen,
 						'hidden md:flex': sidebarOpen,
@@ -404,10 +404,9 @@
 
 		<!-- header - top right -->
 		<div
-			class={cn(
-				'bg-sidebar/50 fixed top-2 right-2 z-50 flex rounded-lg p-1 backdrop-blur-lg md:top-0 md:right-0 md:rounded-none md:rounded-bl-lg',
-				{ 'hidden md:flex': sidebarOpen }
-			)}
+			class={cn('bg-sidebar/50 fixed top-4 right-4 z-50 flex rounded-lg p-1 backdrop-blur-lg ', {
+				'hidden md:flex': sidebarOpen,
+			})}
 		>
 			{#if page.params.id && currentConversationQuery.data}
 				<ShareButton conversationId={page.params.id as Id<'conversations'>} />

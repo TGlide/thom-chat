@@ -9,7 +9,13 @@
 </script>
 
 {#if sidebar.root.showSidebar}
-	<div {...rest} class={cn('bg-sidebar col-start-1 h-screen w-[--sidebar-width]', className)}>
+	<div
+		{...rest}
+		class={cn(
+			'bg-sidebar border-sidebar-border col-start-1 h-screen w-[--sidebar-width] border-r',
+			className
+		)}
+	>
 		{@render children?.()}
 	</div>
 {/if}

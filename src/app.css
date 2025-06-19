@@ -87,7 +87,7 @@
 	--sidebar-primary-foreground: oklch(1 0 0);
 	--sidebar-accent: oklch(0.2337 0.0261 260);
 	--sidebar-accent-foreground: oklch(0.9674 0.0013 250);
-	--sidebar-border: oklch(0 0 0);
+	--sidebar-border: oklch(0.3297 0.0294 237.7893);
 	--sidebar-ring: oklch(0.5797 0.1194 237.7893);
 	--radius: 0.5rem;
 	--shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -317,7 +317,7 @@
 	}
 
 	.modal-box {
-		@apply bg-background border-border col-start-1 row-start-1 max-h-screen w-11/12 max-w-[32rem] p-6;
+		@apply bg-background border-border col-start-1 row-start-1 max-h-screen w-11/12 max-w-[32rem] border p-6;
 		transition:
 			translate 0.3s ease-out,
 			scale 0.3s ease-out,
