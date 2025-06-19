@@ -17,6 +17,8 @@ Clone of [T3 Chat](https://t3.chat/)
 - Markdown rendered messages with syntax highlighting
 - Chat sharing
 - Keyboard shortcuts
+- Enhance prompt button
+- Chat branching
 
 ## 🛠️ Tech Stack
 
@@ -41,51 +43,15 @@ Clone of [T3 Chat](https://t3.chat/)
 
 ## TODO
 
-- [x] Login & Auth
-- [x] useCachedQuery
-- [x] Convex schemas for chats
-- [x] Actual fucking UI for chat
-- [x] Providers (BYOK)
-  - [x] Openrouter
-  - ~[ ] HuggingFace~
-  - ~[ ] OpenAI~
-- [x] File upload
-- [x] Ensure responsiveness
-- [x] Streams on the server (Resumable streams)
-- [x] Syntax highlighting with Shiki/markdown renderer
-- [x] Eliminate FOUC
-- [x] Cascade deletes
-- [x] Google Auth
-- [x] Fix light mode (urgh)
-- [x] Privacy mode
-
-### Chat
-
-- [x] loading state
-- [x] deal with error states, both on creation attempt and message generation failure
-- [x] delete conversations option
-- [x] conversation title generation
-- [x] kbd powered popover model picker
-- [x] autosize
-- [x] AbortController for message generation
-- [x] Per route msg persistance
-
 ### Extra
 
-- [x] Web Search
-- [ ] Chat branching
 - [ ] Regenerate message
 - ~[ ] Image generation~
-- [x] Chat sharing
 - [ ] 404 page/redirect
 - ~[ ] Test link with free credits~
-- [x] Cursor-like Rules (@ieedan's idea!)
-- [x] Full-text search
 
 ### Final push
 
-- [x] Private mode for greeting
-- [x] Free mode
 - [ ] make things prettier
 - [ ] mobile adjustments
 - [ ] cloud per chat persistance
