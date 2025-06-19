@@ -97,8 +97,8 @@ export const set = mutation({
 
 		const existing = await ctx.db
 			.query('user_enabled_models')
-			.withIndex('by_model_provider', (q) =>
-				q.eq('model_id', args.model_id).eq('provider', args.provider)
+			.withIndex('by_model_provider_user', (q) =>
+				q.eq('model_id', args.model_id).eq('provider', args.provider).eq('user_id', session.userId)
 			)
 			.first();
 
