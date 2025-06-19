@@ -93,6 +93,7 @@
 	this={href ? 'a' : 'button'}
 	{...rest}
 	data-slot="button"
+	data-loading={loading}
 	type={href ? undefined : type}
 	href={href && !disabled ? href : undefined}
 	disabled={href ? undefined : disabled || loading}

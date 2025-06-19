@@ -54,6 +54,7 @@ export default defineSchema({
 		generating: v.optional(v.boolean()),
 		cost_usd: v.optional(v.number()),
 		public: v.optional(v.boolean()),
+		branched_from: v.optional(v.id('conversations')),
 	}).index('by_user', ['user_id']),
 	messages: defineTable({
 		conversation_id: v.string(),

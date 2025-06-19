@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils/utils';
 	import { tv } from 'tailwind-variants';
-	import type { Doc } from '$lib/backend/convex/_generated/dataModel';
+	import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import '../../../markdown.css';
 	import MarkdownRenderer from './markdown-renderer.svelte';
@@ -9,6 +9,14 @@
 	import { sanitizeHtml } from '$lib/utils/markdown-it';
 	import { on } from 'svelte/events';
 	import { isHtmlElement } from '$lib/utils/is';
+	import SplitIcon from '~icons/lucide/split';
+	import { Button } from '$lib/components/ui/button';
+	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/backend/convex/_generated/api';
+	import { session } from '$lib/state/session.svelte';
+	import { ResultAsync } from 'neverthrow';
+	import { goto } from '$app/navigation';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -24,6 +32,8 @@
 		message: Doc<'messages'>;
 	};
 
+	const client = useConvexClient();
+
 	let { message }: Props = $props();
 
 	let imageModal = $state<{ open: boolean; imageUrl: string; fileName: string }>({
@@ -38,6 +48,24 @@
 			imageUrl,
 			fileName,
 		};
+	}
+
+	async function createBranchedConversation() {
+		const res = await ResultAsync.fromPromise(
+			client.mutation(api.conversations.createBranched, {
+				conversation_id: message.conversation_id as Id<'conversations'>,
+				from_message_id: message._id,
+				session_token: session.current?.session.token ?? '',
+			}),
+			(e) => e
+		);
+
+		if (res.isErr()) {
+			console.error(res.error);
+			return;
+		}
+
+		await goto(`/chat/${res.value}`);
 	}
 </script>
 
@@ -107,8 +135,25 @@
 				}
 			)}
 		>
+			<Tooltip>
+				{#snippet trigger(tooltip)}
+					<Button
+						size="icon"
+						variant="ghost"
+						class={cn('group order-2 size-7', { 'order-1': message.role === 'user' })}
+						onClickPromise={createBranchedConversation}
+						{...tooltip.trigger}
+					>
+						<SplitIcon class="group-data-[loading=true]:opacity-0" />
+					</Button>
+				{/snippet}
+				Branch off this message
+			</Tooltip>
 			{#if message.content.length > 0}
-				<CopyButton class="size-7" text={message.content} />
+				<CopyButton
+					class={cn('order-1 size-7', { 'order-2': message.role === 'user' })}
+					text={message.content}
+				/>
 			{/if}
 			{#if message.model_id !== undefined}
 				<span class="text-muted-foreground text-xs">{message.model_id}</span>

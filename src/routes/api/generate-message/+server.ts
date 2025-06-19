@@ -154,7 +154,6 @@ If its a simple hi, just name it "Greeting" or something like that.
 		}),
 		(e) => `Failed to update conversation title: ${e}`
 	);
-	t;
 
 	if (updateResult.isErr()) {
 		log(`Title generation: Failed to update title: ${updateResult.error}`, startTime);
