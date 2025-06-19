@@ -30,6 +30,11 @@
 		disabled: true,
 	});
 
+	const freeModelsToggle = new Toggle({
+		value: false,
+		disabled: false,
+	});
+
 	let initiallyEnabled = $state<string[]>([]);
 	$effect(() => {
 		if (Object.keys(models.enabled).length && initiallyEnabled.length === 0) {
@@ -42,7 +47,13 @@
 
 	const openRouterModels = $derived(
 		fuzzysearch({
-			haystack: models.from(Provider.OpenRouter),
+			haystack: models.from(Provider.OpenRouter).filter((m) => {
+				if (!freeModelsToggle.value) return true;
+
+				if (m.pricing.prompt === '0') return true;
+
+				return false;
+			}),
 			needle: search,
 			property: 'name',
 		}).sort((a, b) => {
@@ -73,6 +84,15 @@
 			class="group text-primary-foreground bg-primary aria-[pressed=false]:border-border border-primary aria-[pressed=false]:bg-background flex place-items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			OpenRouter
+			<XIcon class="inline size-3 group-aria-[pressed=false]:hidden" />
+			<PlusIcon class="inline size-3 group-aria-[pressed=true]:hidden" />
+		</button>
+		<button
+			{...freeModelsToggle.trigger}
+			aria-label="Free Models"
+			class="group text-primary-foreground bg-primary aria-[pressed=false]:border-border border-primary aria-[pressed=false]:bg-background flex place-items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			Free
 			<XIcon class="inline size-3 group-aria-[pressed=false]:hidden" />
 			<PlusIcon class="inline size-3 group-aria-[pressed=true]:hidden" />
 		</button>
