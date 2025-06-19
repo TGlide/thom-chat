@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="static/favicon.png" alt="Thom Chat" width="64" height="64">
+  <img src="static/favicon.png" alt="Thom Chat" width="180" height="180">
   <h1>thom-chat</h1>
 </div>
 
