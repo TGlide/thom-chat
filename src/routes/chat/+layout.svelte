@@ -399,10 +399,6 @@
 	let sidebarOpen = $state(false);
 </script>
 
-<svelte:head>
-	<title>Chat | thom.chat</title>
-</svelte:head>
-
 <Sidebar.Root
 	bind:open={sidebarOpen}
 	class="h-screen overflow-clip"
