@@ -1,25 +1,24 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
+	import { api } from '$lib/backend/convex/_generated/api';
+	import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
+	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { useSidebarControls } from '$lib/components/ui/sidebar';
-	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte';
 	import Tooltip from '$lib/components/ui/tooltip.svelte';
+	import { cmdOrCtrl } from '$lib/hooks/is-mac.svelte';
+	import { session } from '$lib/state/session.svelte';
 	import { cn } from '$lib/utils/utils.js';
+	import { useConvexClient } from 'convex-svelte';
 	import { Avatar } from 'melt/components';
 	import LoaderCircleIcon from '~icons/lucide/loader-circle';
-	import PinOffIcon from '~icons/lucide/pin-off';
-	import { useConvexClient } from 'convex-svelte';
-	import { session } from '$lib/state/session.svelte';
-	import { api } from '$lib/backend/convex/_generated/api';
-	import { callModal } from './ui/modal/global-modal.svelte';
-	import { goto } from '$app/navigation';
-	import { useCachedQuery } from '$lib/cache/cached-query.svelte';
-	import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
-	import PinIcon from '~icons/lucide/pin';
-	import XIcon from '~icons/lucide/x';
-	import { page } from '$app/state';
-	import { Button } from './ui/button';
-	import SearchIcon from '~icons/lucide/search';
 	import PanelLeftIcon from '~icons/lucide/panel-left';
+	import PinIcon from '~icons/lucide/pin';
+	import PinOffIcon from '~icons/lucide/pin-off';
+	import XIcon from '~icons/lucide/x';
+	import { Button } from './ui/button';
+	import { callModal } from './ui/modal/global-modal.svelte';
 
 	let { searchModalOpen = $bindable(false) }: { searchModalOpen: boolean } = $props();
 
@@ -120,10 +119,6 @@
 		{ key: 'lastMonth', label: 'Last 30 days', conversations: groupedConversations.lastMonth },
 		{ key: 'older', label: 'Older', conversations: groupedConversations.older },
 	]);
-
-	function openSearchModal() {
-		searchModalOpen = true;
-	}
 </script>
 
 <Sidebar.Sidebar class="flex flex-col overflow-clip p-2">

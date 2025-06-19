@@ -81,3 +81,11 @@ Clone of [T3 Chat](https://t3.chat/)
 - ~[ ] Test link with free credits~
 - [x] Cursor-like Rules (@ieedan's idea!)
 - [x] Full-text search
+
+### Final push
+
+- [ ] Private mode for greeting
+- [ ] Free mode
+- [ ] make things prettier
+- [ ] mobile adjustments
+- [ ] cloud per chat persistance

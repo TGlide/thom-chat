@@ -18,6 +18,10 @@
 		'When are you going to take my job?',
 	];
 
+	const settings = useCachedQuery(api.user_settings.get, {
+		session_token: session.current?.session.token ?? '',
+	});
+
 	const suggestionCategories: Record<string, { icon: typeof IconAi; suggestions: string[] }> = {
 		Create: {
 			icon: IconAi,
@@ -71,7 +75,9 @@
 	{#if prompt.current.length === 0 && openRouterKeyQuery.data}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
 			<h2 class="text-left font-serif text-3xl font-semibold">
-				Hey there{session.current?.user.name ? ` ${session.current?.user.name}` : ''}!
+				Hey there <span class={{ 'blur-sm': settings.data?.privacy_mode }}
+					>{session.current?.user.name ? ` ${session.current?.user.name}` : ''}</span
+				>!
 			</h2>
 			<div class="mt-4 flex flex-wrap items-center gap-1">
 				{#each Object.entries(suggestionCategories) as [category, opts] (category)}
@@ -124,7 +130,9 @@
 	{:else if !openRouterKeyQuery.data}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
 			<h2 class="text-left font-serif text-3xl font-semibold">
-				Hey there, {session.current?.user.name}!
+				Hey there, <span class={{ 'blur-sm': settings.data?.privacy_mode }}
+					>{session.current?.user.name}</span
+				>!
 			</h2>
 			<p class="mt-2 text-left text-lg">
 				You need to provide a key to start sending messages.
