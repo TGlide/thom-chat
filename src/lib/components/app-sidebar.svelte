@@ -200,7 +200,23 @@
 							>
 								<p class="truncate rounded-lg py-2 pr-4 pl-3 whitespace-nowrap">
 									{#if conversation.branched_from}
-										<SplitIcon class="text-muted-foreground/50 mr-1 inline size-4" />
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<button
+													type="button"
+													class="hover:text-foreground text-muted-foreground/50 cursor-pointer transition-all"
+													onclick={(e) => {
+														e.preventDefault();
+														e.stopPropagation();
+														goto(`/chat/${conversation.branched_from}`);
+													}}
+													{...tooltip.trigger}
+												>
+													<SplitIcon class="mr-1 inline size-4" />
+												</button>
+											{/snippet}
+											Go to original conversation
+										</Tooltip>
 									{/if}
 									<span>{conversation.title}</span>
 								</p>
