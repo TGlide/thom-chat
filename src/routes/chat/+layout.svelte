@@ -438,7 +438,7 @@
 >
 	<AppSidebar bind:searchModalOpen />
 
-	<Sidebar.Inset class="w-full overflow-clip px-2">
+	<Sidebar.Inset class="w-full min-w-0 overflow-clip px-2">
 		{#if !sidebarOpen}
 			<!-- header - top left -->
 			<div
