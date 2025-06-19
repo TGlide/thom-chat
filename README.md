@@ -139,7 +139,6 @@ While thom.chat is a clone, the featureset is not identical to T3 Chat.
 
 - Add your own OpenRouter API key for unlimited access
 - Access to all 400+ models
-- Priority support
 
 ## 🤝 Contributing
 
