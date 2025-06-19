@@ -32,6 +32,9 @@ importers:
       '@fontsource-variable/open-sans':
         specifier: ^5.2.6
         version: 5.2.6
+      '@fontsource/instrument-serif':
+        specifier: ^5.2.6
+        version: 5.2.6
       better-auth:
         specifier: ^1.2.9
         version: 1.2.9
@@ -635,6 +638,9 @@ packages:
 
   '@fontsource-variable/open-sans@5.2.6':
     resolution: {integrity: sha512-O596UvQZ7KkR8yDJWIP8UZZoqs0DHpYsrL0Szml0/EkrJ35HcMIM3bJ3sSAIAjWsBSqKgzV2HJEIuhvxBd1iog==}
+
+  '@fontsource/instrument-serif@5.2.6':
+    resolution: {integrity: sha512-uvAmjVbzV26yaPesOQxwQcVU8ALbpgZ8E329KoAr19aH0Vr5BPHzSq7ImtmYmlla4kC3qcbhePdXUJEB20ZbpA==}
 
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
@@ -3047,6 +3053,8 @@ snapshots:
   '@fontsource-variable/nunito-sans@5.2.6': {}
 
   '@fontsource-variable/open-sans@5.2.6': {}
+
+  '@fontsource/instrument-serif@5.2.6': {}
 
   '@hexagon/base64@1.1.28': {}
 

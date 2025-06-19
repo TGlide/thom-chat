@@ -45,7 +45,7 @@
 					href="/"
 					class="text-foreground hover:text-foreground/80 flex items-center gap-2 transition-colors"
 				>
-					<span class="font-serif font-semibold">Thom.chat</span>
+					<span class="font-serif font-semibold">thom.chat</span>
 				</a>
 				<div class="text-muted-foreground text-sm">Shared conversation</div>
 			</div>
