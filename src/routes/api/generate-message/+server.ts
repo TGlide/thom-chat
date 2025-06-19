@@ -12,6 +12,7 @@ import OpenAI from 'openai';
 import { z } from 'zod/v4';
 import { generationAbortControllers } from './cache.js';
 import { md } from '$lib/utils/markdown-it.js';
+import * as array from '$lib/utils/array';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -371,13 +372,22 @@ async function generateAIResponse({
 		return;
 	}
 
-	const attachedRules = [
-		...rulesResult.value.filter((r) => r.attach === 'always'),
-		...parseMessageForRules(
-			userMessage.content,
+	let attachedRules = rulesResult.value.filter((r) => r.attach === 'always');
+
+	for (const message of messages) {
+		const parsedRules = parseMessageForRules(
+			message.content,
 			rulesResult.value.filter((r) => r.attach === 'manual')
-		),
-	];
+		);
+
+		attachedRules.push(...parsedRules);
+	}
+
+	// remove duplicates
+	attachedRules = array.fromMap(
+		array.toMap(attachedRules, (r) => [r._id, r]),
+		(_k, v) => v
+	);
 
 	log(`Background: ${attachedRules.length} rules attached`, startTime);
 
@@ -412,7 +422,7 @@ async function generateAIResponse({
 					...formattedMessages,
 					{
 						role: 'system' as const,
-						content: `Respond in markdown format. The user may have mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules.
+						content: `The user has mentioned one or more rules to follow with the @<rule_name> syntax. Please follow these rules as they apply.
 Rules to follow:
 ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 					},

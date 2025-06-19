@@ -28,7 +28,7 @@ export const get_enabled = query({
 			.withIndex('by_user', (q) => q.eq('user_id', session.userId))
 			.collect();
 
-		return array.toMap(models, (m) => [getModelKey(m), m]);
+		return array.toRecord(models, (m) => [getModelKey(m), m]);
 	},
 });
 
