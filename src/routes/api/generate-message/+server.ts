@@ -13,6 +13,7 @@ import { z } from 'zod/v4';
 import { generationAbortControllers } from './cache.js';
 import { md } from '$lib/utils/markdown-it.js';
 import * as array from '$lib/utils/array';
+import { parseMessageForRules } from '$lib/utils/rules.js';
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -814,19 +815,6 @@ export const POST: RequestHandler = async ({ request }) => {
 	log('Response sent, AI generation started in background', startTime);
 	return response({ ok: true, conversation_id: conversationId });
 };
-
-function parseMessageForRules(message: string, rules: Doc<'user_rules'>[]): Doc<'user_rules'>[] {
-	const matchedRules: Doc<'user_rules'>[] = [];
-
-	for (const rule of rules) {
-		const match = message.match(new RegExp(`@${rule.name}(\\s|$)`));
-		if (!match) continue;
-
-		matchedRules.push(rule);
-	}
-
-	return matchedRules;
-}
 
 async function getGenerationStats(
 	generationId: string,

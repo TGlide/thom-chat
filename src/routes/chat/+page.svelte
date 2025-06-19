@@ -71,6 +71,10 @@
 	const prompt = usePrompt();
 </script>
 
+<svelte:head>
+	<title>New Chat | thom.chat</title>
+</svelte:head>
+
 <div class="flex h-svh flex-col items-center justify-center">
 	{#if prompt.current.length === 0 && openRouterKeyQuery.data}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>

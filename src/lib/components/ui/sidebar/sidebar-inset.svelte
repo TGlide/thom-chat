@@ -5,6 +5,6 @@
 	let { class: className, children, ...rest }: HTMLAttributes<HTMLDivElement> = $props();
 </script>
 
-<div {...rest} class={cn('bg-background bg-noise col-start-2 h-screen', className)}>
+<div {...rest} class={cn('bg-background bg-noise fill-device-height col-start-2 ', className)}>
 	{@render children?.()}
 </div>
