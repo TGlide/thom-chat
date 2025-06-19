@@ -34,7 +34,7 @@
 	<meta name="description" content="A shared conversation from thom.chat" />
 </svelte:head>
 
-<div class="min-h-screen">
+<div class="fill-device-height">
 	<!-- Header -->
 	<header
 		class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 border-b backdrop-blur"

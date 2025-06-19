@@ -214,7 +214,7 @@
 	<button
 		{...popover.trigger}
 		class={cn(
-			'ring-offset-background focus:ring-ring flex w-full items-center justify-between rounded-lg px-2 py-1 text-xs transition hover:text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			'ring-offset-background focus:ring-ring flex items-center justify-between rounded-lg px-2 py-1 text-xs transition hover:text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
 			className
 		)}
 		aria-expanded={open}

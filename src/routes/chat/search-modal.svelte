@@ -77,7 +77,7 @@
 	}
 </script>
 
-<svelte:window use:shortcut={{ ctrl: true, key: 'k', callback: () => (open = true) }} />
+<svelte:window use:shortcut={[{ ctrl: true, key: 'k', callback: () => (open = true) }]} />
 
 <Modal bind:open>
 	<div class="space-y-4">
@@ -121,7 +121,7 @@
 			</div>
 		{:else if search.data?.length}
 			<div class="max-h-96 space-y-2 overflow-y-auto">
-				{#each search.data as { conversation, messages, score, titleMatch }, index}
+				{#each search.data as { conversation, messages, titleMatch }, index}
 					<div
 						data-result-index={index}
 						class="border-border flex cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 py-2 transition-colors {index ===
