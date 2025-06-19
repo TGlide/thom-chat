@@ -32,7 +32,6 @@
 
 	const freeModelsToggle = new Toggle({
 		value: false,
-		// TODO: enable this if and when when we use multiple providers
 		disabled: false,
 	});
 
