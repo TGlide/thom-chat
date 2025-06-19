@@ -127,7 +127,7 @@
 				{/if}
 			</div>
 		</div>
-	{:else if !openRouterKeyQuery.data}
+	{:else if !openRouterKeyQuery.data && !openRouterKeyQuery.isLoading}
 		<div class="w-full p-2" in:scale={{ duration: 500, start: 0.9 }}>
 			<h2 class="text-left font-serif text-3xl font-semibold">
 				Hey there, <span class={{ 'blur-sm': settings.data?.privacy_mode }}

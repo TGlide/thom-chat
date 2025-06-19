@@ -361,7 +361,7 @@
 	const mounted = new IsMounted();
 
 	const notAtBottom = new Debounced(
-		() => !scrollState.arrived.bottom,
+		() => (mounted.current ? !scrollState.arrived.bottom : false),
 		() => (mounted.current ? 250 : 0)
 	);
 
