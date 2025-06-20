@@ -24,6 +24,7 @@
 	import { AnnotationSchema, type Annotation } from '$lib/types';
 	import ExternalLinkIcon from '~icons/lucide/external-link';
 	import GlobeIcon from '~icons/lucide/globe';
+	import { Avatar } from 'melt/components';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -216,7 +217,18 @@
 								</p>
 							</div>
 							<span class="flex items-center gap-2 text-xs">
-								<GlobeIcon class="inline-block size-4 shrink-0" />
+								<Avatar
+									src="https://www.google.com/s2/favicons?domain={new URL(
+										annotation.url_citation.url
+									).hostname}&sz=16"
+								>
+									{#snippet children(avatar)}
+										<img {...avatar.image} alt="{annotation.url_citation.title} site icon" />
+										<span {...avatar.fallback}>
+											<GlobeIcon class="inline-block size-4 shrink-0" />
+										</span>
+									{/snippet}
+								</Avatar>
 								{new URL(annotation.url_citation.url).hostname}
 							</span>
 
