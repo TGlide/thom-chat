@@ -349,16 +349,35 @@
 									</p>
 								</div>
 
-								{#if openRouterModel && supportsImages(openRouterModel)}
-									<Tooltip>
-										{#snippet trigger(tooltip)}
-											<div class={cn('')} {...tooltip.trigger}>
-												<EyeIcon class="size-3" />
-											</div>
-										{/snippet}
-										Supports image analysis
-									</Tooltip>
-								{/if}
+								<div class="flex place-items-center gap-1">
+									{#if openRouterModel && supportsImages(openRouterModel)}
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<div
+													{...tooltip.trigger}
+													class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-400"
+												>
+													<EyeIcon class="size-3" />
+												</div>
+											{/snippet}
+											Supports image analysis
+										</Tooltip>
+									{/if}
+
+									{#if openRouterModel && supportsReasoning(openRouterModel)}
+										<Tooltip>
+											{#snippet trigger(tooltip)}
+												<div
+													{...tooltip.trigger}
+													class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-400"
+												>
+													<BrainIcon class="size-3" />
+												</div>
+											{/snippet}
+											Supports reasoning
+										</Tooltip>
+									{/if}
+								</div>
 							</Command.Item>
 						{/each}
 					{:else if view === 'enabled'}
@@ -501,7 +520,7 @@
 		</div>
 
 		<div
-			class="bg-popover absolute top-1 right-1 rounded-md p-1 opacity-0 transition-opacity group-hover/item:opacity-100"
+			class="bg-popover absolute top-1 right-1 scale-75 rounded-md p-1 opacity-0 transition-all group-hover/item:scale-100 group-hover/item:opacity-100"
 		>
 			<Button
 				variant="ghost"
