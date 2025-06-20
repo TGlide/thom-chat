@@ -25,6 +25,8 @@
 	import ExternalLinkIcon from '~icons/lucide/external-link';
 	import GlobeIcon from '~icons/lucide/globe';
 	import { Avatar } from 'melt/components';
+	import BrainIcon from '~icons/lucide/brain';
+	import * as casing from '$lib/utils/casing';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -193,13 +195,30 @@
 			{/if}
 		</div>
 		{#if annotations}
-			<span class="text-muted-foreground pl-2 text-xs">
-				{annotations.length}
-				{annotations.length === 1 ? 'Citation' : 'Citations'}
-			</span>
+			<div class="flex items-center gap-2">
+				<span class="text-muted-foreground pl-2 text-xs">
+					{annotations.length}
+					{annotations.length === 1 ? 'Citation' : 'Citations'}
+				</span>
+				<div class="flex items-center">
+					{#each annotations as annotation}
+						{#if annotation.type === 'url_citation'}
+							{@const url = new URL(annotation.url_citation.url)}
+							<a
+								href={annotation.url_citation.url}
+								target="_blank"
+								class="border-border bg-background bg-noise -m-1 flex place-items-center justify-center rounded-full border p-0.5 transition-transform hover:scale-110"
+							>
+								{@render siteIcon({ url })}
+							</a>
+						{/if}
+					{/each}
+				</div>
+			</div>
 			<div class="scrollbar-hide flex place-items-center gap-2 overflow-x-auto p-2">
 				{#each annotations as annotation}
 					{#if annotation.type === 'url_citation'}
+						{@const url = new URL(annotation.url_citation.url)}
 						<div
 							class="border-border hover:border-primary/50 text-muted-foreground group relative flex h-32 min-w-60 flex-col justify-between rounded-lg border p-4 transition-colors"
 						>
@@ -217,19 +236,8 @@
 								</p>
 							</div>
 							<span class="flex items-center gap-2 text-xs">
-								<Avatar
-									src="https://www.google.com/s2/favicons?domain={new URL(
-										annotation.url_citation.url
-									).hostname}&sz=16"
-								>
-									{#snippet children(avatar)}
-										<img {...avatar.image} alt="{annotation.url_citation.title} site icon" />
-										<span {...avatar.fallback}>
-											<GlobeIcon class="inline-block size-4 shrink-0" />
-										</span>
-									{/snippet}
-								</Avatar>
-								{new URL(annotation.url_citation.url).hostname}
+								{@render siteIcon({ url })}
+								{url.hostname}
 							</span>
 
 							<ExternalLinkIcon class="text-primary absolute top-2 right-2 size-3" />
@@ -280,8 +288,16 @@
 				{#if message.model_id !== undefined}
 					<span class="text-muted-foreground text-xs">{message.model_id}</span>
 				{/if}
+				{#if message.reasoning_effort}
+					<span class="text-muted-foreground text-xs">
+						<BrainIcon class="inline-block size-4 shrink-0 text-green-500" />
+						{casing.camelToPascal(message.reasoning_effort)}
+					</span>
+				{/if}
 				{#if message.web_search_enabled}
-					<span class="text-muted-foreground text-xs"> Web search enabled </span>
+					<span class="text-muted-foreground text-xs">
+						<GlobeIcon class="text-primary inline-block size-4 shrink-0" />
+					</span>
 				{/if}
 
 				{#if message.cost_usd !== undefined}
@@ -301,3 +317,14 @@
 		/>
 	{/if}
 {/if}
+
+{#snippet siteIcon({ url }: { url: URL })}
+	<Avatar src={`https://www.google.com/s2/favicons?domain=${url.hostname}&sz=16`}>
+		{#snippet children(avatar)}
+			<img {...avatar.image} alt={`${url.hostname} site icon`} />
+			<span {...avatar.fallback}>
+				<GlobeIcon class="inline-block size-4 shrink-0" />
+			</span>
+		{/snippet}
+	</Avatar>
+{/snippet}

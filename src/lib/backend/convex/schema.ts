@@ -8,6 +8,11 @@ export const messageRoleValidator = v.union(
 	v.literal('assistant'),
 	v.literal('system')
 );
+export const reasoningEffortValidator = v.union(
+	v.literal('low'),
+	v.literal('medium'),
+	v.literal('high')
+);
 
 export type MessageRole = Infer<typeof messageRoleValidator>;
 
@@ -81,6 +86,7 @@ export default defineSchema({
 		cost_usd: v.optional(v.number()),
 		generation_id: v.optional(v.string()),
 		web_search_enabled: v.optional(v.boolean()),
+		reasoning_effort: v.optional(reasoningEffortValidator),
 		annotations: v.optional(v.array(v.record(v.string(), v.any()))),
 	}).index('by_conversation', ['conversation_id']),
 });

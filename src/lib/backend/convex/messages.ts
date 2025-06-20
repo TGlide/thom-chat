@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { api } from './_generated/api';
 import { type Id } from './_generated/dataModel';
 import { query } from './_generated/server';
-import { messageRoleValidator, providerValidator } from './schema';
+import { messageRoleValidator, providerValidator, reasoningEffortValidator } from './schema';
 import { mutation } from './functions';
 
 export const getAllFromConversation = query({
@@ -47,6 +47,7 @@ export const create = mutation({
 		provider: v.optional(providerValidator),
 		token_count: v.optional(v.number()),
 		web_search_enabled: v.optional(v.boolean()),
+		reasoning_effort: v.optional(reasoningEffortValidator),
 		// Optional image attachments
 		images: v.optional(
 			v.array(
@@ -94,6 +95,7 @@ export const create = mutation({
 				provider: args.provider,
 				token_count: args.token_count,
 				web_search_enabled: args.web_search_enabled,
+				reasoning_effort: args.reasoning_effort,
 				// Optional image attachments
 				images: args.images,
 			}),
@@ -115,6 +117,7 @@ export const updateContent = mutation({
 		reasoning: v.optional(v.string()),
 		content_html: v.optional(v.string()),
 		generation_id: v.optional(v.string()),
+		reasoning_effort: v.optional(reasoningEffortValidator),
 		annotations: v.optional(v.array(v.record(v.string(), v.any()))),
 	},
 	handler: async (ctx, args) => {
@@ -138,6 +141,7 @@ export const updateContent = mutation({
 			content_html: args.content_html,
 			generation_id: args.generation_id,
 			annotations: args.annotations,
+			reasoning_effort: args.reasoning_effort,
 		});
 	},
 });

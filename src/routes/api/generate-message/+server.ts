@@ -525,6 +525,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 					session_token: sessionToken,
 					generation_id: generationId,
 					annotations,
+					reasoning_effort: reasoningEffort,
 				}),
 				(e) => `Failed to update message content: ${e}`
 			);
@@ -761,6 +762,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					content: args.message,
 					session_token: args.session_token,
 					model_id: args.model_id,
+					reasoning_effort: args.reasoning_effort,
 					role: 'user',
 					images: args.images,
 					web_search_enabled: args.web_search_enabled,
