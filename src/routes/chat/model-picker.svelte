@@ -331,7 +331,7 @@
 													<EyeIcon class="size-3" />
 												</div>
 											{/snippet}
-											Supports image anaylsis
+											Supports image analysis
 										</Tooltip>
 									{/if}
 								</div>
