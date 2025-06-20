@@ -26,7 +26,7 @@ type PersistedObjOptions<T> = {
 	syncTabs?: boolean;
 };
 
-export function createPersistedObj<T extends object>(
+export function createPersistedObj<T extends Record<string, unknown>>(
 	key: string,
 	initialValue: T,
 	options: PersistedObjOptions<T> = {}
@@ -37,7 +37,7 @@ export function createPersistedObj<T extends object>(
 		syncTabs = true,
 	} = options;
 
-	let current = initialValue;
+	let current: Record<string, unknown> = initialValue;
 	let storage: Storage | undefined;
 	let subscribe: VoidFunction | undefined;
 	let version = $state(0);
@@ -47,7 +47,18 @@ export function createPersistedObj<T extends object>(
 		const existingValue = storage.getItem(key);
 		if (existingValue !== null) {
 			const deserialized = deserialize(existingValue);
-			if (deserialized) current = deserialized;
+
+			if (deserialized) {
+				// handle keys that were added at a later point in time
+				for (const key of Object.keys(initialValue)) {
+					const initialKeyValue = deserialized[key];
+					if (initialKeyValue === undefined) {
+						deserialized[key] = initialValue[key];
+					}
+				}
+
+				current = deserialized;
+			}
 		} else {
 			serialize(initialValue);
 		}
@@ -66,7 +77,7 @@ export function createPersistedObj<T extends object>(
 		version += 1;
 	}
 
-	function deserialize(value: string): T | undefined {
+	function deserialize(value: string): Record<string, unknown> | undefined {
 		try {
 			return serializer.deserialize(value);
 		} catch (error) {
@@ -75,7 +86,7 @@ export function createPersistedObj<T extends object>(
 		}
 	}
 
-	function serialize(value: T | undefined): void {
+	function serialize(value: Record<string, unknown> | undefined): void {
 		try {
 			if (value != undefined) {
 				storage?.setItem(key, serializer.serialize(value));

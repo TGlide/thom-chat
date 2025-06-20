@@ -35,6 +35,7 @@ const reqBodySchema = z
 				})
 			)
 			.optional(),
+		reasoning_effort: z.enum(['low', 'medium', 'high']).optional(),
 	})
 	.refine(
 		(data) => {
