@@ -32,6 +32,15 @@
 		return lastMessage.content.length > 0;
 	});
 
+	const lastMessageHasReasoning = $derived.by(() => {
+		if (!messages.data) return false;
+		const lastMessage = messages.data[messages.data.length - 1];
+
+		if (!lastMessage) return false;
+
+		return lastMessage.reasoning?.length ?? 0 > 0;
+	});
+
 	let changedRoute = $state(false);
 	watch(
 		() => page.params.id,
@@ -74,7 +83,7 @@
 		{#each messages.data ?? [] as message (message._id)}
 			<Message {message} />
 		{/each}
-		{#if conversation.data?.generating && !lastMessageHasContent}
+		{#if conversation.data?.generating && !lastMessageHasContent && !lastMessageHasReasoning}
 			<LoadingDots />
 		{/if}
 	{/if}

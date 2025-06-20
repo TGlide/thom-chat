@@ -19,6 +19,8 @@
 	import { callGenerateMessage } from '../../api/generate-message/call';
 	import * as Icons from '$lib/components/icons';
 	import { settings } from '$lib/state/settings.svelte';
+	import ShinyText from '$lib/components/animations/shiny-text.svelte';
+	import ChevronRightIcon from '~icons/lucide/chevron-right';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -86,9 +88,11 @@
 
 		await goto(`/chat/${cid}`);
 	}
+
+	let showReasoning = $state(false);
 </script>
 
-{#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0 && !message.error)}
+{#if message.role !== 'system' && !(message.role === 'assistant' && message.content.length === 0 && message.reasoning?.length === 0 && !message.error)}
 	<div
 		class={cn('group flex flex-col gap-1', { 'max-w-[80%] self-end ': message.role === 'user' })}
 		{@attach (node) => {
@@ -121,6 +125,28 @@
 						/>
 					</button>
 				{/each}
+			</div>
+		{/if}
+		{#if message.reasoning}
+			<div class="my-8">
+				<button
+					type="button"
+					class="text-muted-foreground flex items-center gap-1 pb-2 text-sm"
+					aria-label="Toggle reasoning"
+					onclick={() => (showReasoning = !showReasoning)}
+				>
+					<ChevronRightIcon class={cn('inline size-4', { 'rotate-90': showReasoning })} />
+					{#if message.content.length === 0}
+						<ShinyText>Reasoning...</ShinyText>
+					{:else}
+						<span>Reasoning</span>
+					{/if}
+				</button>
+				{#if showReasoning}
+					<div class="text-muted-foreground/50 bg-popover relative rounded-lg p-2 text-xs">
+						{message.reasoning}
+					</div>
+				{/if}
 			</div>
 		{/if}
 		<div class={style({ role: message.role })}>

@@ -35,6 +35,7 @@ const reqBodySchema = z
 				})
 			)
 			.optional(),
+		reasoning_effort: z.enum(['low', 'medium', 'high']).optional(),
 	})
 	.refine(
 		(data) => {
@@ -184,6 +185,7 @@ async function generateAIResponse({
 	rulesResultPromise,
 	userSettingsPromise,
 	abortSignal,
+	reasoningEffort,
 }: {
 	conversationId: string;
 	sessionToken: string;
@@ -193,6 +195,7 @@ async function generateAIResponse({
 	rulesResultPromise: ResultAsync<Doc<'user_rules'>[], string>;
 	userSettingsPromise: ResultAsync<Doc<'user_settings'> | null, string>;
 	abortSignal?: AbortSignal;
+	reasoningEffort?: 'low' | 'medium' | 'high';
 }) {
 	log('Starting AI response generation in background', startTime);
 
@@ -466,6 +469,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 				messages: messagesToSend,
 				temperature: 0.7,
 				stream: true,
+				reasoning_effort: reasoningEffort,
 			},
 			{
 				signal: abortSignal,
@@ -489,6 +493,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	log('Background: OpenAI stream created successfully', startTime);
 
 	let content = '';
+	let reasoning = '';
 	let chunkCount = 0;
 	let generationId: string | null = null;
 
@@ -500,8 +505,16 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			}
 
 			chunkCount++;
-			content += chunk.choices[0]?.delta?.content || '';
-			if (!content) continue;
+
+			// @ts-expect-error you're wrong
+			if (chunk.choices[0]?.delta?.reasoning) {
+				// @ts-expect-error you're wrong
+				reasoning += chunk.choices[0]?.delta?.reasoning;
+			} else {
+				content += chunk.choices[0]?.delta?.content || '';
+			}
+
+			if (!content && !reasoning) continue;
 
 			generationId = chunk.id;
 
@@ -509,7 +522,9 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 				client.mutation(api.messages.updateContent, {
 					message_id: mid,
 					content,
+					reasoning: reasoning.length > 0 ? reasoning : undefined,
 					session_token: sessionToken,
+					generation_id: generationId,
 				}),
 				(e) => `Failed to update message content: ${e}`
 			);
@@ -792,6 +807,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			rulesResultPromise,
 			userSettingsPromise,
 			abortSignal: abortController.signal,
+			reasoningEffort: args.reasoning_effort,
 		})
 			.catch(async (error) => {
 				log(`Background AI response generation error: ${error}`, startTime);
