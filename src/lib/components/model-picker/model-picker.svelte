@@ -228,7 +228,12 @@
 	const activeModelInfo = $derived.by(() => {
 		if (activeModel === '') return null;
 
+		const model = enabledArr.find((m) => m.model_id === activeModel);
+
+		if (!model) return null;
+
 		return {
+			...model,
 			formatted: formatModelName(activeModel),
 		};
 	});
@@ -296,10 +301,12 @@
 									e.preventDefault();
 									e.stopPropagation();
 									view = 'favorites';
-								} else if (e.key === "K") {
-									e.preventDefault();
-									e.stopPropagation();
-									contextOpen = true;
+								} else if (e.key === 'u') {
+									if (activeModelInfo) {
+										e.preventDefault();
+										e.stopPropagation();
+										togglePin(activeModelInfo._id);
+									}
 								}
 							}
 						}}
@@ -349,7 +356,7 @@
 												<EyeIcon class="size-3" />
 											</div>
 										{/snippet}
-										Supports image anaylsis
+										Supports image analysis
 									</Tooltip>
 								{/if}
 							</Command.Item>
@@ -558,7 +565,15 @@
 				</Button>
 				{#if !isMobile.current && activeModelInfo && view === 'enabled'}
 					<div>
-						
+						<Button variant="ghost" size="sm" onclick={() => togglePin(activeModelInfo._id)}>
+							<span class="text-muted-foreground">
+								{isPinned(activeModelInfo) ? 'Unpin' : 'Pin'}
+							</span>
+							<span>
+								<Kbd size="xs">{cmdOrCtrl}</Kbd>
+								<Kbd size="xs">U</Kbd>
+							</span>
+						</Button>
 					</div>
 				{/if}
 			</div>
