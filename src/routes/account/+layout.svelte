@@ -56,6 +56,14 @@
 			name: 'Search Messages',
 			keys: [cmdOrCtrl, 'K'],
 		},
+		{
+			name: 'Scroll to bottom',
+			keys: [cmdOrCtrl, 'D'],
+		},
+		{
+			name: 'Open Model Picker',
+			keys: [cmdOrCtrl, 'Shift', 'M'],
+		},
 	];
 
 	async function signOut() {
