@@ -476,7 +476,7 @@
 					{#snippet trigger(tooltip)}
 						<div
 							{...tooltip.trigger}
-							class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-500"
+							class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-400"
 						>
 							<EyeIcon class="size-3" />
 						</div>
@@ -490,7 +490,7 @@
 					{#snippet trigger(tooltip)}
 						<div
 							{...tooltip.trigger}
-							class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-500"
+							class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-400"
 						>
 							<BrainIcon class="size-3" />
 						</div>
