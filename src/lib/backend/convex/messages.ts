@@ -115,6 +115,7 @@ export const updateContent = mutation({
 		reasoning: v.optional(v.string()),
 		content_html: v.optional(v.string()),
 		generation_id: v.optional(v.string()),
+		annotations: v.optional(v.array(v.record(v.string(), v.any()))),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -136,6 +137,7 @@ export const updateContent = mutation({
 			reasoning: args.reasoning,
 			content_html: args.content_html,
 			generation_id: args.generation_id,
+			annotations: args.annotations,
 		});
 	},
 });

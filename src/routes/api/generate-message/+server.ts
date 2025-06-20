@@ -15,6 +15,19 @@ import { md } from '$lib/utils/markdown-it.js';
 import * as array from '$lib/utils/array';
 import { parseMessageForRules } from '$lib/utils/rules.js';
 
+type Annotation = UrlCitation;
+
+type UrlCitation = {
+	type: 'url_citation';
+	url_citation: {
+		end_index: number;
+		start_index: number;
+		title: string;
+		url: string;
+		content: string;
+	};
+};
+
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
 
@@ -496,6 +509,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 	let reasoning = '';
 	let chunkCount = 0;
 	let generationId: string | null = null;
+	const annotations: Annotation[] = [];
 
 	try {
 		for await (const chunk of stream) {
@@ -507,12 +521,10 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			chunkCount++;
 
 			// @ts-expect-error you're wrong
-			if (chunk.choices[0]?.delta?.reasoning) {
-				// @ts-expect-error you're wrong
-				reasoning += chunk.choices[0]?.delta?.reasoning;
-			} else {
-				content += chunk.choices[0]?.delta?.content || '';
-			}
+			reasoning += chunk.choices[0]?.delta?.reasoning || '';
+			content += chunk.choices[0]?.delta?.content || '';
+			// @ts-expect-error you're wrong
+			annotations.push(...chunk.choices[0]?.delta?.annotations ?? []);
 
 			if (!content && !reasoning) continue;
 
@@ -525,6 +537,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 					reasoning: reasoning.length > 0 ? reasoning : undefined,
 					session_token: sessionToken,
 					generation_id: generationId,
+					annotations,
 				}),
 				(e) => `Failed to update message content: ${e}`
 			);
