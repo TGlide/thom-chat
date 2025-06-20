@@ -48,6 +48,7 @@
 		"melt": "https://pkg.vc/-/@melt-ui/melt@42e572f",
 		"mode-watcher": "^1.0.8",
 		"neverthrow": "^8.2.0",
+		"openai": "^5.5.1",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
@@ -89,7 +90,6 @@
 		"convex-helpers": "^0.1.94",
 		"hastscript": "^9.0.1",
 		"markdown-it-async": "^2.2.0",
-		"openai": "^5.3.0",
 		"zod": "^3.25.64"
 	}
 }

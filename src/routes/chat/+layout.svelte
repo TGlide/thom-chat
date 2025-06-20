@@ -130,6 +130,7 @@
 				model_id: settings.modelId,
 				images: imagesCopy.length > 0 ? imagesCopy : undefined,
 				web_search_enabled: settings.webSearchEnabled,
+				reasoning_effort: currentModelSupportsReasoning ? settings.reasoningEffort : undefined,
 			});
 
 			if (res.isErr()) {

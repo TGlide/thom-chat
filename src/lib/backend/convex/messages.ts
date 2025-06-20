@@ -112,7 +112,9 @@ export const updateContent = mutation({
 		session_token: v.string(),
 		message_id: v.string(),
 		content: v.string(),
+		reasoning: v.optional(v.string()),
 		content_html: v.optional(v.string()),
+		generation_id: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
 		const session = await ctx.runQuery(api.betterAuth.publicGetSession, {
@@ -131,7 +133,9 @@ export const updateContent = mutation({
 
 		await ctx.db.patch(message._id, {
 			content: args.content,
+			reasoning: args.reasoning,
 			content_html: args.content_html,
+			generation_id: args.generation_id,
 		});
 	},
 });
