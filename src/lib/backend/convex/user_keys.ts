@@ -99,14 +99,26 @@ export const set = mutation({
 				];
 
 				await Promise.all(
-					defaultModels.map((model) =>
-						ctx.db.insert('user_enabled_models', {
+					defaultModels.map(async (model) => {
+						const existing = await ctx.db
+							.query('user_enabled_models')
+							.withIndex('by_model_provider_user', (q) =>
+								q
+									.eq('model_id', model)
+									.eq('provider', Provider.OpenRouter)
+									.eq('user_id', session.userId)
+							)
+							.first();
+
+						if (existing) return;
+
+						await ctx.db.insert('user_enabled_models', {
 							user_id: session.userId,
 							provider: Provider.OpenRouter,
 							model_id: model,
-							pinned: null,
-						})
-					)
+							pinned: true,
+						});
+					})
 				);
 			}
 		}
