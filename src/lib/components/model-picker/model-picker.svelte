@@ -275,7 +275,7 @@
 		<Popover.Content
 			align="start"
 			sideOffset={5}
-			class={cn('p-0', {
+			class={cn('p-0 transition-all', {
 				'w-[572px]': !isMobile.current && view === 'enabled',
 				'w-[300px]': view === 'favorites',
 				'max-w-[calc(100vw-2rem)]': isMobile.current,
@@ -313,10 +313,13 @@
 					/>
 				</label>
 				<Command.List
-					class={cn('overflow-y-auto', {
+					class={cn('overflow-y-auto transition-all', {
 						'h-[430px]': view === 'enabled',
-						'flex max-h-[300px] flex-col gap-1 p-1': view === 'favorites',
+						'flex flex-col gap-1 p-1': view === 'favorites',
 					})}
+					style="height: {view === 'enabled'
+						? '430px'
+						: `min(300px, ${pinnedModels.length * 44 + 4}px)`};"
 				>
 					{#if view === 'favorites' && pinnedModels.length > 0}
 						{#each pinnedModels as model (model._id)}
