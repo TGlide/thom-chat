@@ -70,7 +70,10 @@
 		"onlyBuiltDependencies": [
 			"@tailwindcss/oxide",
 			"esbuild"
-		]
+		],
+		"patchedDependencies": {
+			"bits-ui": "patches/bits-ui.patch"
+		}
 	},
 	"dependencies": {
 		"@floating-ui/dom": "^1.7.1",

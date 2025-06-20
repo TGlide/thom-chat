@@ -1,0 +1,23 @@
+diff --git a/dist/bits/command/command.svelte.js b/dist/bits/command/command.svelte.js
+index b238438b8d8e67aa0e2d052eaffb60fe27767ed8..c3bb3612a77fefa4f6b0359535d98a52bf1da215 100644
+--- a/dist/bits/command/command.svelte.js
++++ b/dist/bits/command/command.svelte.js
+@@ -338,17 +338,7 @@ export class CommandRootState {
+             const grandparent = item.parentElement?.parentElement;
+             if (!grandparent)
+                 return;
+-            if (this.isGrid) {
+-                const isFirstRowOfGroup = this.#itemIsFirstRowOfGroup(item);
+-                if (isFirstRowOfGroup) {
+-                    const closestGroupHeader = item
+-                        ?.closest(COMMAND_GROUP_SELECTOR)
+-                        ?.querySelector(COMMAND_GROUP_HEADING_SELECTOR);
+-                    closestGroupHeader?.scrollIntoView({ block: "nearest" });
+-                    return;
+-                }
+-            }
+-            else {
++            if (!this.isGrid) {
+                 const firstChildOfParent = getFirstNonCommentChild(grandparent);
+                 if (firstChildOfParent &&
+                     firstChildOfParent.dataset?.value === item.dataset?.value) {

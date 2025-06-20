@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  bits-ui:
+    hash: dff61afc32aca18c24f2ce50b3856151586955f1a288a3c214c96289cc85c98b
+    path: patches/bits-ui.patch
+
 importers:
 
   .:
@@ -101,7 +106,7 @@ importers:
         version: 2.2.0
       bits-ui:
         specifier: ^2.8.3
-        version: 2.8.3(@internationalized/date@3.8.2)(svelte@5.34.1)
+        version: 2.8.3(patch_hash=dff61afc32aca18c24f2ce50b3856151586955f1a288a3c214c96289cc85c98b)(@internationalized/date@3.8.2)(svelte@5.34.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -3734,7 +3739,7 @@ snapshots:
       set-cookie-parser: 2.7.1
       uncrypto: 0.1.3
 
-  bits-ui@2.8.3(@internationalized/date@3.8.2)(svelte@5.34.1):
+  bits-ui@2.8.3(patch_hash=dff61afc32aca18c24f2ce50b3856151586955f1a288a3c214c96289cc85c98b)(@internationalized/date@3.8.2)(svelte@5.34.1):
     dependencies:
       '@floating-ui/core': 1.7.1
       '@floating-ui/dom': 1.7.1
