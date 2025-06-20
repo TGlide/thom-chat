@@ -132,10 +132,14 @@ export const toggle_pinned = mutation({
 		if (!model) throw new Error('Model not found');
 
 		await ctx.db.patch(args.enabled_model_id, {
-			pinned: !model.pinned,
+			pinned: !isPinned(model),
 		});
 	},
 });
+
+export function isPinned(model: Doc<'user_enabled_models'>) {
+	return model.pinned === null || model.pinned;
+}
 
 export const enable_initial = mutation({
 	args: {
