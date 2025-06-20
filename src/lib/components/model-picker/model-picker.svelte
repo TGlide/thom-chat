@@ -10,7 +10,7 @@
 	import { settings } from '$lib/state/settings.svelte';
 	import { Provider } from '$lib/types';
 	import { fuzzysearch } from '$lib/utils/fuzzy-search';
-	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { supportsImages, supportsReasoning } from '$lib/utils/model-capabilities';
 	import { capitalize } from '$lib/utils/strings';
 	import { cn } from '$lib/utils/utils';
 	import { type Component } from 'svelte';
@@ -371,84 +371,7 @@
 								</Command.GroupHeading>
 								<Command.GroupItems class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
 									{#each pinnedModels as model (model._id)}
-										{@const formatted = formatModelName(model.model_id)}
-										{@const openRouterModel = modelsState
-											.from(Provider.OpenRouter)
-											.find((m) => m.id === model.model_id)}
-										{@const disabled =
-											onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
-
-										<Command.Item
-											value={model.model_id}
-											class={cn(
-												'border-border bg-popover group/item flex rounded-lg border p-2',
-												'relative scroll-m-36 select-none',
-												'data-selected:bg-accent/50 data-selected:text-accent-foreground',
-												'h-36 w-32 flex-col items-center justify-center',
-												disabled && 'opacity-50'
-											)}
-											onSelect={() => modelSelected(model.model_id)}
-										>
-											<div class={cn('flex flex-col items-center')}>
-												{#if getModelIcon(model.model_id)}
-													{@const ModelIcon = getModelIcon(model.model_id)}
-													<ModelIcon class="size-4 shrink-0 md:size-6" />
-												{/if}
-
-												<p
-													class={cn(
-														'font-fake-proxima text-center leading-tight font-bold',
-														!isMobile.current && 'mt-2'
-													)}
-												>
-													{isMobile.current ? formatted.full : formatted.primary}
-												</p>
-
-												{#if !isMobile.current}
-													<p class="mt-0 text-center text-xs leading-tight font-medium">
-														{formatted.secondary}
-													</p>
-												{/if}
-											</div>
-
-											{#if openRouterModel && supportsImages(openRouterModel)}
-												<Tooltip>
-													{#snippet trigger(tooltip)}
-														<div
-															class={cn(
-																isMobile.current
-																	? ''
-																	: 'abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs'
-															)}
-															{...tooltip.trigger}
-														>
-															<EyeIcon class="size-3" />
-														</div>
-													{/snippet}
-													Supports image analysis
-												</Tooltip>
-											{/if}
-
-											<div
-												class="bg-popover absolute top-1 right-1 rounded-md p-1 opacity-0 transition-opacity group-hover/item:opacity-100"
-											>
-												<Button
-													variant="ghost"
-													size="icon"
-													class="size-7"
-													onclick={(e: MouseEvent) => {
-														e.stopPropagation();
-														togglePin(model._id);
-													}}
-												>
-													{#if isPinned(model)}
-														<PinOffIcon class="size-4" />
-													{:else}
-														<PinIcon class="size-4" />
-													{/if}
-												</Button>
-											</div>
-										</Command.Item>
+										{@render modelCard(model)}
 									{/each}
 								</Command.GroupItems>
 							</Command.Group>
@@ -464,84 +387,7 @@
 									</Command.GroupHeading>
 									<Command.GroupItems class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
 										{#each filteredModels as model (model._id)}
-											{@const formatted = formatModelName(model.model_id)}
-											{@const openRouterModel = modelsState
-												.from(Provider.OpenRouter)
-												.find((m) => m.id === model.model_id)}
-											{@const disabled =
-												onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
-
-											<Command.Item
-												value={model.model_id}
-												class={cn(
-													'border-border bg-popover group/item flex rounded-lg border p-2',
-													'relative scroll-m-36 select-none',
-													'data-selected:bg-accent/50 data-selected:text-accent-foreground',
-													'h-36 w-32 flex-col items-center justify-center',
-													disabled && 'opacity-50'
-												)}
-												onSelect={() => modelSelected(model.model_id)}
-											>
-												<div class={cn('flex flex-col items-center')}>
-													{#if getModelIcon(model.model_id)}
-														{@const ModelIcon = getModelIcon(model.model_id)}
-														<ModelIcon class="size-4 shrink-0 md:size-6" />
-													{/if}
-
-													<p
-														class={cn(
-															'font-fake-proxima text-center leading-tight font-bold',
-															!isMobile.current && 'mt-2'
-														)}
-													>
-														{isMobile.current ? formatted.full : formatted.primary}
-													</p>
-
-													{#if !isMobile.current}
-														<p class="mt-0 text-center text-xs leading-tight font-medium">
-															{formatted.secondary}
-														</p>
-													{/if}
-												</div>
-
-												{#if openRouterModel && supportsImages(openRouterModel)}
-													<Tooltip>
-														{#snippet trigger(tooltip)}
-															<div
-																class={cn(
-																	isMobile.current
-																		? ''
-																		: 'abs-x-center text-muted-foreground absolute bottom-3 flex items-center gap-1 text-xs'
-																)}
-																{...tooltip.trigger}
-															>
-																<EyeIcon class="size-3" />
-															</div>
-														{/snippet}
-														Supports image analysis
-													</Tooltip>
-												{/if}
-
-												<div
-													class="bg-popover absolute top-1 right-1 rounded-md p-1 opacity-0 transition-opacity group-hover/item:opacity-100"
-												>
-													<Button
-														variant="ghost"
-														size="icon"
-														class="size-7"
-														onclick={(e: MouseEvent) => {
-															e.stopPropagation();
-															togglePin(model._id);
-														}}
-													>
-														{#if isPinned(model)}
-															<PinOffIcon class="size-4" />
-														{:else}
-															<PinIcon class="size-4" />
-														{/if}
-													</Button>
-												</div>
-											</Command.Item>
+											{@render modelCard(model)}
 										{/each}
 									</Command.GroupItems>
 								</Command.Group>
@@ -586,3 +432,92 @@
 		</Popover.Content>
 	{/if}
 </Popover.Root>
+
+{#snippet modelCard(model: (typeof enabledArr)[number])}
+	{@const formatted = formatModelName(model.model_id)}
+	{@const openRouterModel = modelsState
+		.from(Provider.OpenRouter)
+		.find((m) => m.id === model.model_id)}
+	{@const disabled = onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
+
+	<Command.Item
+		value={model.model_id}
+		class={cn(
+			'border-border bg-popover group/item flex gap-2 rounded-lg border p-2',
+			'relative scroll-m-36 select-none',
+			'data-selected:bg-accent/50 data-selected:text-accent-foreground',
+			'h-36 w-32 flex-col items-center justify-center',
+			disabled && 'opacity-50'
+		)}
+		onSelect={() => modelSelected(model.model_id)}
+	>
+		<div class={cn('flex flex-col items-center')}>
+			{#if getModelIcon(model.model_id)}
+				{@const ModelIcon = getModelIcon(model.model_id)}
+				<ModelIcon class="size-6 shrink-0" />
+			{/if}
+
+			<p
+				class={cn(
+					'font-fake-proxima mt-2 text-center text-sm leading-tight font-medium md:mt-0 md:text-base md:font-bold'
+				)}
+			>
+				{isMobile.current ? formatted.full : formatted.primary}
+			</p>
+
+			<p class="mt-0 hidden text-center text-xs leading-tight font-medium md:block">
+				{formatted.secondary}
+			</p>
+		</div>
+
+		<div class="flex place-items-center gap-1">
+			{#if openRouterModel && supportsImages(openRouterModel)}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<div
+							{...tooltip.trigger}
+							class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-500"
+						>
+							<EyeIcon class="size-3" />
+						</div>
+					{/snippet}
+					Supports image analysis
+				</Tooltip>
+			{/if}
+
+			{#if openRouterModel && supportsReasoning(openRouterModel)}
+				<Tooltip>
+					{#snippet trigger(tooltip)}
+						<div
+							{...tooltip.trigger}
+							class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-500"
+						>
+							<BrainIcon class="size-3" />
+						</div>
+					{/snippet}
+					Supports reasoning
+				</Tooltip>
+			{/if}
+		</div>
+
+		<div
+			class="bg-popover absolute top-1 right-1 rounded-md p-1 opacity-0 transition-opacity group-hover/item:opacity-100"
+		>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="size-7"
+				onclick={(e: MouseEvent) => {
+					e.stopPropagation();
+					togglePin(model._id);
+				}}
+			>
+				{#if isPinned(model)}
+					<PinOffIcon class="size-4" />
+				{:else}
+					<PinIcon class="size-4" />
+				{/if}
+			</Button>
+		</div>
+	</Command.Item>
+{/snippet}
