@@ -2,7 +2,7 @@ import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { OPENROUTER_FREE_KEY } from '$env/static/private';
 import { api } from '$lib/backend/convex/_generated/api';
 import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
-import { Provider } from '$lib/types';
+import { Provider, type Annotation } from '$lib/types';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { waitUntil } from '@vercel/functions';
 import { getSessionCookie } from 'better-auth/cookies';
@@ -14,19 +14,6 @@ import { generationAbortControllers } from './cache.js';
 import { md } from '$lib/utils/markdown-it.js';
 import * as array from '$lib/utils/array';
 import { parseMessageForRules } from '$lib/utils/rules.js';
-
-type Annotation = UrlCitation;
-
-type UrlCitation = {
-	type: 'url_citation';
-	url_citation: {
-		end_index: number;
-		start_index: number;
-		title: string;
-		url: string;
-		content: string;
-	};
-};
 
 // Set to true to enable debug logging
 const ENABLE_LOGGING = true;
@@ -524,7 +511,7 @@ ${attachedRules.map((r) => `- ${r.name}: ${r.rule}`).join('\n')}`,
 			reasoning += chunk.choices[0]?.delta?.reasoning || '';
 			content += chunk.choices[0]?.delta?.content || '';
 			// @ts-expect-error you're wrong
-			annotations.push(...chunk.choices[0]?.delta?.annotations ?? []);
+			annotations.push(...(chunk.choices[0]?.delta?.annotations ?? []));
 
 			if (!content && !reasoning) continue;
 

@@ -21,6 +21,9 @@
 	import { settings } from '$lib/state/settings.svelte';
 	import ShinyText from '$lib/components/animations/shiny-text.svelte';
 	import ChevronRightIcon from '~icons/lucide/chevron-right';
+	import { AnnotationSchema, type Annotation } from '$lib/types';
+	import ExternalLinkIcon from '~icons/lucide/external-link';
+	import GlobeIcon from '~icons/lucide/globe';
 
 	const style = tv({
 		base: 'prose rounded-xl p-2 max-w-full',
@@ -88,6 +91,22 @@
 
 		await goto(`/chat/${cid}`);
 	}
+
+	const annotations = $derived.by(() => {
+		if (!message.annotations || message.annotations.length === 0) return null;
+
+		const annotations: Annotation[] = [];
+
+		for (const annotation of message.annotations) {
+			const parsed = AnnotationSchema.safeParse(annotation);
+
+			if (!parsed.success) continue;
+
+			annotations.push(parsed.data);
+		}
+
+		return annotations;
+	});
 
 	let showReasoning = $state(false);
 </script>
@@ -172,6 +191,41 @@
 				</svelte:boundary>
 			{/if}
 		</div>
+		{#if annotations}
+			<span class="text-muted-foreground pl-2 text-xs">
+				{annotations.length}
+				{annotations.length === 1 ? 'Citation' : 'Citations'}
+			</span>
+			<div class="scrollbar-hide flex place-items-center gap-2 overflow-x-auto p-2">
+				{#each annotations as annotation}
+					{#if annotation.type === 'url_citation'}
+						<div
+							class="border-border hover:border-primary/50 text-muted-foreground group relative flex h-32 min-w-60 flex-col justify-between rounded-lg border p-4 transition-colors"
+						>
+							<div>
+								<a
+									href={annotation.url_citation.url}
+									target="_blank"
+									class="group-hover:text-foreground block max-w-full truncate font-medium transition-colors"
+								>
+									<span class="absolute inset-0"></span>
+									{annotation.url_citation.title}
+								</a>
+								<p class="truncate text-sm">
+									{annotation.url_citation.content}
+								</p>
+							</div>
+							<span class="flex items-center gap-2 text-xs">
+								<GlobeIcon class="inline-block size-4 shrink-0" />
+								{new URL(annotation.url_citation.url).hostname}
+							</span>
+
+							<ExternalLinkIcon class="text-primary absolute top-2 right-2 size-3" />
+						</div>
+					{/if}
+				{/each}
+			</div>
+		{/if}
 		<div
 			class={cn(
 				'flex place-items-center gap-2 transition-opacity group-hover:opacity-100 md:opacity-0',
