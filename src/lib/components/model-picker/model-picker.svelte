@@ -204,13 +204,14 @@
 
 	function toggleView() {
 		view = view === 'favorites' ? 'enabled' : 'favorites';
-		if (view === 'favorites') {
-			contextOpen = false;
-		}
 	}
 
+	let pinning = $state(false);
+
 	async function togglePin(modelId: Id<'user_enabled_models'>) {
-		const res = await ResultAsync.fromPromise(
+		pinning = true;
+
+		await ResultAsync.fromPromise(
 			client.mutation(api.user_enabled_models.toggle_pinned, {
 				session_token: session.current?.session.token ?? '',
 				enabled_model_id: modelId,
@@ -218,9 +219,7 @@
 			(e) => e
 		);
 
-		if (res.isErr()) {
-			return;
-		}
+		pinning = false;
 	}
 
 	const isMobile = new IsMobile();
@@ -239,8 +238,6 @@
 	});
 
 	const pinnedModels = $derived(enabledArr.filter((m) => isPinned(m)));
-
-	let contextOpen = $state(false);
 </script>
 
 <svelte:window
@@ -568,7 +565,13 @@
 				</Button>
 				{#if !isMobile.current && activeModelInfo && view === 'enabled'}
 					<div>
-						<Button variant="ghost" size="sm" onclick={() => togglePin(activeModelInfo._id)}>
+						<Button
+							variant="ghost"
+							loading={pinning}
+							class="bg-popover"
+							size="sm"
+							onclick={() => togglePin(activeModelInfo._id)}
+						>
 							<span class="text-muted-foreground">
 								{isPinned(activeModelInfo) ? 'Unpin' : 'Pin'}
 							</span>
