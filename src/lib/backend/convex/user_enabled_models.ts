@@ -109,9 +109,31 @@ export const set = mutation({
 			await ctx.db.insert('user_enabled_models', {
 				...object.pick(args, ['provider', 'model_id']),
 				user_id: session.userId,
-				pinned: null,
+				pinned: false,
 			});
 		}
+	},
+});
+
+export const toggle_pinned = mutation({
+	args: {
+		session_token: v.string(),
+		enabled_model_id: v.id('user_enabled_models'),
+	},
+	handler: async (ctx, args) => {
+		const session = await ctx.runQuery(internal.betterAuth.getSession, {
+			sessionToken: args.session_token,
+		});
+
+		if (!session) throw new Error('Invalid session token');
+
+		const model = await ctx.db.get(args.enabled_model_id);
+
+		if (!model) throw new Error('Model not found');
+
+		await ctx.db.patch(args.enabled_model_id, {
+			pinned: !model.pinned,
+		});
 	},
 });
 
@@ -150,7 +172,7 @@ export const enable_initial = mutation({
 					user_id: session.userId,
 					provider: Provider.OpenRouter,
 					model_id: model,
-					pinned: null,
+					pinned: true,
 				})
 			)
 		);

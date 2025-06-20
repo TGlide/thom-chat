@@ -31,7 +31,8 @@ export default defineSchema({
 		provider: providerValidator,
 		/** Different providers may use different ids for the same model */
 		model_id: v.string(),
-		pinned: v.union(v.number(), v.null()),
+		// null is just here for compat we treat null as true
+		pinned: v.optional(v.union(v.boolean(), v.null())),
 	})
 		.index('by_user', ['user_id'])
 		.index('by_model_provider', ['model_id', 'provider'])

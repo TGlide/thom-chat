@@ -38,7 +38,7 @@
 	import XIcon from '~icons/lucide/x';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
-	import ModelPicker from './model-picker.svelte';
+	import { ModelPicker } from '$lib/components/model-picker';
 	import SearchModal from './search-modal.svelte';
 	import { shortcut } from '$lib/actions/shortcut.svelte.js';
 	import { mergeAttrs } from 'melt';
