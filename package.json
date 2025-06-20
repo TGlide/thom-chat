@@ -33,7 +33,7 @@
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
 		"@vercel/functions": "^2.2.0",
-		"bits-ui": "^2.8.3",
+		"bits-ui": "^2.8.5",
 		"clsx": "^2.1.1",
 		"concurrently": "^9.1.2",
 		"convex": "^1.24.8",
@@ -71,10 +71,7 @@
 		"onlyBuiltDependencies": [
 			"@tailwindcss/oxide",
 			"esbuild"
-		],
-		"patchedDependencies": {
-			"bits-ui": "patches/bits-ui.patch"
-		}
+		]
 	},
 	"dependencies": {
 		"@floating-ui/dom": "^1.7.1",
