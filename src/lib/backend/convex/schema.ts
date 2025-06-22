@@ -8,6 +8,11 @@ export const messageRoleValidator = v.union(
 	v.literal('assistant'),
 	v.literal('system')
 );
+export const reasoningEffortValidator = v.union(
+	v.literal('low'),
+	v.literal('medium'),
+	v.literal('high')
+);
 
 export type MessageRole = Infer<typeof messageRoleValidator>;
 
@@ -31,7 +36,8 @@ export default defineSchema({
 		provider: providerValidator,
 		/** Different providers may use different ids for the same model */
 		model_id: v.string(),
-		pinned: v.union(v.number(), v.null()),
+		// null is just here for compat we treat null as true
+		pinned: v.optional(v.union(v.boolean(), v.null())),
 	})
 		.index('by_user', ['user_id'])
 		.index('by_model_provider', ['model_id', 'provider'])
@@ -61,6 +67,7 @@ export default defineSchema({
 		role: v.union(v.literal('user'), v.literal('assistant'), v.literal('system')),
 		content: v.string(),
 		content_html: v.optional(v.string()),
+		reasoning: v.optional(v.string()),
 		error: v.optional(v.string()),
 		// Optional, coming from SK API route
 		model_id: v.optional(v.string()),
@@ -79,5 +86,7 @@ export default defineSchema({
 		cost_usd: v.optional(v.number()),
 		generation_id: v.optional(v.string()),
 		web_search_enabled: v.optional(v.boolean()),
+		reasoning_effort: v.optional(reasoningEffortValidator),
+		annotations: v.optional(v.array(v.record(v.string(), v.any()))),
 	}).index('by_conversation', ['conversation_id']),
 });

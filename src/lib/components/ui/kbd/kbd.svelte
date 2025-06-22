@@ -14,6 +14,7 @@
 				primary: 'bg-primary text-primary-foreground',
 			},
 			size: {
+				xs: 'min-w-5 gap-1.5 p-0.5 px-0.5 text-xs',
 				sm: 'min-w-6 gap-1.5 p-0.5 px-1 text-sm',
 				default: 'min-w-8 gap-1.5 p-1 px-2',
 				lg: 'min-w-9 gap-2 p-1 px-3 text-lg',

@@ -10,6 +10,9 @@
 	import { last } from '$lib/utils/array';
 	import { settings } from '$lib/state/settings.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import ShinyText from '$lib/components/animations/shiny-text.svelte';
+	import GlobeIcon from '~icons/lucide/globe';
+	import LoaderCircleIcon from '~icons/lucide/loader-circle';
 
 	const messages = useCachedQuery(api.messages.getAllFromConversation, () => ({
 		conversation_id: page.params.id ?? '',
@@ -21,6 +24,8 @@
 		session_token: session.current?.session.token ?? '',
 	}));
 
+	const lastMessage = $derived(messages?.data?.[messages.data?.length - 1] ?? null);
+
 	const lastMessageHasContent = $derived.by(() => {
 		if (!messages.data) return false;
 		const lastMessage = messages.data[messages.data.length - 1];
@@ -30,6 +35,15 @@
 		if (lastMessage.role !== 'assistant') return false;
 
 		return lastMessage.content.length > 0;
+	});
+
+	const lastMessageHasReasoning = $derived.by(() => {
+		if (!messages.data) return false;
+		const lastMessage = messages.data[messages.data.length - 1];
+
+		if (!lastMessage) return false;
+
+		return lastMessage.reasoning?.length ?? 0 > 0;
 	});
 
 	let changedRoute = $state(false);
@@ -74,8 +88,23 @@
 		{#each messages.data ?? [] as message (message._id)}
 			<Message {message} />
 		{/each}
-		{#if conversation.data?.generating && !lastMessageHasContent}
-			<LoadingDots />
+		{#if conversation.data?.generating}
+			{#if lastMessage?.web_search_enabled}
+				{#if lastMessage?.annotations === undefined || lastMessage?.annotations?.length === 0}
+					<div class="flex place-items-center gap-2">
+						<GlobeIcon class="inline size-4 shrink-0" />
+						<ShinyText class="text-muted-foreground text-sm">Searching the web...</ShinyText>
+					</div>
+				{/if}
+			{:else if !lastMessageHasReasoning && !lastMessageHasContent}
+				<LoadingDots />
+			{:else}
+				<div class="flex place-items-center gap-2">
+					<div class="flex animate-[spin_0.65s_linear_infinite] place-items-center justify-center">
+						<LoaderCircleIcon class="size-4" />
+					</div>
+				</div>
+			{/if}
 		{/if}
 	{/if}
 </div>
