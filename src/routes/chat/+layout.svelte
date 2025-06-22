@@ -721,12 +721,15 @@
 												</DropdownMenu.Trigger>
 												<DropdownMenu.Content align="start">
 													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'high')}>
+														<BrainIcon class="size-4" />
 														High
 													</DropdownMenu.Item>
 													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'medium')}>
+														<BrainIcon class="size-4" />
 														Medium
 													</DropdownMenu.Item>
 													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'low')}>
+														<BrainIcon class="size-4" />
 														Low
 													</DropdownMenu.Item>
 												</DropdownMenu.Content>
