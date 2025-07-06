@@ -28,8 +28,6 @@
 	import MicrosoftIcon from '~icons/simple-icons/microsoft';
 	import OpenaiIcon from '~icons/simple-icons/openai';
 	import XIcon from '~icons/simple-icons/x';
-	import { Command } from 'bits-ui';
-	import * as Popover from '$lib/components/ui/popover';
 	import { shortcut } from '$lib/actions/shortcut.svelte';
 	import { Button } from '../ui/button';
 	import ChevronLeftIcon from '~icons/lucide/chevron-left';
@@ -41,6 +39,9 @@
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import { isPinned } from '$lib/backend/convex/user_enabled_models';
+	import { Popover, SpatialMenu } from 'melt/builders';
+	import { mergeAttrs } from 'melt';
+	import { type HTMLAttributes } from 'svelte/elements';
 
 	type Props = {
 		class?: string;
@@ -168,7 +169,7 @@
 
 	let open = $state(false);
 	let view = $state<'favorites' | 'enabled'>('favorites');
-	let activeModel = $state('');
+	let activeModel = $derived.by(() => menu.highlighted);
 
 	// Model name formatting utility
 	const termReplacements = [
@@ -225,7 +226,7 @@
 	const isMobile = new IsMobile();
 
 	const activeModelInfo = $derived.by(() => {
-		if (activeModel === '') return null;
+		if (!activeModel) return null;
 
 		const model = enabledArr.find((m) => m.model_id === activeModel);
 
@@ -238,6 +239,32 @@
 	});
 
 	const pinnedModels = $derived(enabledArr.filter((m) => isPinned(m)));
+
+	const filteredPinned = $derived(
+		fuzzysearch({ haystack: pinnedModels, needle: search, property: 'model_id' })
+	);
+
+	const id = $props.id();
+	const inputId = `model-picker-${id}`;
+	const popover = new Popover({
+		open: () => open,
+		onOpenChange: (o) => (open = o),
+		floatingConfig: {
+			computePosition: {
+				placement: 'top-start',
+			},
+			offset: {
+				crossAxis: 5,
+			},
+		},
+		focus: {
+			onOpen: () => '#' + inputId,
+		},
+	});
+	const menu = new SpatialMenu<string>({
+		wrap: true,
+		crossAxis: true,
+	});
 </script>
 
 <svelte:window
@@ -249,46 +276,50 @@
 	}}
 />
 
-<Popover.Root bind:open>
-	{#if enabledArr.length}
-		<Popover.Trigger
-			class={cn(
-				'ring-offset-background focus:ring-ring flex items-center justify-between rounded-lg px-2 py-1 text-xs transition hover:text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-				className
-			)}
-		>
-			<div class="flex items-center gap-2 pr-2">
-				{#if currentModel && getModelIcon(currentModel.model_id)}
-					{@const IconComponent = getModelIcon(currentModel.model_id)}
-					<IconComponent class="size-3" />
-				{/if}
-				<span class="truncate">
-					{currentModel ? formatModelName(currentModel.model_id).full : 'Select model'}
-				</span>
-			</div>
-			<ChevronDownIcon class="size-4 opacity-50" />
-		</Popover.Trigger>
+{#if enabledArr.length}
+	<button
+		class={cn(
+			'ring-offset-background focus:ring-ring flex items-center justify-between rounded-lg px-2 py-1 text-xs transition hover:text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			className
+		)}
+		{...popover.trigger}
+	>
+		<div class="flex items-center gap-2 pr-2">
+			{#if currentModel && getModelIcon(currentModel.model_id)}
+				{@const IconComponent = getModelIcon(currentModel.model_id)}
+				<IconComponent class="size-3" />
+			{/if}
+			<span class="truncate">
+				{currentModel ? formatModelName(currentModel.model_id).full : 'Select model'}
+			</span>
+		</div>
+		<ChevronDownIcon class="size-4 opacity-50" />
+	</button>
 
-		<Popover.Content
-			align="start"
-			sideOffset={5}
-			class={cn('p-0 transition-all', {
-				'w-[572px]': !isMobile.current && view === 'enabled',
-				'w-[300px]': view === 'favorites',
-				'max-w-[calc(100vw-2rem)]': isMobile.current,
-			})}
-		>
-			<Command.Root
-				class={cn('flex h-full w-full flex-col overflow-hidden')}
-				bind:value={activeModel}
-				columns={view === 'favorites' ? undefined : isMobile.current ? 2 : 4}
-			>
-				<label class="border-border relative flex items-center gap-2 border-b px-4 py-3 text-sm">
-					<SearchIcon class="text-muted-foreground" />
-					<Command.Input
-						class="w-full outline-none"
-						placeholder="Search models..."
-						onkeydown={(e) => {
+	<div
+		class={cn('p-0 transition-all', {
+			'w-[572px]': !isMobile.current && view === 'enabled',
+			'w-[300px]': view === 'favorites',
+			'max-w-[calc(100vw-2rem)]': isMobile.current,
+		})}
+		{...mergeAttrs(popover.content, {
+			onkeydown: (e) => {
+				if (e.key === 'Escape') {
+					open = false;
+				}
+			},
+		})}
+	>
+		<div class={cn('flex h-full w-full flex-col overflow-hidden')} {...menu.root}>
+			<label class="border-border relative flex items-center gap-2 border-b px-4 py-3 text-sm">
+				<SearchIcon class="text-muted-foreground" />
+				<input
+					id={inputId}
+					class="w-full outline-none"
+					placeholder="Search models..."
+					bind:value={search}
+					{...mergeAttrs(menu.input as unknown as HTMLAttributes<HTMLElement>, {
+						onkeydown: (e) => {
 							if (e.ctrlKey || e.metaKey) {
 								if (e.key === 'ArrowRight') {
 									e.preventDefault();
@@ -306,151 +337,157 @@
 									}
 								}
 							}
-						}}
-					/>
-				</label>
-				<Command.List
-					class={cn('overflow-y-auto transition-all', {
-						'h-[430px]': view === 'enabled',
-						'flex flex-col gap-1 p-1': view === 'favorites',
+						},
 					})}
-					style="height: {view === 'enabled'
-						? '430px'
-						: `min(300px, ${pinnedModels.length * 44 + 4}px)`};"
-				>
-					{#if view === 'favorites' && pinnedModels.length > 0}
-						{#each pinnedModels as model (model._id)}
-							{@const formatted = formatModelName(model.model_id)}
-							{@const openRouterModel = modelsState
-								.from(Provider.OpenRouter)
-								.find((m) => m.id === model.model_id)}
-							{@const disabled =
-								onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
+				/>
+			</label>
+			<div
+				class={cn('overflow-y-auto transition-all', {
+					'h-[430px]': view === 'enabled',
+					'flex flex-col gap-1 p-1': view === 'favorites',
+				})}
+				style="height: {view === 'enabled'
+					? '430px'
+					: `clamp(120px, ${filteredPinned.length * 44 + 4}px, 300px)`};"
+			>
+				{#if view === 'favorites'}
+					{#each filteredPinned as model (model._id)}
+						{@const formatted = formatModelName(model.model_id)}
+						{@const openRouterModel = modelsState
+							.from(Provider.OpenRouter)
+							.find((m) => m.id === model.model_id)}
+						{@const disabled =
+							onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
+						{@const item = menu.getItem(model.model_id, {
+							onSelect: () => modelSelected(model.model_id),
+						})}
 
-							<Command.Item
-								value={model.model_id}
-								class={cn(
-									'bg-popover flex rounded-lg p-2',
-									'relative scroll-m-36 select-none',
-									'data-selected:bg-accent/50 data-selected:text-accent-foreground',
-									'h-10 items-center justify-between',
-									disabled && 'opacity-50'
-								)}
-								onSelect={() => modelSelected(model.model_id)}
+						<div
+							class={cn(
+								'bg-popover flex rounded-lg p-2',
+								'relative scroll-m-36 select-none',
+								'data-highlighted:bg-accent/50 data-highlighted:text-accent-foreground',
+								'h-10 items-center justify-between',
+								disabled && 'opacity-50'
+							)}
+							{...item.attrs}
+						>
+							<div class={cn('flex items-center gap-2')}>
+								{#if getModelIcon(model.model_id)}
+									{@const ModelIcon = getModelIcon(model.model_id)}
+									<ModelIcon class="size-4 shrink-0" />
+								{/if}
+
+								<p class={cn('font-fake-proxima text-center text-sm leading-tight font-bold')}>
+									{formatted.full}
+								</p>
+							</div>
+
+							<div class="flex place-items-center gap-1">
+								{#if openRouterModel && supportsImages(openRouterModel)}
+									<Tooltip>
+										{#snippet trigger(tooltip)}
+											<div
+												{...tooltip.trigger}
+												class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-400"
+											>
+												<EyeIcon class="size-3" />
+											</div>
+										{/snippet}
+										Supports image analysis
+									</Tooltip>
+								{/if}
+
+								{#if openRouterModel && supportsReasoning(openRouterModel)}
+									<Tooltip>
+										{#snippet trigger(tooltip)}
+											<div
+												{...tooltip.trigger}
+												class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-400"
+											>
+												<BrainIcon class="size-3" />
+											</div>
+										{/snippet}
+										Supports reasoning
+									</Tooltip>
+								{/if}
+							</div>
+						</div>
+					{:else}
+						<p class="text-muted-foreground py-2 text-sm text-center self-center my-auto">
+							No favorites, go pin some models!
+						</p>
+					{/each}
+				{:else if view === 'enabled'}
+					{#if filteredPinned.length > 0}
+						<div class="space-y-2">
+							<p
+								class="text-heading/75 flex scroll-m-40 items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize"
 							>
-								<div class={cn('flex items-center gap-2')}>
-									{#if getModelIcon(model.model_id)}
-										{@const ModelIcon = getModelIcon(model.model_id)}
-										<ModelIcon class="size-4 shrink-0" />
-									{/if}
-
-									<p class={cn('font-fake-proxima text-center text-sm leading-tight font-bold')}>
-										{formatted.full}
-									</p>
-								</div>
-
-								<div class="flex place-items-center gap-1">
-									{#if openRouterModel && supportsImages(openRouterModel)}
-										<Tooltip>
-											{#snippet trigger(tooltip)}
-												<div
-													{...tooltip.trigger}
-													class="rounded-md border-violet-500 bg-violet-500/50 p-1 text-violet-400"
-												>
-													<EyeIcon class="size-3" />
-												</div>
-											{/snippet}
-											Supports image analysis
-										</Tooltip>
-									{/if}
-
-									{#if openRouterModel && supportsReasoning(openRouterModel)}
-										<Tooltip>
-											{#snippet trigger(tooltip)}
-												<div
-													{...tooltip.trigger}
-													class="rounded-md border-green-500 bg-green-500/50 p-1 text-green-400"
-												>
-													<BrainIcon class="size-3" />
-												</div>
-											{/snippet}
-											Supports reasoning
-										</Tooltip>
-									{/if}
-								</div>
-							</Command.Item>
-						{/each}
-					{:else if view === 'enabled'}
-						{#if pinnedModels.length > 0}
-							<Command.Group class="space-y-2">
-								<Command.GroupHeading
+								Pinned
+							</p>
+							<div class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
+								{#each filteredPinned as model (model._id)}
+									{@render modelCard(model)}
+								{/each}
+							</div>
+						</div>
+					{/if}
+					{#each groupedModels as [company, models] (company)}
+						{@const filteredModels = models.filter((m) => !isPinned(m))}
+						{#if filteredModels.length > 0}
+							<div class="space-y-2">
+								<p
 									class="text-heading/75 flex scroll-m-40 items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize"
 								>
-									Pinned
-								</Command.GroupHeading>
-								<Command.GroupItems class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
-									{#each pinnedModels as model (model._id)}
+									{company}
+								</p>
+								<div class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
+									{#each filteredModels as model (model._id)}
 										{@render modelCard(model)}
 									{/each}
-								</Command.GroupItems>
-							</Command.Group>
+								</div>
+							</div>
 						{/if}
-						{#each groupedModels as [company, models] (company)}
-							{@const filteredModels = models.filter((m) => !isPinned(m))}
-							{#if filteredModels.length > 0}
-								<Command.Group class="space-y-2">
-									<Command.GroupHeading
-										class="text-heading/75 flex scroll-m-40 items-center gap-2 px-3 pt-3 pb-1 text-xs font-semibold tracking-wide capitalize"
-									>
-										{company}
-									</Command.GroupHeading>
-									<Command.GroupItems class="grid grid-cols-2 gap-3 px-3 pb-3 md:grid-cols-4">
-										{#each filteredModels as model (model._id)}
-											{@render modelCard(model)}
-										{/each}
-									</Command.GroupItems>
-								</Command.Group>
-							{/if}
-						{/each}
-					{/if}
-				</Command.List>
-			</Command.Root>
-			<div class="border-border flex place-items-center justify-between border-t p-2">
-				<Button variant="ghost" size="sm" onclick={toggleView} class="h-7 text-sm font-normal">
-					<ChevronLeftIcon
-						class={cn('size-4 rotate-90 transition-all', { 'rotate-0': view === 'enabled' })}
-					/>
-					{view === 'favorites' ? 'Show enabled' : 'Show favorites'}
-					{#if !isMobile.current}
-						<span>
-							<Kbd size="xs">{cmdOrCtrl}</Kbd>
-							<Kbd size="xs">{view === 'favorites' ? '→' : '←'}</Kbd>
-						</span>
-					{/if}
-				</Button>
-				{#if !isMobile.current && activeModelInfo && view === 'enabled'}
-					<div>
-						<Button
-							variant="ghost"
-							loading={pinning}
-							class="bg-popover"
-							size="sm"
-							onclick={() => togglePin(activeModelInfo._id)}
-						>
-							<span class="text-muted-foreground">
-								{isPinned(activeModelInfo) ? 'Unpin' : 'Pin'}
-							</span>
-							<span>
-								<Kbd size="xs">{cmdOrCtrl}</Kbd>
-								<Kbd size="xs">U</Kbd>
-							</span>
-						</Button>
-					</div>
+					{/each}
 				{/if}
 			</div>
-		</Popover.Content>
-	{/if}
-</Popover.Root>
+		</div>
+		<div class="border-border flex place-items-center justify-between border-t p-2">
+			<Button variant="ghost" size="sm" onclick={toggleView} class="h-7 text-sm font-normal">
+				<ChevronLeftIcon
+					class={cn('size-4 rotate-90 transition-all', { 'rotate-0': view === 'enabled' })}
+				/>
+				{view === 'favorites' ? 'Show enabled' : 'Show favorites'}
+				{#if !isMobile.current}
+					<span>
+						<Kbd size="xs">{cmdOrCtrl}</Kbd>
+						<Kbd size="xs">{view === 'favorites' ? '→' : '←'}</Kbd>
+					</span>
+				{/if}
+			</Button>
+			{#if !isMobile.current && activeModelInfo && view === 'enabled'}
+				<div>
+					<Button
+						variant="ghost"
+						loading={pinning}
+						class="bg-popover"
+						size="sm"
+						onclick={() => togglePin(activeModelInfo._id)}
+					>
+						<span class="text-muted-foreground">
+							{isPinned(activeModelInfo) ? 'Unpin' : 'Pin'}
+						</span>
+						<span>
+							<Kbd size="xs">{cmdOrCtrl}</Kbd>
+							<Kbd size="xs">U</Kbd>
+						</span>
+					</Button>
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if}
 
 {#snippet modelCard(model: (typeof enabledArr)[number])}
 	{@const formatted = formatModelName(model.model_id)}
@@ -458,17 +495,19 @@
 		.from(Provider.OpenRouter)
 		.find((m) => m.id === model.model_id)}
 	{@const disabled = onlyImageModels && openRouterModel && !supportsImages(openRouterModel)}
+	{@const item = menu.getItem(model.model_id, {
+		onSelect: () => modelSelected(model.model_id),
+	})}
 
-	<Command.Item
-		value={model.model_id}
+	<div
 		class={cn(
 			'border-border bg-popover group/item flex gap-2 rounded-lg border p-2',
 			'relative scroll-m-36 select-none',
-			'data-selected:bg-accent/50 data-selected:text-accent-foreground',
+			'data-highlighted:bg-accent/50 data-highlighted:text-accent-foreground',
 			'h-36 w-32 flex-col items-center justify-center',
 			disabled && 'opacity-50'
 		)}
-		onSelect={() => modelSelected(model.model_id)}
+		{...item.attrs}
 	>
 		<div class={cn('flex flex-col items-center')}>
 			{#if getModelIcon(model.model_id)}
@@ -538,5 +577,5 @@
 				{/if}
 			</Button>
 		</div>
-	</Command.Item>
+	</div>
 {/snippet}

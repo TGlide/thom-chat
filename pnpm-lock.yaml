@@ -98,7 +98,7 @@ importers:
         version: 2.2.0
       bits-ui:
         specifier: ^2.8.5
-        version: 2.8.5(patch_hash=dff61afc32aca18c24f2ce50b3856151586955f1a288a3c214c96289cc85c98b)(@internationalized/date@3.8.2)(svelte@5.34.1)
+        version: 2.8.5(@internationalized/date@3.8.2)(svelte@5.34.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -133,8 +133,8 @@ importers:
         specifier: ^26.0.0
         version: 26.1.0
       melt:
-        specifier: https://pkg.vc/-/@melt-ui/melt@42e572f
-        version: https://pkg.vc/-/@melt-ui/melt@42e572f(@floating-ui/dom@1.7.1)(svelte@5.34.1)
+        specifier: ^0.38.0
+        version: 0.38.0(@floating-ui/dom@1.7.1)(svelte@5.34.1)
       mode-watcher:
         specifier: ^1.0.8
         version: 1.0.8(svelte@5.34.1)
@@ -1621,6 +1621,9 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
+  focus-trap@7.6.5:
+    resolution: {integrity: sha512-7Ke1jyybbbPZyZXFxEftUtxFGLMpE2n6A+z//m4CRDlj0hW+o3iYSmh8nFlYMurOiJVDmJRilUQtJr08KfIxlg==}
+
   fsevents@2.3.2:
     resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1938,9 +1941,8 @@ packages:
   mdurl@2.0.0:
     resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
 
-  melt@https://pkg.vc/-/@melt-ui/melt@42e572f:
-    resolution: {tarball: https://pkg.vc/-/@melt-ui/melt@42e572f}
-    version: 0.35.0
+  melt@0.38.0:
+    resolution: {integrity: sha512-fVUZdZSYUeYw4uwZkY+KoxmbVVMY14qEA21wjIR0ELAMlWc/eSeG0JcZn0wSB7dB1JdWo7KsVrZssieiQWSp5A==}
     peerDependencies:
       '@floating-ui/dom': ^1.6.0
       svelte: ^5.30.1
@@ -2014,11 +2016,6 @@ packages:
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.5:
-    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   nanostores@0.11.4:
@@ -3734,7 +3731,7 @@ snapshots:
       set-cookie-parser: 2.7.1
       uncrypto: 0.1.3
 
-  bits-ui@2.8.5(patch_hash=dff61afc32aca18c24f2ce50b3856151586955f1a288a3c214c96289cc85c98b)(@internationalized/date@3.8.2)(svelte@5.34.1):
+  bits-ui@2.8.5(@internationalized/date@3.8.2)(svelte@5.34.1):
     dependencies:
       '@floating-ui/core': 1.7.1
       '@floating-ui/dom': 1.7.1
@@ -4122,6 +4119,10 @@ snapshots:
 
   flatted@3.3.3: {}
 
+  focus-trap@7.6.5:
+    dependencies:
+      tabbable: 6.2.0
+
   fsevents@2.3.2:
     optional: true
 
@@ -4439,12 +4440,12 @@ snapshots:
 
   mdurl@2.0.0: {}
 
-  melt@https://pkg.vc/-/@melt-ui/melt@42e572f(@floating-ui/dom@1.7.1)(svelte@5.34.1):
+  melt@0.38.0(@floating-ui/dom@1.7.1)(svelte@5.34.1):
     dependencies:
       '@floating-ui/dom': 1.7.1
       dequal: 2.0.3
+      focus-trap: 7.6.5
       jest-axe: 9.0.0
-      nanoid: 5.1.5
       runed: 0.23.4(svelte@5.34.1)
       svelte: 5.34.1
 
@@ -4510,8 +4511,6 @@ snapshots:
   ms@2.1.3: {}
 
   nanoid@3.3.11: {}
-
-  nanoid@5.1.5: {}
 
   nanostores@0.11.4: {}
 

@@ -45,7 +45,7 @@
 		"globals": "^16.0.0",
 		"isomorphic-dompurify": "^2.25.0",
 		"jsdom": "^26.0.0",
-		"melt": "https://pkg.vc/-/@melt-ui/melt@42e572f",
+		"melt": "^0.38.0",
 		"mode-watcher": "^1.0.8",
 		"neverthrow": "^8.2.0",
 		"openai": "^5.5.1",
