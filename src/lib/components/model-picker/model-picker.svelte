@@ -41,6 +41,7 @@
 	import PinIcon from '~icons/lucide/pin';
 	import PinOffIcon from '~icons/lucide/pin-off';
 	import { isPinned } from '$lib/backend/convex/user_enabled_models';
+	import { isFirefox } from '$lib/hooks/is-firefox.svelte';
 
 	type Props = {
 		class?: string;
@@ -271,7 +272,7 @@
 
 		<Popover.Content
 			portalProps={{
-				disabled: true
+				disabled: isFirefox
 			}}
 			align="start"
 			sideOffset={5}
