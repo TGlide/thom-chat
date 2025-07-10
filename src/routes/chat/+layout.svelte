@@ -20,7 +20,7 @@
 	import { settings } from '$lib/state/settings.svelte.js';
 	import { Provider } from '$lib/types';
 	import { compressImage } from '$lib/utils/image-compression';
-	import { supportsImages } from '$lib/utils/model-capabilities';
+	import { supportsImages, supportsReasoning } from '$lib/utils/model-capabilities';
 	import { omit, pick } from '$lib/utils/object.js';
 	import { cn } from '$lib/utils/utils.js';
 	import { useConvexClient } from 'convex-svelte';
@@ -38,13 +38,16 @@
 	import XIcon from '~icons/lucide/x';
 	import { callCancelGeneration } from '../api/cancel-generation/call.js';
 	import { callGenerateMessage } from '../api/generate-message/call.js';
-	import ModelPicker from './model-picker.svelte';
+	import { ModelPicker } from '$lib/components/model-picker';
 	import SearchModal from './search-modal.svelte';
 	import { shortcut } from '$lib/actions/shortcut.svelte.js';
 	import { mergeAttrs } from 'melt';
 	import { callEnhancePrompt } from '../api/enhance-prompt/call.js';
 	import ShinyText from '$lib/components/animations/shiny-text.svelte';
 	import SparkleIcon from '~icons/lucide/sparkle';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import BrainIcon from '~icons/lucide/brain';
+	import * as casing from '$lib/utils/casing.js';
 
 	const client = useConvexClient();
 
@@ -127,6 +130,7 @@
 				model_id: settings.modelId,
 				images: imagesCopy.length > 0 ? imagesCopy : undefined,
 				web_search_enabled: settings.webSearchEnabled,
+				reasoning_effort: currentModelSupportsReasoning ? settings.reasoningEffort : undefined,
 			});
 
 			if (res.isErr()) {
@@ -212,6 +216,14 @@
 		const openRouterModels = models.from(Provider.OpenRouter);
 		const currentModel = openRouterModels.find((m) => m.id === settings.modelId);
 		return currentModel ? supportsImages(currentModel) : false;
+	});
+
+	const currentModelSupportsReasoning = $derived.by(() => {
+		if (!settings.modelId) return false;
+		const openRouterModels = models.from(Provider.OpenRouter);
+		const currentModel = openRouterModels.find((m) => m.id === settings.modelId);
+		if (!currentModel) return false;
+		return supportsReasoning(currentModel);
 	});
 
 	const fileUpload = new FileUpload({
@@ -697,6 +709,32 @@
 								<div class="flex flex-wrap items-center gap-2 pr-2">
 									<ModelPicker onlyImageModels={selectedImages.length > 0} />
 									<div class="flex items-center gap-2">
+										{#if currentModelSupportsReasoning}
+											<DropdownMenu.Root>
+												<DropdownMenu.Trigger
+													class="border-border hover:bg-accent/20 flex items-center gap-1 rounded-full border px-1 py-1 text-xs transition-colors disabled:opacity-50 sm:px-2"
+												>
+													<BrainIcon class="!size-3" />
+													<span class="hidden whitespace-nowrap sm:inline">
+														{casing.camelToPascal(settings.reasoningEffort)}
+													</span>
+												</DropdownMenu.Trigger>
+												<DropdownMenu.Content align="start">
+													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'high')}>
+														<BrainIcon class="size-4" />
+														High
+													</DropdownMenu.Item>
+													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'medium')}>
+														<BrainIcon class="size-4" />
+														Medium
+													</DropdownMenu.Item>
+													<DropdownMenu.Item onSelect={() => (settings.reasoningEffort = 'low')}>
+														<BrainIcon class="size-4" />
+														Low
+													</DropdownMenu.Item>
+												</DropdownMenu.Content>
+											</DropdownMenu.Root>
+										{/if}
 										<button
 											type="button"
 											class={cn(

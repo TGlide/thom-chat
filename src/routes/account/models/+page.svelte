@@ -12,6 +12,7 @@
 	import PlusIcon from '~icons/lucide/plus';
 	import XIcon from '~icons/lucide/x';
 	import ModelCard from './model-card.svelte';
+	import { supportsImages, supportsReasoning } from '$lib/utils/model-capabilities';
 
 	const openRouterKeyQuery = useCachedQuery(api.user_keys.get, {
 		provider: Provider.OpenRouter,
@@ -32,7 +33,14 @@
 
 	const freeModelsToggle = new Toggle({
 		value: false,
-		disabled: false,
+	});
+
+	const reasoningModelsToggle = new Toggle({
+		value: false,
+	});
+
+	const imageModelsToggle = new Toggle({
+		value: false,
 	});
 
 	let initiallyEnabled = $state<string[]>([]);
@@ -48,11 +56,19 @@
 	const openRouterModels = $derived(
 		fuzzysearch({
 			haystack: models.from(Provider.OpenRouter).filter((m) => {
-				if (!freeModelsToggle.value) return true;
+				if (freeModelsToggle.value) {
+					if (m.pricing.prompt !== '0') return false;
+				}
 
-				if (m.pricing.prompt === '0') return true;
+				if (reasoningModelsToggle.value) {
+					if (!supportsReasoning(m)) return false;
+				}
 
-				return false;
+				if (imageModelsToggle.value) {
+					if (!supportsImages(m)) return false;
+				}
+
+				return true;
 			}),
 			needle: search,
 			property: 'name',
@@ -93,6 +109,24 @@
 			class="group text-primary-foreground bg-primary aria-[pressed=false]:border-border border-primary aria-[pressed=false]:bg-background flex place-items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			Free
+			<XIcon class="inline size-3 group-aria-[pressed=false]:hidden" />
+			<PlusIcon class="inline size-3 group-aria-[pressed=true]:hidden" />
+		</button>
+		<button
+			{...reasoningModelsToggle.trigger}
+			aria-label="Reasoning Models"
+			class="group text-primary-foreground bg-primary aria-[pressed=false]:border-border border-primary aria-[pressed=false]:bg-background flex place-items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			Reasoning
+			<XIcon class="inline size-3 group-aria-[pressed=false]:hidden" />
+			<PlusIcon class="inline size-3 group-aria-[pressed=true]:hidden" />
+		</button>
+		<button
+			{...imageModelsToggle.trigger}
+			aria-label="Image Models"
+			class="group text-primary-foreground bg-primary aria-[pressed=false]:border-border border-primary aria-[pressed=false]:bg-background flex place-items-center gap-1 rounded-full border px-2 py-1 text-xs transition-all disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			Images
 			<XIcon class="inline size-3 group-aria-[pressed=false]:hidden" />
 			<PlusIcon class="inline size-3 group-aria-[pressed=true]:hidden" />
 		</button>

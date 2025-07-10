@@ -33,6 +33,7 @@
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
 		"@vercel/functions": "^2.2.0",
+		"bits-ui": "^2.8.5",
 		"clsx": "^2.1.1",
 		"concurrently": "^9.1.2",
 		"convex": "^1.24.8",
@@ -44,9 +45,10 @@
 		"globals": "^16.0.0",
 		"isomorphic-dompurify": "^2.25.0",
 		"jsdom": "^26.0.0",
-		"melt": "https://pkg.vc/-/@melt-ui/melt@42e572f",
+		"melt": "^0.38.0",
 		"mode-watcher": "^1.0.8",
 		"neverthrow": "^8.2.0",
+		"openai": "^5.5.1",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
@@ -58,6 +60,7 @@
 		"tailwind-merge": "^3.3.1",
 		"tailwind-variants": "^1.0.0",
 		"tailwindcss": "^4.0.0",
+		"tw-animate-css": "^1.3.4",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.20.0",
 		"unplugin-icons": "^22.1.0",
@@ -84,7 +87,6 @@
 		"convex-helpers": "^0.1.94",
 		"hastscript": "^9.0.1",
 		"markdown-it-async": "^2.2.0",
-		"openai": "^5.3.0",
 		"zod": "^3.25.64"
 	}
 }
