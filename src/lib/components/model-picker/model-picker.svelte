@@ -272,7 +272,7 @@
 
 		<Popover.Content
 			portalProps={{
-				disabled: isFirefox
+				disabled: isFirefox,
 			}}
 			align="start"
 			sideOffset={5}
@@ -524,7 +524,7 @@
 		</div>
 
 		<div
-			class="bg-popover absolute top-1 right-1 scale-75 rounded-md p-1 md:opacity-0 transition-all group-hover/item:scale-100 group-hover/item:opacity-100"
+			class="bg-popover absolute top-1 right-1 scale-75 rounded-md p-1 transition-all group-hover/item:scale-100 group-hover/item:opacity-100 md:opacity-0"
 		>
 			<Button
 				variant="ghost"
