@@ -10,11 +10,19 @@
 	import { browser } from '$app/environment';
 	import { MetaTags } from 'svelte-meta-tags';
 	import { page } from '$app/state';
+	import { setupLastChat } from '$lib/state/last-chat.svelte';
 
 	let { children } = $props();
 
 	setupConvex(PUBLIC_CONVEX_URL);
+	const lastChat = setupLastChat();
 	models.init();
+
+	$effect(() => {
+		if (page.url.pathname.startsWith('/chat')) {
+			lastChat.current = page.params?.id ?? null;
+		}
+	});
 </script>
 
 <MetaTags
