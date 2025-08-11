@@ -12,6 +12,7 @@
 	import { session } from '$lib/state/session.svelte.js';
 	import { api } from '$lib/backend/convex/_generated/api.js';
 	import { cn } from '$lib/utils/utils.js';
+	import { useLastChat } from '$lib/state/last-chat.svelte.js';
 
 	let { data, children } = $props();
 
@@ -71,11 +72,15 @@
 
 		await goto('/login');
 	}
+
+	const lastChat = useLastChat();
+
+	const backToChat = $derived(lastChat.current ? `/chat/${lastChat.current}` : '/chat');
 </script>
 
 <div class="container mx-auto max-w-[1200px] space-y-8 pt-6 pb-24">
 	<header class="flex place-items-center justify-between px-4">
-		<Button href="/chat" variant="ghost" class="flex place-items-center gap-2 text-sm">
+		<Button href={backToChat} variant="ghost" class="flex place-items-center gap-2 text-sm">
 			<ArrowLeftIcon class="size-4" />
 			Back to Chat
 		</Button>
