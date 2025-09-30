@@ -4,7 +4,6 @@ import { api } from '$lib/backend/convex/_generated/api';
 import type { Doc, Id } from '$lib/backend/convex/_generated/dataModel';
 import { Provider, type Annotation } from '$lib/types';
 import { error, json, type RequestHandler } from '@sveltejs/kit';
-import { waitUntil } from '@vercel/functions';
 import { getSessionCookie } from 'better-auth/cookies';
 import { ConvexHttpClient } from 'convex/browser';
 import { err, ok, Result, ResultAsync } from 'neverthrow';
@@ -741,17 +740,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		log('New conversation and message created', startTime);
 
 		// Generate title for new conversation in background
-		waitUntil(
-			generateConversationTitle({
-				conversationId,
-				sessionToken,
-				startTime,
-				keyResultPromise,
-				userMessage: args.message,
-			}).catch((error) => {
-				log(`Background title generation error: ${error}`, startTime);
-			})
-		);
+		generateConversationTitle({
+			conversationId,
+			sessionToken,
+			startTime,
+			keyResultPromise,
+			userMessage: args.message,
+		}).catch((error) => {
+			log(`Background title generation error: ${error}`, startTime);
+		});
 	} else {
 		log('Using existing conversation', startTime);
 
@@ -799,36 +796,34 @@ export const POST: RequestHandler = async ({ request }) => {
 	generationAbortControllers.set(conversationId, abortController);
 
 	// Start AI response generation in background - don't await
-	waitUntil(
-		generateAIResponse({
-			conversationId,
-			sessionToken,
-			startTime,
-			modelResultPromise,
-			keyResultPromise,
-			rulesResultPromise,
-			userSettingsPromise,
-			abortSignal: abortController.signal,
-			reasoningEffort: args.reasoning_effort,
+	generateAIResponse({
+		conversationId,
+		sessionToken,
+		startTime,
+		modelResultPromise,
+		keyResultPromise,
+		rulesResultPromise,
+		userSettingsPromise,
+		abortSignal: abortController.signal,
+		reasoningEffort: args.reasoning_effort,
+	})
+		.catch(async (error) => {
+			log(`Background AI response generation error: ${error}`, startTime);
+			// Reset generating status on error
+			try {
+				await client.mutation(api.conversations.updateGenerating, {
+					conversation_id: conversationId as Id<'conversations'>,
+					generating: false,
+					session_token: sessionToken,
+				});
+			} catch (e) {
+				log(`Failed to reset generating status after error: ${e}`, startTime);
+			}
 		})
-			.catch(async (error) => {
-				log(`Background AI response generation error: ${error}`, startTime);
-				// Reset generating status on error
-				try {
-					await client.mutation(api.conversations.updateGenerating, {
-						conversation_id: conversationId as Id<'conversations'>,
-						generating: false,
-						session_token: sessionToken,
-					});
-				} catch (e) {
-					log(`Failed to reset generating status after error: ${e}`, startTime);
-				}
-			})
-			.finally(() => {
-				// Clean up the cached AbortController
-				generationAbortControllers.delete(conversationId);
-			})
-	);
+		.finally(() => {
+			// Clean up the cached AbortController
+			generationAbortControllers.delete(conversationId);
+		});
 
 	log('Response sent, AI generation started in background', startTime);
 	return response({ ok: true, conversation_id: conversationId });
