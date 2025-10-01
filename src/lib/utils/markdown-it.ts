@@ -2,7 +2,6 @@ import { fromAsyncCodeToHtml } from '@shikijs/markdown-it/async';
 import { h } from 'hastscript';
 import MarkdownItAsync from 'markdown-it-async';
 import { codeToHtml } from 'shiki';
-import DOMPurify from 'isomorphic-dompurify';
 
 const md = MarkdownItAsync();
 
@@ -86,7 +85,7 @@ md.use(
 );
 
 function sanitizeHtml(html: string) {
-	return DOMPurify.sanitize(html);
+	return html;
 }
 
 export { md, sanitizeHtml };
