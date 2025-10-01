@@ -25,3 +25,4 @@ vite.config.ts.timestamp-*
 .aider*
 
 src/lib/backend/convex/_generated
+.env*.local

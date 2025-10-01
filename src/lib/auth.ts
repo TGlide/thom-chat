@@ -3,20 +3,22 @@ import { convexAdapter } from '@better-auth-kit/convex';
 import { ConvexHttpClient } from 'convex/browser';
 import 'dotenv/config';
 import { api } from './backend/convex/_generated/api';
+import { env } from '$env/dynamic/public';
+import { env as privateEnv } from '$env/dynamic/private';
 
-const client = new ConvexHttpClient(process.env.PUBLIC_CONVEX_URL!);
+const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL!);
 
 export const auth = betterAuth({
-	secret: process.env.BETTER_AUTH_SECRET!,
+	secret: privateEnv.BETTER_AUTH_SECRET!,
 	database: convexAdapter(client),
 	socialProviders: {
 		google: {
-			clientId: process.env.GOOGLE_CLIENT_ID!,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+			clientId: privateEnv.GOOGLE_CLIENT_ID!,
+			clientSecret: privateEnv.GOOGLE_CLIENT_SECRET!,
 		},
 		github: {
-			clientId: process.env.GITHUB_CLIENT_ID!,
-			clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+			clientId: privateEnv.GITHUB_CLIENT_ID!,
+			clientSecret: privateEnv.GITHUB_CLIENT_SECRET!,
 		},
 	},
 	databaseHooks: {
